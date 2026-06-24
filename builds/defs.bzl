@@ -148,6 +148,7 @@ def _emit_goal(project_id, source_archive, strip_prefix, toolchains, env, plat, 
         _COMMAND_DEFAULT_FLAGS.get(spec.command, []) +
         overlay_flags +
         platform_flags +
+        env.platform_flags.get(plat.name, []) +
         _COMMON_FLAGS +
         spec.flags
     )

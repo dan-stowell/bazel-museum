@@ -18,6 +18,9 @@ Fields:
                   platform (via target_compatible_with). This is how `local`
                   models "one OS/arch at a time": on this laptop only the
                   darwin_arm64 goals are live; on the linux VM only linux_amd64.
+  * platform_flags — dict platform-name -> extra build flags applied only to
+                  goals on that platform (e.g. a toolchain flag a particular
+                  os/arch needs in this environment).
 
 To add an environment (e.g. a future `actiond`), define it here with the
 platforms it supports and add it to a project's `environments = [...]`.
@@ -25,13 +28,14 @@ platforms it supports and add it to a project's `environments = [...]`.
 
 load(":overlays.bzl", "BUILDBUDDY_RBE")
 
-def environment(name, platforms, overlays = [], pin_platform = False, host_only = False):
+def environment(name, platforms, overlays = [], pin_platform = False, host_only = False, platform_flags = {}):
     return struct(
         name = name,
         platforms = platforms,
         overlays = overlays,
         pin_platform = pin_platform,
         host_only = host_only,
+        platform_flags = platform_flags,
     )
 
 # The host machine itself. Supports exactly one platform at a time — whichever
@@ -42,12 +46,23 @@ LOCAL = environment(
     host_only = True,
 )
 
-# BuildBuddy cloud RBE. Today it serves linux/amd64 (linux/arm64 and darwin would
-# need the corresponding executor pools). Host-independent: runs the same from a
-# linux or macOS orchestrator.
+# BuildBuddy cloud RBE. Host-independent: runs the same from a linux or macOS
+# orchestrator. Today it serves linux/amd64.
+#
+# darwin_arm64 executors *exist* (verified) and are NOT the blocker. It's left
+# out of `platforms` because of a toolchain issue building hermetic-llvm's own
+# internal host tools on the executor (Layer 2 in docs/DESIGN.md) — those compile
+# via apple_support/host Xcode, whose absolute SDK path differs between the
+# orchestrator and the executor. The museum-side half (Layer 1) is ready below:
+# `source=bootstrapped` makes the toolchain's runtimes (compiler-rt etc.) compile
+# hermetically rather than via the host toolchain. Adding "darwin_arm64" to
+# `platforms` is the final flip once Layer 2 is fixed upstream.
 RBE = environment(
     name = "rbe",
     platforms = ["linux_amd64"],
     overlays = [BUILDBUDDY_RBE],
     pin_platform = True,
+    platform_flags = {
+        "darwin_arm64": ["--@llvm//toolchain:source=bootstrapped"],
+    },
 )

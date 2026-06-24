@@ -1,13 +1,17 @@
-load("//builds:defs.bzl", "goal", "museum_project")
-load("//builds:overlays.bzl", "BUILDBUDDY_RBE")
+load("//builds:defs.bzl", "build_spec", "museum_project", "test_spec")
+load("//builds:environments.bzl", "LOCAL", "RBE")
+load("//builds:overlays.bzl", "HERMETIC_LLVM")
 
 # Copybara — Google's tool for transforming and moving code between repositories.
 # A genuinely Bazel-native Java project. Build #2: exercises the JVM toolchain
 # (rules_java + Bazel's hermetic remote JDK). Source pinned at tag v20260622.
-# No toolchain overlay needed: the Java toolchain is hermetic out of the box.
 #
-#   bazel run //builds/copybara:build
-#   bazel run //builds/copybara:test
+#   bazel run //builds/copybara:build_local_darwin_arm64
+#   bazel run //builds/copybara:test_rbe_linux_amd64
+#
+# The hermetic LLVM toolchain supplies the C++ toolchain for the native bits
+# Bazel's Java machinery needs (e.g. @bazel_tools ijar's `zipper`); without it a
+# non-linux host has no matching C++ toolchain once the platform is pinned.
 #
 # Note on host tooling: copybara's tests shell out to version-control binaries.
 # The Mercurial (`hg`) tests are excluded because `hg` isn't a hermetic input
@@ -18,35 +22,22 @@ museum_project(
     name = "copybara",
     source_archive = "@copybara_archive//file",
     strip_prefix = "copybara-20260622",
-    goals = [
-        goal("build", targets = ["//java/com/google/copybara:copybara"]),
-        goal(
-            "test",
-            command = "test",
-            targets = [
-                "//javatests/...",
-                "-//javatests/com/google/copybara/hg/...",  # needs Mercurial
+    toolchains = [HERMETIC_LLVM],
+    environments = [LOCAL, RBE],
+    build = build_spec(targets = ["//java/com/google/copybara:copybara"]),
+    test = test_spec(
+        targets = [
+            "//javatests/...",
+            "-//javatests/com/google/copybara/hg/...",  # needs Mercurial
+        ],
+        exclude_on = {
+            # The executor runs actions as root, so these tests don't observe the
+            # permission-denied / file-locked failures they assert (they pass in
+            # the local goals under a normal uid).
+            "rbe": [
+                "//javatests/com/google/copybara/archive:ArchiveModuleTest_all_tests",
+                "//javatests/com/google/copybara:folder/FolderDestinationTest_all_tests",
             ],
-        ),
-        # Remote build execution (rules_java compiles run on the executor).
-        goal(
-            "build.remote",
-            overlays = [BUILDBUDDY_RBE],
-            targets = ["//java/com/google/copybara:copybara"],
-        ),
-        goal(
-            "test.remote",
-            command = "test",
-            overlays = [BUILDBUDDY_RBE],
-            targets = [
-                "//javatests/...",
-                "-//javatests/com/google/copybara/hg/...",  # needs Mercurial
-                # The executor runs actions as root, so these tests don't observe
-                # the permission-denied / file-locked failures they assert (they
-                # pass in the local `test` goal under a normal uid).
-                "-//javatests/com/google/copybara/archive:ArchiveModuleTest_all_tests",
-                "-//javatests/com/google/copybara:folder/FolderDestinationTest_all_tests",
-            ],
-        ),
-    ],
+        },
+    ),
 )

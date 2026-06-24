@@ -161,6 +161,10 @@ def main(argv=None):
             sys.exit(f"runner: bad --append spec {spec!r} (want RLOC=DEST)")
         src = _resolve(rf, src_rloc)
         target = os.path.join(workspace, dest)
+        # Append-onto-existing is the common case (e.g. MODULE.bazel), but an
+        # overlay may also drop a wholly new file into a fresh package (e.g. an
+        # injected RBE platform), so create any missing parent directories.
+        os.makedirs(os.path.dirname(target), exist_ok=True)
         with open(src, "r", encoding="utf-8") as s:
             snippet = s.read()
         with open(target, "a", encoding="utf-8") as t:

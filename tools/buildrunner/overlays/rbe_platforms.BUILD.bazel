@@ -1,0 +1,52 @@
+# === bazel-museum: RBE execution+target platforms (injected by the `rbe` env) ===
+#
+# The runner writes this file to a fresh `museum_rbe/` package in the extracted
+# source. An RBE goal then points --platforms, --extra_execution_platforms and
+# --host_platform at ONE of these (e.g. //museum_rbe:linux_amd64), so the entire
+# build+test — target config, action execution, and host/exec tool resolution —
+# is pinned to a single explicit platform rather than leaking the orchestrating
+# host's identity (which is what makes RBE host-independent, and what stops e.g.
+# a darwin host tool from being shipped to a linux executor).
+#
+# Each platform's exec_properties carry the BuildBuddy executor image/pool, so
+# the action lands on the right executor. Keep these in sync with PLATFORMS in
+# //builds:platforms.bzl. `platform` and `@platforms//...` are always available,
+# so no load() is needed.
+
+platform(
+    name = "linux_amd64",
+    constraint_values = ["@platforms//os:linux", "@platforms//cpu:x86_64"],
+    exec_properties = {
+        "OSFamily": "Linux",
+        "container-image": "docker://gcr.io/flame-public/rbe-ubuntu20-04:latest",
+    },
+)
+
+platform(
+    name = "linux_arm64",
+    constraint_values = ["@platforms//os:linux", "@platforms//cpu:arm64"],
+    exec_properties = {
+        "OSFamily": "Linux",
+        "container-image": "docker://gcr.io/flame-public/rbe-ubuntu20-04:latest",
+    },
+)
+
+# macOS executors are a separate BuildBuddy capability; these are placeholders
+# for when a mac executor pool is enabled.
+platform(
+    name = "darwin_arm64",
+    constraint_values = ["@platforms//os:osx", "@platforms//cpu:arm64"],
+    exec_properties = {
+        "OSFamily": "Darwin",
+        "Arch": "arm64",
+    },
+)
+
+platform(
+    name = "darwin_amd64",
+    constraint_values = ["@platforms//os:osx", "@platforms//cpu:x86_64"],
+    exec_properties = {
+        "OSFamily": "Darwin",
+        "Arch": "amd64",
+    },
+)

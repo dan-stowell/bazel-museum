@@ -36,18 +36,14 @@ HERMETIC_LLVM = overlay(
 # toolchains_buildbuddy: hermetic-llvm is zero-sysroot, so the compiler and all
 # inputs are uploaded to the CAS and run image-agnostically on the executor.
 #
-# The executor image only needs a modern-enough glibc to run the prebuilt clang
-# (BuildBuddy's default image is Ubuntu 16.04 / glibc 2.23, too old), so we pin
-# one explicitly via --remote_default_exec_properties (which applies because no
-# target sets its own exec_properties). The API key is injected as a
-# --remote_header by the runner, never committed.
-#
-# This works as-is when the *host* is linux/amd64 (the auto exec platform is
-# already linux x86_64). Cross-host (e.g. macOS) RBE will force a linux exec
-# platform; that is the next step.
+# This overlay carries only the *connection* to BuildBuddy (endpoints, auth,
+# fan-out). The execution+target *platform* is pinned separately, per goal, by
+# museum_project (it injects museum_rbe/ and sets --platforms /
+# --extra_execution_platforms / --host_platform to the goal's os/arch). That
+# separation is what lets one environment serve multiple platforms. The API key
+# is injected as a --remote_header by the runner, so it never hits disk.
 _BB = "grpcs://buildbuddy.buildbuddy.io"
 _BB_RESULTS = "https://buildbuddy.buildbuddy.io/invocation/"
-_RBE_IMAGE = "docker://gcr.io/flame-public/rbe-ubuntu20-04:latest"
 
 BUILDBUDDY_RBE = overlay(
     name = "buildbuddy_rbe",
@@ -57,8 +53,13 @@ BUILDBUDDY_RBE = overlay(
         "--bes_backend=" + _BB,
         "--bes_results_url=" + _BB_RESULTS,
         "--remote_timeout=10m",
-        "--remote_default_exec_properties=OSFamily=Linux",
-        "--remote_default_exec_properties=container-image=" + _RBE_IMAGE,
+        # Run spawns remotely, falling back to a local sandbox (then bare local)
+        # only for actions that can't go remote. Crucially this drops the default
+        # `worker` strategy: persistent workers run *locally*, so with a pinned
+        # remote platform a local worker would try to exec the executor's toolchain
+        # (e.g. the linux remote JDK) on the orchestrating host and fail with
+        # "cannot execute binary file". Keeping workers off makes RBE host-neutral.
+        "--spawn_strategy=remote,sandboxed,local",
         # RBE best practices: fan out, and don't pull every intermediate output.
         "--jobs=50",
         "--remote_download_toplevel",

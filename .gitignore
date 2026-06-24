@@ -1,0 +1,6 @@
+# Bazel symlinks
+/bazel-*
+
+# Python bytecode (in case anything is run outside Bazel)
+__pycache__/
+*.pyc

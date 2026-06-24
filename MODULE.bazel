@@ -1,0 +1,28 @@
+"""Bazel Museum: a collection of reproducible Bazel builds of public projects.
+
+This module hosts (1) a data pipeline that discovers public projects building
+with Bazel, (2) tooling to run Bazel builds in isolation, and (3) the build
+collection itself. See docs/ for the design.
+"""
+
+module(
+    name = "bazel_museum",
+    version = "0.0.0",
+)
+
+# --- External dependencies -------------------------------------------------
+
+bazel_dep(name = "rules_python", version = "2.0.3")
+bazel_dep(name = "platforms", version = "1.0.0")
+
+# Hermetic Python toolchain so the pipeline runs the same everywhere.
+python = use_extension("@rules_python//python/extensions:python.bzl", "python")
+python.toolchain(
+    is_default = True,
+    python_version = "3.12",
+)
+
+# Hermetic `gh` CLI, downloaded and pinned (see //tools/gh:extension.bzl).
+# Used by the pipeline to enrich project metadata (stars, archived, etc.).
+gh = use_extension("//tools/gh:extension.bzl", "gh_extension")
+use_repo(gh, "gh_cli_linux_amd64", "gh_cli_linux_arm64")

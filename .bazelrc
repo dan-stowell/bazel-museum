@@ -1,0 +1,11 @@
+# Bazel Museum build configuration.
+
+# Bzlmod is the only dependency system used in this repo.
+common --enable_bzlmod
+common --noenable_workspace
+
+# Make actions see a consistent environment for reproducibility.
+build --incompatible_strict_action_env
+
+# Quieter, more useful test output.
+test --test_output=errors

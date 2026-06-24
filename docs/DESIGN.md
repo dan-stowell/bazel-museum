@@ -2,8 +2,9 @@
 
 Bazel Museum is a collection of reproducible Bazel builds of public open-source
 projects. There are three pieces. **Piece 1 (the data pipeline) and Piece 2
-(isolated builds, Tier 1) are built, and Piece 3 has its first project
-(abseil-cpp). The containerized isolation tier is the next step.**
+(isolated builds with a fully-hermetic C/C++ toolchain) are built, and Piece 3
+has its first project (abseil-cpp). The optional containerized isolation tier is
+the next step.**
 
 Everything is driven by Bazel: clone the repo onto a host that has only Bazel
 (via `bazelisk`) and you can build and run everything. No host Python, no host
@@ -94,6 +95,7 @@ pipeline/
 tools/gh/          hermetic gh CLI module extension (pipeline enrichment)
 tools/fetch/       module extensions: inner Bazel binary + project source pins
 tools/buildrunner/ runner.py — the isolated, daemonless inner-build engine
+  overlays/        static snippets appended onto a project (e.g. hermetic LLVM)
 builds/
   defs.bzl         the museum_build macro
   abseil_cpp/      first project: //builds/abseil_cpp:build
@@ -123,10 +125,12 @@ tools/buildrunner/runner.py            # the engine, a py_binary per project
   │    @inner_bazel_linux_amd64//file  # pinned bazel 9.1.1 binary (hermetic)
   │    @absl_archive//file             # pinned abseil source tarball (sha256)
   ├─ extracts source fresh into  <build_root>/work/   (deterministic mtimes)
+  ├─ appends the hermetic-LLVM overlay onto the source's MODULE.bazel
+  │    (when hermetic_cc = True — see below)
   └─ exec:  bazel --batch --nohome_rc --nosystem_rc
                   --output_user_root=<build_root>/output_root
                   build --repository_cache=<build_root>/repo_cache
-                  -c opt //absl/...
+                  -c opt --extra_toolchains=@llvm//toolchain:all //absl/...
             (cwd = extracted workspace, scrubbed env)
 ```
 
@@ -154,19 +158,42 @@ around `runner.py` with that project's source + the inner Bazel as `data`.
 Reruns are fast: even though the source is re-extracted, the tarball's
 deterministic mtimes mean the inner action cache hits (~5 s vs ~5 min cold).
 
+### Hermetic C/C++ toolchain (overlays + `hermetic_cc`)
+
+A `museum_build(..., hermetic_cc = True)` builds the project with a **fully
+hermetic LLVM toolchain** — [hermeticbuild/hermetic-llvm][hllvm], the BCR module
+`llvm`. It is *zero-sysroot*: the target libc, libc++, CRT, and compiler
+runtimes are built/linked from Bazel-managed sources, so the build does **not**
+use the host compiler, headers, libc, or any sysroot. (Verified: abseil compiles
+with `external/llvm++.../bin/clang` and zero `/usr/bin` compiler calls.)
+
+[hllvm]: https://github.com/hermeticbuild/hermetic-llvm
+
+This is injected **without forking the project**, via the runner's *overlay*
+mechanism (`--append RLOC=DEST`): the snippet
+[`tools/buildrunner/overlays/hermetic_cc.MODULE.bazel`](../tools/buildrunner/overlays/hermetic_cc.MODULE.bazel)
+(`bazel_dep(name = "llvm", ...)` + `register_toolchains(...)`) is appended onto
+the extracted source's `MODULE.bazel`, and `--extra_toolchains=@llvm//toolchain:all`
+forces it ahead of the project's host-autodetected toolchain. Appending is safe
+and deterministic because the source is content-pinned. The same overlay hook
+is the home for project-specific patches in general.
+
+hermetic-llvm also cross-compiles (linux x86_64 ↔ aarch64, and more), which is
+the natural lever for the "linux arm64 next" goal.
+
 ### Known boundaries (future work)
 
-- **Host C/C++ toolchain.** abseil's `cc_configure` autodetects the host
-  compiler (`gcc`/`clang`), so the *toolchain* isn't hermetic yet. A hermetic
-  LLVM toolchain (e.g. `toolchains_llvm`) injected via overlay would close this.
-- **Network is open** during the inner build (to fetch BCR deps); the
-  repository cache makes this a one-time cost. Vendoring for fully offline
+- **Network is open** during the inner build (to fetch BCR deps + the toolchain);
+  the repository cache makes this a one-time cost. Vendoring for fully offline
   builds is possible later.
-- **Container tier (next).** Wrap the runner in a minimal OCI image built with
-  [`rules_img`](https://github.com/bazel-contrib/rules_img), run via a
-  container runtime — the kickoff's original idea — for kernel-level isolation
-  on top of the Tier 1 foundation. (`bwrap` is a lighter alternative where a
-  runtime isn't available.)
+- **Optional container tier (next).** Wrap the runner in a minimal OCI image
+  built with [`rules_img`](https://github.com/bazel-contrib/rules_img), run via
+  a container runtime — the kickoff's original idea — for kernel-level isolation
+  on top of the Tier 1 + hermetic-toolchain foundation. With the toolchain now
+  hermetic, the container's marginal value is whole-process FS/network
+  confinement and a deterministic home for projects with *system-package* deps,
+  so it is opt-in rather than required. (`bwrap` is a lighter alternative where
+  a container runtime isn't available.)
 
 ## Piece 3 — The build collection
 
@@ -178,9 +205,9 @@ the build (the runner has a hook for applying them; abseil needs none).
 
 ### Projects
 
-| Project | Target | Source pin |
-|---------|--------|-----------|
-| [abseil-cpp](../builds/abseil_cpp/BUILD.bazel) | `//builds/abseil_cpp:build` | release `20260526.0` |
+| Project | Target | Source pin | Toolchain |
+|---------|--------|-----------|-----------|
+| [abseil-cpp](../builds/abseil_cpp/BUILD.bazel) | `//builds/abseil_cpp:build` | release `20260526.0` | hermetic LLVM |
 
 Adding a project:
 

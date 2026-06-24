@@ -1,0 +1,3 @@
+# Static overlay snippets appended onto a project's source by the build runner
+# (see //tools/buildrunner/runner.py --append and the museum_build macro).
+exports_files(glob(["*"]))

@@ -12,7 +12,7 @@ run everything inside — no host Python, no host `gh`, no daemons assumed.
 | Piece | What | Status |
 |-------|------|--------|
 | 1 | **Data pipeline** — discover public projects that build with Bazel | ✅ built |
-| 2 | **Run Bazel builds in isolation** — hermetic, daemonless inner build | ✅ built (Tier 1; container next) |
+| 2 | **Run Bazel builds in isolation** — daemonless inner build + fully-hermetic LLVM toolchain | ✅ built (container is an optional next tier) |
 | 3 | **The build collection** — first project: abseil-cpp | ✅ first build (abseil-cpp) |
 
 See [docs/DESIGN.md](docs/DESIGN.md) for the architecture and
@@ -41,7 +41,8 @@ host's `gh auth` credentials. Pass one explicitly with
 
 ```sh
 # Build all of abseil-cpp with a pinned, hermetic inner Bazel, daemonless,
-# in an isolated build root (no host Bazel state touched):
+# in an isolated build root, using a fully-hermetic LLVM toolchain (no host
+# compiler/sysroot, no host Bazel state touched):
 bazel run //builds/abseil_cpp:build
 
 # Build a subset (overrides the default targets):

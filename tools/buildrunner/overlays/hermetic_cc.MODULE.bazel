@@ -1,0 +1,15 @@
+# === bazel-museum: hermetic LLVM C/C++ toolchain (injected by museum_build, hermetic_cc = True) ===
+#
+# Source: https://github.com/hermeticbuild/hermetic-llvm  (BCR module "llvm")
+#
+# A zero-sysroot, fully hermetic LLVM toolchain: the target libc, libc++,
+# CRT and compiler runtimes are built from source, so the build does NOT depend
+# on the host compiler, headers, libc, or any sysroot. This is what makes the
+# museum's C/C++ builds reproducible across hosts and over time.
+#
+# This block is appended to the project's own MODULE.bazel at build time. The
+# museum_build macro also passes --extra_toolchains so this toolchain takes
+# precedence over the project's host-autodetected one.
+bazel_dep(name = "llvm", version = "0.8.9")
+
+register_toolchains("@llvm//toolchain:all")

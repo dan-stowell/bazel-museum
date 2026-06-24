@@ -111,8 +111,17 @@ def main(argv=None):
                    help="inner build target (repeatable)")
     p.add_argument("--build-flag", action="append", default=[], dest="build_flags",
                    help="flag passed to the inner `bazel build` (repeatable)")
+    p.add_argument("--append", action="append", default=[], dest="appends",
+                   metavar="RLOC=DEST",
+                   help="append the runfile RLOC onto DEST (relative to the workspace "
+                        "root) before building -- e.g. inject a toolchain into MODULE.bazel "
+                        "(repeatable)")
     p.add_argument("extra", nargs="*", help="extra args/targets forwarded to the inner build")
-    args = p.parse_args(argv)
+    # parse_known_args so that any flag we don't define (e.g. --subcommands,
+    # --verbose_failures passed after `bazel run ... --`) is forwarded verbatim
+    # to the inner `bazel build` rather than rejected.
+    args, unknown = p.parse_known_args(argv)
+    args.extra = list(args.extra) + unknown
 
     rf = _runfiles()
     bazel = _resolve(rf, args.bazel)
@@ -130,6 +139,21 @@ def main(argv=None):
     if os.path.isdir(work):
         shutil.rmtree(work)
     workspace = _extract(archive, work, args.strip_prefix)
+
+    # Apply overlays: append snippets onto existing source files (e.g. inject a
+    # hermetic toolchain into the project's MODULE.bazel). Deterministic because
+    # the source is content-pinned and the snippets are static.
+    for spec in args.appends:
+        src_rloc, _, dest = spec.rpartition("=")
+        if not src_rloc or not dest:
+            sys.exit(f"runner: bad --append spec {spec!r} (want RLOC=DEST)")
+        src = _resolve(rf, src_rloc)
+        target = os.path.join(workspace, dest)
+        with open(src, "r", encoding="utf-8") as s:
+            snippet = s.read()
+        with open(target, "a", encoding="utf-8") as t:
+            t.write("\n" + snippet)
+        print(f"  overlay(append): {dest} += {os.path.basename(src)}", file=sys.stderr)
 
     # Extra args come from `bazel run //... -- <here>`. If any of them is a
     # concrete target (doesn't start with "-"), they *replace* the configured

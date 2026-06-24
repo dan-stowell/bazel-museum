@@ -12,6 +12,8 @@ museum_build(
     source_archive = "@absl_archive//file",
     strip_prefix = "abseil-cpp-20260526.0",
     targets = ["//absl/..."],
+    # Build with the fully-hermetic LLVM toolchain (no host gcc/sysroot).
+    hermetic_cc = True,
     build_flags = [
         "-c",
         "opt",

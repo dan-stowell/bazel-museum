@@ -32,12 +32,18 @@ _INNER_BAZEL_ARG = select({
     "@platforms//cpu:arm64": ["--bazel=$(rlocationpath @inner_bazel_linux_arm64//file)"],
 })
 
+# The hermetic LLVM toolchain overlay (see //tools/buildrunner/overlays). When
+# hermetic_cc = True, this snippet is appended to the project's MODULE.bazel and
+# forced to take precedence via --extra_toolchains.
+_HERMETIC_CC_OVERLAY = "//tools/buildrunner/overlays:hermetic_cc.MODULE.bazel"
+
 def museum_build(
         name,
         source_archive,
         targets,
         strip_prefix = "",
         build_flags = [],
+        hermetic_cc = False,
         visibility = ["//visibility:public"]):
     """Create a `bazel run`-nable isolated inner build target.
 
@@ -48,6 +54,9 @@ def museum_build(
       strip_prefix: top-level directory inside the tarball to treat as the
         workspace root.
       build_flags: flags forwarded to the inner `bazel build`.
+      hermetic_cc: if True, inject the fully-hermetic LLVM C/C++ toolchain
+        (hermeticbuild/hermetic-llvm) so the build does not use the host
+        compiler/sysroot. Appropriate for C/C++ projects.
       visibility: target visibility.
     """
     # Unique per-project build root, derived from the package path so two
@@ -60,7 +69,19 @@ def museum_build(
     ]
     if strip_prefix:
         fixed_args.append("--strip-prefix=" + strip_prefix)
-    for flag in build_flags:
+
+    data = [source_archive] + _INNER_BAZEL_DATA
+
+    all_build_flags = list(build_flags)
+    if hermetic_cc:
+        data = data + [_HERMETIC_CC_OVERLAY]
+        fixed_args.append(
+            "--append=$(rlocationpath {})=MODULE.bazel".format(_HERMETIC_CC_OVERLAY),
+        )
+        # Force the hermetic toolchain ahead of the project's host-autodetected one.
+        all_build_flags.append("--extra_toolchains=@llvm//toolchain:all")
+
+    for flag in all_build_flags:
         fixed_args.append("--build-flag=" + flag)
     for target in targets:
         fixed_args.append("--target=" + target)
@@ -70,7 +91,7 @@ def museum_build(
         srcs = ["//tools/buildrunner:runner.py"],
         main = "runner.py",
         deps = ["@rules_python//python/runfiles"],
-        data = [source_archive] + _INNER_BAZEL_DATA,
+        data = data,
         args = fixed_args + _INNER_BAZEL_ARG,
         visibility = visibility,
     )

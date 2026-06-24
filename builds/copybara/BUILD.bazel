@@ -8,14 +8,24 @@ load("//builds:defs.bzl", "goal", "museum_project")
 #   bazel run //builds/copybara:build
 #   bazel run //builds/copybara:test
 #
-# Note: many copybara tests shell out to `git` (and some need network), so the
-# `test` goal is best-effort under hermetic isolation; see docs/DESIGN.md.
+# Note on host tooling: copybara's tests shell out to version-control binaries.
+# The Mercurial (`hg`) tests are excluded because `hg` isn't a hermetic input
+# (and isn't installed); the Git tests currently use the host `git`. Making git
+# hermetic (a pinned-binary overlay, like we did for bazel/gh/llvm) is a natural
+# follow-up. See docs/DESIGN.md.
 museum_project(
     name = "copybara",
     source_archive = "@copybara_archive//file",
     strip_prefix = "copybara-20260622",
     goals = [
         goal("build", targets = ["//java/com/google/copybara:copybara"]),
-        goal("test", command = "test", targets = ["//javatests/..."]),
+        goal(
+            "test",
+            command = "test",
+            targets = [
+                "//javatests/...",
+                "-//javatests/com/google/copybara/hg/...",  # needs Mercurial
+            ],
+        ),
     ],
 )

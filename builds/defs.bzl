@@ -49,7 +49,15 @@ _INNER_BAZEL_ARG = select({
 # Sensible defaults per command so `bazel test` shows failures and keeps going
 # (so we see how many targets pass). Goals/overlays can override via later flags.
 _COMMAND_DEFAULT_FLAGS = {
-    "test": ["--test_output=errors", "--keep_going"],
+    "test": [
+        "--test_output=errors",
+        "--keep_going",
+        # Pin a UTF-8 locale for test actions: hermetic and reproducible, and it
+        # fixes JVM sun.jnu.encoding so tests touching Unicode file paths pass
+        # regardless of the host's locale.
+        "--test_env=LC_ALL=C.UTF-8",
+        "--test_env=LANG=C.UTF-8",
+    ],
 }
 
 def goal(name, targets, command = "build", overlays = [], build_flags = []):

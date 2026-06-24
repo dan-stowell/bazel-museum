@@ -196,14 +196,22 @@ def main(argv=None):
     # defaults. This makes both of these do the intuitive thing:
     #   bazel run //builds/abseil_cpp:build -- //absl/strings:strings   # subset
     #   bazel run //builds/abseil_cpp:build -- --verbose_failures       # default + flag
-    configured_flags = list(args.build_flags) + header_flags
+    # Split flags from target patterns. A token is a flag iff it starts with "-"
+    # *and* isn't a negative target pattern (-//..., -@..., -:...). Targets are
+    # placed after a "--" so negative patterns are accepted by Bazel.
+    def _is_flag(tok):
+        if tok.startswith(("-//", "-@", "-:")):
+            return False
+        return tok.startswith("-")
+
     extra = [a for a in args.extra if a != "--"]
-    has_explicit_target = any(not a.startswith("-") for a in extra)
-    if has_explicit_target:
-        build_args = configured_flags + extra
-    else:
-        build_args = configured_flags + list(args.targets) + extra
-    if not any(not a.startswith("-") for a in build_args):
+    extra_flags = [a for a in extra if _is_flag(a)]
+    extra_targets = [a for a in extra if not _is_flag(a)]
+
+    flags = list(args.build_flags) + header_flags + extra_flags
+    # Targets passed via `-- <targets>` override the configured defaults.
+    targets = extra_targets if extra_targets else list(args.targets)
+    if not targets:
         sys.exit("runner: no targets specified")
 
     cmd = [
@@ -216,7 +224,7 @@ def main(argv=None):
         "--repository_cache=" + repo_cache,
         "--curses=no",
         "--color=no",
-    ] + build_args
+    ] + flags + ["--"] + targets
 
     env = _clean_env(home, tmp)
 

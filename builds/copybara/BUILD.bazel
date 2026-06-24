@@ -1,4 +1,5 @@
 load("//builds:defs.bzl", "goal", "museum_project")
+load("//builds:overlays.bzl", "BUILDBUDDY_RBE")
 
 # Copybara — Google's tool for transforming and moving code between repositories.
 # A genuinely Bazel-native Java project. Build #2: exercises the JVM toolchain
@@ -26,6 +27,12 @@ museum_project(
                 "//javatests/...",
                 "-//javatests/com/google/copybara/hg/...",  # needs Mercurial
             ],
+        ),
+        # Remote build execution (rules_java compiles run on the executor).
+        goal(
+            "build.remote",
+            overlays = [BUILDBUDDY_RBE],
+            targets = ["//java/com/google/copybara:copybara"],
         ),
     ],
 )

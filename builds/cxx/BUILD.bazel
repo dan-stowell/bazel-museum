@@ -1,5 +1,5 @@
 load("//builds:defs.bzl", "goal", "museum_project")
-load("//builds:overlays.bzl", "HERMETIC_LLVM")
+load("//builds:overlays.bzl", "BUILDBUDDY_RBE", "HERMETIC_LLVM")
 
 # cxx (cxx.rs) — safe FFI between Rust and C++. Build #3: exercises the Rust
 # toolchain (rules_rust + hermetic rustc) plus, via the C++ bridge, the
@@ -15,5 +15,7 @@ museum_project(
     goals = [
         goal("build", targets = ["//:cxx", "//:core"]),
         goal("test", command = "test", targets = ["//..."]),
+        # Remote build execution (rustc + hermetic clang both run on the executor).
+        goal("build.remote", overlays = [BUILDBUDDY_RBE], targets = ["//:cxx", "//:core"]),
     ],
 )

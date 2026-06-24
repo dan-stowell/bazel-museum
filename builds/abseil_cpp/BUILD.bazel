@@ -1,5 +1,5 @@
 load("//builds:defs.bzl", "goal", "museum_project")
-load("//builds:overlays.bzl", "HERMETIC_LLVM")
+load("//builds:overlays.bzl", "BUILDBUDDY_RBE", "HERMETIC_LLVM")
 
 # Abseil's C++ common libraries — the museum's first build.
 # Source pinned in //tools/fetch:extension.bzl (@absl_archive, release
@@ -16,5 +16,9 @@ museum_project(
     goals = [
         goal("build", targets = ["//absl/..."], build_flags = ["-c", "opt"]),
         goal("test", command = "test", targets = ["//absl/..."]),
+        # Remote build execution on BuildBuddy (hermetic LLVM runs on the
+        # executor). Override targets for quick iteration, e.g.:
+        #   bazel run //builds/abseil_cpp:build.remote -- //absl/base:base
+        goal("build.remote", overlays = [BUILDBUDDY_RBE], targets = ["//absl/..."]),
     ],
 )

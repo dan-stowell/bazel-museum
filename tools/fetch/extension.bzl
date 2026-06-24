@@ -4,7 +4,8 @@ Two extensions:
 
 * `inner_bazel` — the Bazel binary used to run the *inner* project builds. We
   pin a specific release (version + sha256) and download the official binary,
-  rather than depending on a host-installed bazel/bazelisk. linux amd64 + arm64.
+  rather than depending on a host-installed bazel/bazelisk. linux + darwin,
+  amd64 + arm64.
 
 * `project_sources` — source tarballs of the museum's projects, pinned by
   sha256. This is the kickoff's "project source code as a dep in MODULE.bazel":
@@ -24,6 +25,8 @@ INNER_BAZEL_VERSION = "9.1.1"
 _INNER_BAZEL = {
     "linux_amd64": ("linux-x86_64", "857bed5d2756b4d998d3caebf2d941d13d434c4eda4b1d6d7dda205736c25a93"),
     "linux_arm64": ("linux-arm64", "82d1163884e45a6a7ff764cc01197b1b1ed497000726b84dc4b47c1dfc8a2bb4"),
+    "darwin_amd64": ("darwin-x86_64", "6fd490084bdccf044d7a6d8360a26f8770fa09f4e624328efea292f493204930"),
+    "darwin_arm64": ("darwin-arm64", "2db883718453f0437a7bcb408e889dbf8539cdc4d61c8ebc3807a1a88d02ff08"),
 }
 
 

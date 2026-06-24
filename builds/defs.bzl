@@ -22,14 +22,21 @@ Example:
 
 load("@rules_python//python:defs.bzl", "py_binary")
 
-# Per-CPU selection of the pinned inner Bazel binary (data dep + runfiles path).
+# Per-OS+CPU selection of the pinned inner Bazel binary (data dep + runfiles
+# path). We key on os *and* cpu because the official release binaries differ per
+# platform: a cpu-only select would, e.g., match the linux arm64 binary on a
+# macOS arm64 host. The config settings are defined in //builds:BUILD.bazel.
 _INNER_BAZEL_DATA = select({
-    "@platforms//cpu:x86_64": ["@inner_bazel_linux_amd64//file"],
-    "@platforms//cpu:arm64": ["@inner_bazel_linux_arm64//file"],
+    "//builds:linux_amd64": ["@inner_bazel_linux_amd64//file"],
+    "//builds:linux_arm64": ["@inner_bazel_linux_arm64//file"],
+    "//builds:darwin_amd64": ["@inner_bazel_darwin_amd64//file"],
+    "//builds:darwin_arm64": ["@inner_bazel_darwin_arm64//file"],
 })
 _INNER_BAZEL_ARG = select({
-    "@platforms//cpu:x86_64": ["--bazel=$(rlocationpath @inner_bazel_linux_amd64//file)"],
-    "@platforms//cpu:arm64": ["--bazel=$(rlocationpath @inner_bazel_linux_arm64//file)"],
+    "//builds:linux_amd64": ["--bazel=$(rlocationpath @inner_bazel_linux_amd64//file)"],
+    "//builds:linux_arm64": ["--bazel=$(rlocationpath @inner_bazel_linux_arm64//file)"],
+    "//builds:darwin_amd64": ["--bazel=$(rlocationpath @inner_bazel_darwin_amd64//file)"],
+    "//builds:darwin_arm64": ["--bazel=$(rlocationpath @inner_bazel_darwin_arm64//file)"],
 })
 
 # The hermetic LLVM toolchain overlay (see //tools/buildrunner/overlays). When

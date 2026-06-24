@@ -25,7 +25,13 @@ python.toolchain(
 # Hermetic `gh` CLI, downloaded and pinned (see //tools/gh:extension.bzl).
 # Used by the pipeline to enrich project metadata (stars, archived, etc.).
 gh = use_extension("//tools/gh:extension.bzl", "gh_extension")
-use_repo(gh, "gh_cli_linux_amd64", "gh_cli_linux_arm64")
+use_repo(
+    gh,
+    "gh_cli_linux_amd64",
+    "gh_cli_linux_arm64",
+    "gh_cli_darwin_amd64",
+    "gh_cli_darwin_arm64",
+)
 
 # Hermetic Bazel binary used to run the *inner* project builds in isolation,
 # and pinned source archives of the museum's projects (see //tools/fetch).

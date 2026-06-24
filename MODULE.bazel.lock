@@ -286,7 +286,7 @@
     },
     "//tools/gh:extension.bzl%gh_extension": {
       "general": {
-        "bzlTransitiveDigest": "YjjNer7dNBo1HvirXzwB2+Sp53X+Hz1ghagtVvpKlBc=",
+        "bzlTransitiveDigest": "7AHS7CvHSGJlZovcr18k+eQ/+Ib7VsxEbI2rOIzDw5g=",
         "usagesDigest": "QC6dnJaBuXY93JkOLrXbw7hOiTUviig3QS7d0VC6H1c=",
         "recordedInputs": [
           "REPO_MAPPING:,bazel_tools bazel_tools"
@@ -311,6 +311,28 @@
               ],
               "sha256": "d41e0b3b6218e5741c8bb4db39b16e53a59e0e06299a8489bd38f623ef7ebaae",
               "strip_prefix": "gh_2.95.0_linux_arm64",
+              "build_file_content": "# Exposes the hermetic gh binary unpacked from the release tarball.\nfilegroup(\n    name = \"gh\",\n    srcs = [\"bin/gh\"],\n    visibility = [\"//visibility:public\"],\n)\n"
+            }
+          },
+          "gh_cli_darwin_amd64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "urls": [
+                "https://github.com/cli/cli/releases/download/v2.95.0/gh_2.95.0_macOS_amd64.zip"
+              ],
+              "sha256": "985707e9ac60c95ed51cddd808c338b481abe69fffa77e9d6547c3750045f77e",
+              "strip_prefix": "gh_2.95.0_macOS_amd64",
+              "build_file_content": "# Exposes the hermetic gh binary unpacked from the release tarball.\nfilegroup(\n    name = \"gh\",\n    srcs = [\"bin/gh\"],\n    visibility = [\"//visibility:public\"],\n)\n"
+            }
+          },
+          "gh_cli_darwin_arm64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "urls": [
+                "https://github.com/cli/cli/releases/download/v2.95.0/gh_2.95.0_macOS_arm64.zip"
+              ],
+              "sha256": "3677f9c27965825f9c7d50395473c134edaea4b484373ef6b25de653570a0489",
+              "strip_prefix": "gh_2.95.0_macOS_arm64",
               "build_file_content": "# Exposes the hermetic gh binary unpacked from the release tarball.\nfilegroup(\n    name = \"gh\",\n    srcs = [\"bin/gh\"],\n    visibility = [\"//visibility:public\"],\n)\n"
             }
           }

@@ -23,13 +23,19 @@ py_binary(
     srcs = ["gather.py"],
     # Bundle the hermetic gh binary for the target platform, and tell the tool
     # where to find it in runfiles via $(rlocationpath).
+    # Key on os+cpu (config settings from //builds) so macOS hosts pick the
+    # darwin gh binary rather than wrongly matching the linux arm64 one.
     args = select({
-        "@platforms//cpu:x86_64": ["--gh-rlocation=$(rlocationpath @gh_cli_linux_amd64//:gh)"],
-        "@platforms//cpu:arm64": ["--gh-rlocation=$(rlocationpath @gh_cli_linux_arm64//:gh)"],
+        "//builds:linux_amd64": ["--gh-rlocation=$(rlocationpath @gh_cli_linux_amd64//:gh)"],
+        "//builds:linux_arm64": ["--gh-rlocation=$(rlocationpath @gh_cli_linux_arm64//:gh)"],
+        "//builds:darwin_amd64": ["--gh-rlocation=$(rlocationpath @gh_cli_darwin_amd64//:gh)"],
+        "//builds:darwin_arm64": ["--gh-rlocation=$(rlocationpath @gh_cli_darwin_arm64//:gh)"],
     }),
     data = select({
-        "@platforms//cpu:x86_64": ["@gh_cli_linux_amd64//:gh"],
-        "@platforms//cpu:arm64": ["@gh_cli_linux_arm64//:gh"],
+        "//builds:linux_amd64": ["@gh_cli_linux_amd64//:gh"],
+        "//builds:linux_arm64": ["@gh_cli_linux_arm64//:gh"],
+        "//builds:darwin_amd64": ["@gh_cli_darwin_amd64//:gh"],
+        "//builds:darwin_arm64": ["@gh_cli_darwin_arm64//:gh"],
     }),
     deps = [":lib"],
 )

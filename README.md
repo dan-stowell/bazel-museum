@@ -12,8 +12,8 @@ run everything inside — no host Python, no host `gh`, no daemons assumed.
 | Piece | What | Status |
 |-------|------|--------|
 | 1 | **Data pipeline** — discover public projects that build with Bazel | ✅ built |
-| 2 | **Run Bazel builds in isolation** — daemonless inner build + hermetic toolchains | ✅ built (container is an optional next tier) |
-| 3 | **The build collection** — 3 projects across 3 toolchains | ✅ abseil-cpp (C++), copybara (Java), cxx (Rust) |
+| 2 | **Run Bazel builds (and tests) in isolation** — daemonless, hermetic toolchains, composable overlays | ✅ built (remote cache/RBE + container are next tiers) |
+| 3 | **The build collection** — 3 projects across 3 toolchains, each with build + test | ✅ abseil-cpp (C++), copybara (Java), cxx (Rust) |
 
 See [docs/DESIGN.md](docs/DESIGN.md) for the architecture and
 [docs/KICKOFF.md](docs/KICKOFF.md) for the project's intent.
@@ -54,6 +54,11 @@ bazel run //builds/abseil_cpp:build -- --verbose_failures
 # Other projects / toolchains:
 bazel run //builds/copybara:build   # Java  — rules_java + hermetic remote JDK
 bazel run //builds/cxx:build        # Rust  — rules_rust + hermetic LLVM
+
+# Run each project's tests, hermetically (no host toolchain):
+bazel run //builds/abseil_cpp:test  # 251/251 pass
+bazel run //builds/cxx:test         # 1/1 pass
+bazel run //builds/copybara:test    # 220/220 pass (Mercurial tests excluded)
 ```
 
 First run compiles from scratch (~5 min); reruns hit the inner action cache

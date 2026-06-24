@@ -1,8 +1,9 @@
-"""Run an inner `bazel build` for a museum project, in isolation, daemonless.
+"""Run an inner `bazel build`/`test` for a museum project, isolated, daemonless.
 
-This is the engine behind `bazel run //builds/<project>:build`. It is invoked
-by the outer Bazel via the `museum_build` macro, which passes runfiles paths to
-a pinned inner Bazel binary and the project's pinned source tarball.
+This is the engine behind `bazel run //builds/<project>:<goal>`. It is invoked
+by the outer Bazel via the museum_project/goal macros, which pass runfiles paths
+to a pinned inner Bazel binary and the project's pinned source tarball, plus the
+goal's command, targets, overlays, and flags.
 
 What "isolation" means here (Tier 1 — works with only Bazel on the host):
   * a pinned, hermetic inner Bazel binary (not the host's),
@@ -111,11 +112,22 @@ def main(argv=None):
                    help="inner build target (repeatable)")
     p.add_argument("--build-flag", action="append", default=[], dest="build_flags",
                    help="flag passed to the inner `bazel build` (repeatable)")
+    p.add_argument("--command", default="build",
+                   help="inner bazel command to run (e.g. build, test)")
     p.add_argument("--append", action="append", default=[], dest="appends",
                    metavar="RLOC=DEST",
                    help="append the runfile RLOC onto DEST (relative to the workspace "
                         "root) before building -- e.g. inject a toolchain into MODULE.bazel "
                         "(repeatable)")
+    p.add_argument("--patch", action="append", default=[], dest="patches",
+                   metavar="RLOC",
+                   help="apply a unified-diff patch (patch -p1) to the source before "
+                        "building (repeatable)")
+    p.add_argument("--remote-header-env", action="append", default=[], dest="remote_header_envs",
+                   metavar="ENVVAR:HEADER",
+                   help="read ENVVAR from the environment and pass it to the inner build as "
+                        "--remote_header=HEADER=<value>, keeping the secret off the command "
+                        "the macro bakes in (e.g. BUILDBUDDY_API_KEY:x-buildbuddy-api-key)")
     p.add_argument("extra", nargs="*", help="extra args/targets forwarded to the inner build")
     # parse_known_args so that any flag we don't define (e.g. --subcommands,
     # --verbose_failures passed after `bazel run ... --`) is forwarded verbatim
@@ -155,18 +167,42 @@ def main(argv=None):
             t.write("\n" + snippet)
         print(f"  overlay(append): {dest} += {os.path.basename(src)}", file=sys.stderr)
 
+    # Apply unified-diff patches over the source (for changes appends can't make).
+    for patch_rloc in args.patches:
+        patch_file = _resolve(rf, patch_rloc)
+        if not shutil.which("patch"):
+            sys.exit("runner: `patch` not found on PATH but a patch overlay was requested")
+        print(f"  overlay(patch): {os.path.basename(patch_file)}", file=sys.stderr)
+        with open(patch_file, "rb") as pf:
+            r = subprocess.run(
+                ["patch", "-p1", "--no-backup-if-mismatch"], cwd=workspace, stdin=pf
+            )
+        if r.returncode != 0:
+            sys.exit(f"runner: failed to apply patch {patch_rloc}")
+
+    # Resolve any --remote-header-env into --remote_header flags (e.g. the
+    # BuildBuddy API key), so secrets stay out of the baked-in command line.
+    header_flags = []
+    for spec in args.remote_header_envs:
+        name, _, header = spec.partition(":")
+        value = os.environ.get(name)
+        if not value:
+            sys.exit(f"runner: env var {name!r} is not set (needed for --remote-header-env)")
+        header_flags.append("--remote_header={}={}".format(header, value))
+
     # Extra args come from `bazel run //... -- <here>`. If any of them is a
     # concrete target (doesn't start with "-"), they *replace* the configured
     # default targets; if they're all flags, they're added on top of the
     # defaults. This makes both of these do the intuitive thing:
     #   bazel run //builds/abseil_cpp:build -- //absl/strings:strings   # subset
     #   bazel run //builds/abseil_cpp:build -- --verbose_failures       # default + flag
+    configured_flags = list(args.build_flags) + header_flags
     extra = [a for a in args.extra if a != "--"]
     has_explicit_target = any(not a.startswith("-") for a in extra)
     if has_explicit_target:
-        build_args = list(args.build_flags) + extra
+        build_args = configured_flags + extra
     else:
-        build_args = list(args.build_flags) + list(args.targets) + extra
+        build_args = configured_flags + list(args.targets) + extra
     if not any(not a.startswith("-") for a in build_args):
         sys.exit("runner: no targets specified")
 
@@ -176,7 +212,7 @@ def main(argv=None):
         "--nohome_rc",
         "--nosystem_rc",
         "--output_user_root=" + output_user_root,
-        "build",
+        args.command,
         "--repository_cache=" + repo_cache,
         "--curses=no",
         "--color=no",
@@ -184,13 +220,16 @@ def main(argv=None):
 
     env = _clean_env(home, tmp)
 
+    # Redact secret-bearing header flags when echoing the command.
+    shown = [a if not a.startswith("--remote_header=") else
+             a.split("=")[0] + "=" + a.split("=")[1] + "=<redacted>" for a in cmd[1:]]
     print("=" * 72, file=sys.stderr)
-    print(f"museum: building '{args.name}' in isolation", file=sys.stderr)
+    print(f"museum: running `{args.command}` for '{args.name}' in isolation", file=sys.stderr)
     print(f"  workspace:        {workspace}", file=sys.stderr)
     print(f"  inner bazel:      {bazel}", file=sys.stderr)
     print(f"  output_user_root: {output_user_root}", file=sys.stderr)
     print(f"  repository_cache: {repo_cache}", file=sys.stderr)
-    print(f"  command:          bazel {' '.join(cmd[1:])}", file=sys.stderr)
+    print(f"  command:          bazel {' '.join(shown)}", file=sys.stderr)
     print("=" * 72, file=sys.stderr)
 
     proc = subprocess.run(cmd, cwd=workspace, env=env)

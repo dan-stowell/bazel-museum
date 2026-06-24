@@ -1,23 +1,30 @@
-"""`museum_build`: declare an isolated, daemonless inner Bazel build of a project.
+"""`museum_project` / `goal`: declare isolated, daemonless inner Bazel builds.
 
-Each invocation creates a `bazel run`-nable target that builds the given project
-from its pinned source tarball using a pinned inner Bazel, fully isolated from
-the host (see //tools/buildrunner/runner.py for what isolation means here).
+A *project* pins a source tarball and a set of base overlays; each *goal* is a
+`bazel run`-nable target running one inner command (build/test) over some
+targets, composing the project's base overlays with its own. See
+//builds/overlays.bzl for what an overlay is.
 
 Example:
 
-    load("//builds:defs.bzl", "museum_build")
+    load("//builds:defs.bzl", "goal", "museum_project")
+    load("//builds:overlays.bzl", "HERMETIC_LLVM")
 
-    museum_build(
-        name = "build",
-        source_archive = "@absl_archive//file",
-        strip_prefix = "abseil-cpp-20260526.0",
-        targets = ["//absl/..."],
-        build_flags = ["-c", "opt"],
+    museum_project(
+        name = "cxx",
+        source_archive = "@cxx_archive//file",
+        strip_prefix = "cxx-1.0.194",
+        overlays = [HERMETIC_LLVM],                       # every goal gets these
+        goals = [
+            goal("build", targets = ["//:cxx", "//:core"]),
+            goal("test", command = "test", targets = ["//..."]),
+        ],
     )
 
-    # then: bazel run //builds/abseil_cpp:build
-    #       bazel run //builds/abseil_cpp:build -- //absl/strings/...   (override targets)
+    # then: bazel run //builds/cxx:build
+    #       bazel run //builds/cxx:test
+    #       bazel run //builds/cxx:build -- //:cxx          (override targets)
+    #       bazel run //builds/cxx:test  -- --runs_per_test=3
 """
 
 load("@rules_python//python:defs.bzl", "py_binary")
@@ -39,66 +46,95 @@ _INNER_BAZEL_ARG = select({
     "//builds:darwin_arm64": ["--bazel=$(rlocationpath @inner_bazel_darwin_arm64//file)"],
 })
 
-# The hermetic LLVM toolchain overlay (see //tools/buildrunner/overlays). When
-# hermetic_cc = True, this snippet is appended to the project's MODULE.bazel and
-# forced to take precedence via --extra_toolchains.
-_HERMETIC_CC_OVERLAY = "//tools/buildrunner/overlays:hermetic_cc.MODULE.bazel"
+# Sensible defaults per command so `bazel test` shows failures and keeps going
+# (so we see how many targets pass). Goals/overlays can override via later flags.
+_COMMAND_DEFAULT_FLAGS = {
+    "test": ["--test_output=errors", "--keep_going"],
+}
 
-def museum_build(
-        name,
-        source_archive,
-        targets,
-        strip_prefix = "",
-        build_flags = [],
-        hermetic_cc = False,
-        visibility = ["//visibility:public"]):
-    """Create a `bazel run`-nable isolated inner build target.
+def goal(name, targets, command = "build", overlays = [], build_flags = []):
+    """A single runnable goal: one inner command over some targets + overlays."""
+    return struct(
+        name = name,
+        command = command,
+        targets = targets,
+        overlays = overlays,
+        build_flags = build_flags,
+    )
 
-    Args:
-      name: target name (typically "build").
-      source_archive: label of the pinned source tarball (e.g. "@absl_archive//file").
-      targets: list of inner build targets (e.g. ["//absl/..."]).
-      strip_prefix: top-level directory inside the tarball to treat as the
-        workspace root.
-      build_flags: flags forwarded to the inner `bazel build`.
-      hermetic_cc: if True, inject the fully-hermetic LLVM C/C++ toolchain
-        (hermeticbuild/hermetic-llvm) so the build does not use the host
-        compiler/sysroot. Appropriate for C/C++ projects.
-      visibility: target visibility.
-    """
-    # Unique per-project build root, derived from the package path so two
-    # projects' targets (often both named "build") don't share caches.
-    project_id = (native.package_name().replace("/", "_") or name)
+def _dedupe(items):
+    seen = {}
+    out = []
+    for it in items:
+        if it not in seen:
+            seen[it] = True
+            out.append(it)
+    return out
 
-    fixed_args = [
-        "--name=" + project_id,
+def _emit_goal(project_id, source_archive, strip_prefix, base_overlays, g, visibility):
+    overlays = base_overlays + g.overlays
+
+    appends = []        # (label, dest)
+    patch_labels = []
+    overlay_flags = []
+    header_envs = []
+    for ov in overlays:
+        appends += ov.appends
+        patch_labels += ov.patches
+        overlay_flags += ov.build_flags
+        header_envs += ov.remote_header_envs
+
+    args = [
+        "--name={}__{}".format(project_id, g.name),
+        "--command=" + g.command,
         "--source-archive=$(rlocationpath {})".format(source_archive),
     ]
     if strip_prefix:
-        fixed_args.append("--strip-prefix=" + strip_prefix)
+        args.append("--strip-prefix=" + strip_prefix)
+    for label, dest in appends:
+        args.append("--append=$(rlocationpath {})={}".format(label, dest))
+    for label in patch_labels:
+        args.append("--patch=$(rlocationpath {})".format(label))
+    for spec in header_envs:
+        args.append("--remote-header-env=" + spec)
+    for flag in _COMMAND_DEFAULT_FLAGS.get(g.command, []) + overlay_flags + g.build_flags:
+        args.append("--build-flag=" + flag)
+    for target in g.targets:
+        args.append("--target=" + target)
 
-    data = [source_archive] + _INNER_BAZEL_DATA
-
-    all_build_flags = list(build_flags)
-    if hermetic_cc:
-        data = data + [_HERMETIC_CC_OVERLAY]
-        fixed_args.append(
-            "--append=$(rlocationpath {})=MODULE.bazel".format(_HERMETIC_CC_OVERLAY),
-        )
-        # Force the hermetic toolchain ahead of the project's host-autodetected one.
-        all_build_flags.append("--extra_toolchains=@llvm//toolchain:all")
-
-    for flag in all_build_flags:
-        fixed_args.append("--build-flag=" + flag)
-    for target in targets:
-        fixed_args.append("--target=" + target)
+    overlay_files = _dedupe([label for label, _ in appends] + patch_labels)
+    data = [source_archive] + overlay_files + _INNER_BAZEL_DATA
 
     py_binary(
-        name = name,
+        name = g.name,
         srcs = ["//tools/buildrunner:runner.py"],
         main = "runner.py",
         deps = ["@rules_python//python/runfiles"],
         data = data,
-        args = fixed_args + _INNER_BAZEL_ARG,
+        args = args + _INNER_BAZEL_ARG,
         visibility = visibility,
     )
+
+def museum_project(
+        name,
+        source_archive,
+        goals,
+        strip_prefix = "",
+        overlays = [],
+        visibility = ["//visibility:public"]):
+    """Declare a museum project and its goals.
+
+    Args:
+      name: project name (informational; the package path also identifies it).
+      source_archive: label of the pinned source tarball (e.g. "@cxx_archive//file").
+      goals: list of goal(...) structs; each becomes a `bazel run`-nable target.
+      strip_prefix: top-level directory inside the tarball = workspace root.
+      overlays: base overlays applied to every goal (e.g. [HERMETIC_LLVM]).
+      visibility: visibility for the generated goal targets.
+    """
+
+    # Unique per-project id, derived from the package path so two projects'
+    # goals (e.g. both named "build") don't collide on the build root.
+    project_id = (native.package_name().replace("/", "_") or name)
+    for g in goals:
+        _emit_goal(project_id, source_archive, strip_prefix, overlays, g, visibility)

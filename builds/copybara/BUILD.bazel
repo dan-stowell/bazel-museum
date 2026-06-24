@@ -1,17 +1,21 @@
-load("//builds:defs.bzl", "museum_build")
+load("//builds:defs.bzl", "goal", "museum_project")
 
 # Copybara — Google's tool for transforming and moving code between repositories.
-# A genuinely Bazel-native Java project. Build #2 in the museum: exercises the
-# JVM toolchain (rules_java + Bazel's hermetic remote JDK).
-#
-# Source pinned in //tools/fetch:extension.bzl (@copybara_archive, tag
-# v20260622). The Java toolchain is hermetic out of the box (downloaded remote
-# JDK), so no toolchain overlay is needed.
+# A genuinely Bazel-native Java project. Build #2: exercises the JVM toolchain
+# (rules_java + Bazel's hermetic remote JDK). Source pinned at tag v20260622.
+# No toolchain overlay needed: the Java toolchain is hermetic out of the box.
 #
 #   bazel run //builds/copybara:build
-museum_build(
-    name = "build",
+#   bazel run //builds/copybara:test
+#
+# Note: many copybara tests shell out to `git` (and some need network), so the
+# `test` goal is best-effort under hermetic isolation; see docs/DESIGN.md.
+museum_project(
+    name = "copybara",
     source_archive = "@copybara_archive//file",
     strip_prefix = "copybara-20260622",
-    targets = ["//java/com/google/copybara:copybara"],
+    goals = [
+        goal("build", targets = ["//java/com/google/copybara:copybara"]),
+        goal("test", command = "test", targets = ["//javatests/..."]),
+    ],
 )

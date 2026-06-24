@@ -1,21 +1,20 @@
-load("//builds:defs.bzl", "museum_build")
+load("//builds:defs.bzl", "goal", "museum_project")
+load("//builds:overlays.bzl", "HERMETIC_LLVM")
 
 # Abseil's C++ common libraries — the museum's first build.
-# Source is pinned in //tools/fetch:extension.bzl (@absl_archive, release
-# 20260526.0). Builds everything under //absl/... with the pinned inner Bazel,
-# isolated and daemonless:
+# Source pinned in //tools/fetch:extension.bzl (@absl_archive, release
+# 20260526.0). Built with the fully-hermetic LLVM toolchain (no host gcc).
 #
 #   bazel run //builds/abseil_cpp:build
-#   bazel run //builds/abseil_cpp:build -- //absl/strings/...   # subset
-museum_build(
-    name = "build",
+#   bazel run //builds/abseil_cpp:test
+#   bazel run //builds/abseil_cpp:build -- //absl/strings:strings   # subset
+museum_project(
+    name = "abseil_cpp",
     source_archive = "@absl_archive//file",
     strip_prefix = "abseil-cpp-20260526.0",
-    targets = ["//absl/..."],
-    # Build with the fully-hermetic LLVM toolchain (no host gcc/sysroot).
-    hermetic_cc = True,
-    build_flags = [
-        "-c",
-        "opt",
+    overlays = [HERMETIC_LLVM],
+    goals = [
+        goal("build", targets = ["//absl/..."], build_flags = ["-c", "opt"]),
+        goal("test", command = "test", targets = ["//absl/..."]),
     ],
 )

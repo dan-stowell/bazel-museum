@@ -28,13 +28,14 @@ platforms it supports and add it to a project's `environments = [...]`.
 
 load(":overlays.bzl", "ACTIOND_WORKER", "BUILDBUDDY_RBE")
 
-def environment(name, platforms, overlays = [], pin_platform = False, host_only = False, platform_flags = {}):
+def environment(name, platforms, overlays = [], pin_platform = False, host_only = False, host_cpu_only = False, platform_flags = {}):
     return struct(
         name = name,
         platforms = platforms,
         overlays = overlays,
         pin_platform = pin_platform,
         host_only = host_only,
+        host_cpu_only = host_cpu_only,
         platform_flags = platform_flags,
     )
 
@@ -64,16 +65,21 @@ RBE = environment(
     pin_platform = True,
 )
 
-# actiond: a local Linux RE worker (a VM on this host). Builds+tests the museum's
-# projects for linux/arm64 without leaving this macOS machine — the same matrix
-# cell as `rbe` linux_arm64, but executed locally instead of in the cloud. The
-# VM is arm64 (matches Apple silicon), so it serves linux_arm64. pin_platform
-# makes the build fully explicit about os/arch (the worker doesn't turn a macOS
-# toolchain into a Linux one — HERMETIC_LLVM does, by cross-targeting linux).
-# Requires the worker to be running: `bazel run //tools/actiond:serve`.
+# actiond: a local Linux RE worker (a QEMU/KVM VM on this host). Builds+tests the
+# museum's projects locally instead of in the cloud — the same matrix cells as
+# `rbe`'s linux platforms, but served by a worker on this machine.
+#
+# actiond boots a Linux guest of the *host's* CPU arch (it starts an embedded
+# qemu-system with -accel kvm), so it serves the linux platform matching the
+# host: linux_amd64 on an x86_64 host, linux_arm64 on an arm64 host (incl. an
+# arm64 macOS host running a Linux guest). host_cpu_only gates each goal on the
+# host CPU so only the matching-arch cell is live. pin_platform makes the build
+# explicit about os/arch (HERMETIC_LLVM cross-targets linux regardless of host).
+# Requires KVM access and the worker running: `bazel run //tools/actiond:serve`.
 ACTIOND = environment(
     name = "actiond",
-    platforms = ["linux_arm64"],
+    platforms = ["linux_amd64", "linux_arm64"],
     overlays = [ACTIOND_WORKER],
     pin_platform = True,
+    host_cpu_only = True,
 )

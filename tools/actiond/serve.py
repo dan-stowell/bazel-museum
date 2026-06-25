@@ -20,6 +20,15 @@ The default guest RAM is deliberately generous: the museum's first build
 compiles the whole hermetic LLVM toolchain (compiler-rt/libcxx/libunwind) from
 source, and several concurrent clang/llvm-ar actions OOM-kill in a small VM.
 14 GiB lets the build run at useful concurrency without OOM on a 16 GiB+ host.
+
+Linux host prerequisites (macOS uses Hypervisor.framework and needs none):
+actiond boots an embedded qemu-system with `-accel kvm` and a vhost-vsock
+channel, so the worker process needs read/write on /dev/kvm and
+/dev/vhost-vsock. Both are group `kvm`; add yourself once with
+`sudo usermod -aG kvm $USER` (re-login to apply), or run this target with the
+group active in the current shell: `sg kvm -c 'bazel run //tools/actiond:serve'`.
+The serve target itself needs no privileges beyond that device access — the
+inner build connects to the worker over TCP and runs unprivileged.
 """
 
 import os

@@ -181,9 +181,14 @@ def _emit_goal(project_id, source_archive, strip_prefix, toolchains, env, plat, 
 
     # host_only environments (local) can only run when the host matches the
     # goal's platform; mark the others incompatible so they're skipped, not run.
+    # host_cpu_only gates on CPU arch alone (any host OS): used by actiond, whose
+    # local worker runs a Linux guest of the *host's* arch — so e.g. only the
+    # linux_amd64 actiond goal is live on an x86_64 host (Linux or macOS).
     compatible = None
     if env.host_only:
         compatible = [plat.os_constraint, plat.cpu_constraint]
+    elif env.host_cpu_only:
+        compatible = [plat.cpu_constraint]
 
     py_binary(
         name = goal_name,

@@ -1,0 +1,20 @@
+load("//builds:defs.bzl", "build_spec", "museum_project")
+load("//builds:environments.bzl", "LOCAL", "RBE")
+load("//builds:overlays.bzl", "HERMETIC_LLVM")
+
+# FlatBuffers — serialization library + the flatc schema compiler.
+# Source pinned in //tools/fetch:extension.bzl (@flatbuffers_archive, v25.12.19).
+# Built on the Bazel 8.7 inner with zero-sysroot hermetic LLVM: flatbuffers
+# pulls old aspect_bazel_lib / rules_foreign_cc / rules_go transitively, whose
+# toolchains use APIs Bazel 9 removed — Bazel 8.7 resolves them as authored.
+#
+#   bazel run //builds/flatbuffers:build_local_linux_amd64
+museum_project(
+    name = "flatbuffers",
+    source_archive = "@flatbuffers_archive//file",
+    strip_prefix = "flatbuffers-25.12.19-2026-02-06-03fffb2",
+    toolchains = [HERMETIC_LLVM],
+    bazel_version = "8.7.0",
+    environments = [LOCAL, RBE],
+    build = build_spec(targets = ["//:flatc", "//:flatbuffers"], flags = ["-c", "opt"]),
+)

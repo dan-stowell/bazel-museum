@@ -1,5 +1,5 @@
 load("//builds:defs.bzl", "build_spec", "museum_project")
-load("//builds:environments.bzl", "LOCAL", "RBE")
+load("//builds:environments.bzl", "ACTIOND", "LOCAL", "RBE")
 load("//builds:overlays.bzl", "HERMETIC_LLVM", "RULES_CC_DEP", "overlay")
 
 # googletest 1.17.0's root BUILD calls cc_library/cc_test unloaded (fine on
@@ -23,6 +23,6 @@ museum_project(
     source_archive = "@googletest_archive//file",
     strip_prefix = "googletest-1.17.0",
     toolchains = [HERMETIC_LLVM, RULES_CC_DEP, GTEST_CC_LOAD],
-    environments = [LOCAL, RBE],
+    environments = [LOCAL, RBE, ACTIOND],
     build = build_spec(targets = ["//:gtest", "//:gtest_main"], flags = ["-c", "opt"]),
 )

@@ -1,5 +1,5 @@
 load("//builds:defs.bzl", "build_spec", "museum_project")
-load("//builds:environments.bzl", "LOCAL", "RBE")
+load("//builds:environments.bzl", "ACTIOND", "LOCAL", "RBE")
 load("//builds:overlays.bzl", "HERMETIC_LLVM")
 
 # FlatBuffers — serialization library + the flatc schema compiler.
@@ -15,6 +15,6 @@ museum_project(
     strip_prefix = "flatbuffers-25.12.19-2026-02-06-03fffb2",
     toolchains = [HERMETIC_LLVM],
     bazel_version = "8.7.0",
-    environments = [LOCAL, RBE],
+    environments = [LOCAL, RBE, ACTIOND],
     build = build_spec(targets = ["//:flatc", "//:flatbuffers"], flags = ["-c", "opt"]),
 )

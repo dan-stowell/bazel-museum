@@ -1,5 +1,5 @@
 load("//builds:defs.bzl", "build_spec", "museum_project")
-load("//builds:environments.bzl", "LOCAL", "RBE")
+load("//builds:environments.bzl", "ACTIOND", "LOCAL", "RBE")
 load("//builds:overlays.bzl", "HERMETIC_LLVM")
 
 # Catch2 — C++ test framework.
@@ -17,6 +17,6 @@ museum_project(
     source_archive = "@catch2_archive//file",
     strip_prefix = "Catch2-3.15.1",
     toolchains = [HERMETIC_LLVM],
-    environments = [LOCAL, RBE],
+    environments = [LOCAL, RBE, ACTIOND],
     build = build_spec(targets = ["//:catch2_main"], flags = ["-c", "opt"]),
 )

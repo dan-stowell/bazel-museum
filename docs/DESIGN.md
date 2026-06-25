@@ -292,9 +292,10 @@ executor-side wart we don't control). The reliable way to **build and test**
 linux/arm64 from this Mac is the `actiond` environment below — a real local arm64
 VM — not RBE.
 
-**macOS arm64 on RBE (in progress).** This is "build & test Darwin on RBE,"
-distinct from *orchestrating from* a Mac (which works above). Two findings from
-probing it, each correcting an earlier assumption:
+**macOS arm64 on RBE (toolchain layering fixed; gated on executor capacity).**
+This is "build & test Darwin on RBE," distinct from *orchestrating from* a Mac
+(which works above). Findings from probing it, each correcting an earlier
+assumption:
 
 - **Executors exist.** A remote-only `genrule` pinned to a darwin exec platform
   ran `uname -sm` → `Darwin arm64` on a real macOS executor. So executors are not
@@ -306,20 +307,32 @@ probing it, each correcting an earlier assumption:
     Xcode. `--@llvm//toolchain:source=bootstrapped` makes them compile with
     hermetic-llvm's own clang instead. Wired as a per-platform flag on the `RBE`
     environment for `darwin_arm64`; confirmed it gets the build past compiler-rt.
-  - *Layer 2 (upstream, open):* hermetic-llvm's internal host **tools** (e.g.
-    `tools/internal/static_library_validator`) still compile via `apple_support`.
-    Its `cxx_builtin_include_directories` are baked from the **orchestrator's**
-    Xcode (`/Applications/Xcode.app/…`) but the action runs on the executor
-    (`/Applications/Xcode_26.5.0.app/…`); the paths differ only by the `.app`
-    name, so Bazel's absolute-path-inclusion check rejects the executor's headers.
-    Fixes: align the executor's Xcode path/`DEVELOPER_DIR` with the orchestrator's
-    (executor-image config), or route those tool compiles through hermetic-llvm's
-    downloaded SDK (upstream). Until then `darwin_arm64` is left out of
-    `RBE.platforms`.
+  - *Layer 2 (was the blocker; now cleared):* hermetic-llvm's internal host
+    **tools** (e.g. `tools/internal/header_parser`, `static_library_validator`)
+    used to compile via `apple_support`, baking the **orchestrator's** Xcode
+    include paths (`/Applications/Xcode.app/…`) into actions that then run on the
+    executor (`/Applications/Xcode_26.5.0.app/…`); the `.app`-name mismatch made
+    Bazel's absolute-path-inclusion check reject the executor's headers. The
+    `HERMETIC_LLVM` `-isysroot` backport ([hermetic-llvm#642][hl642]) is what
+    fixes this: routing the sysroot through hermetic-llvm's *own* downloaded SDK
+    takes those tool compiles off host Xcode. **Verified:** with the patch,
+    `build_rbe_darwin_arm64` clears analysis, fetches the macOS SDK, and compiles
+    the bootstrapped runtimes *and* the internal host tools (`header_parser.c`,
+    compiler-rt `[for tool]`) on real darwin executors with **zero Xcode-path
+    errors** — the layering blocker is gone.
 
-Both copybara-from-macOS and the Layer 2 darwin issue are the same shape as the
-local host-tooling notes below: a host-configured tool that doesn't survive the
-trip to a differently-configured executor.
+The remaining limit is **capacity, not correctness**: building the entire
+hermetic LLVM toolchain from source (≈13k actions) on the *public* darwin
+executor pool is impractically slow (heavy contention, ~40 s per compiler-rt
+action). So `darwin_arm64` is kept out of `RBE.platforms` for now — it's gated on
+faster/larger darwin executor capacity (or a prebuilt-toolchain path that skips
+the from-source bootstrap), no longer on the toolchain-layering bug. The
+`source=bootstrapped` per-platform flag stays wired for when it's enabled.
+
+Both copybara-from-macOS and the old Layer 2 darwin issue are the same shape as
+the local host-tooling notes below: a host-configured tool that doesn't survive
+the trip to a differently-configured executor — and the `-isysroot` fix is an
+example of closing exactly that gap.
 
 ### actiond — a local Linux arm64 worker (build & test linux from the Mac)
 

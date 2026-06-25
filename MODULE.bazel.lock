@@ -188,6 +188,50 @@
   },
   "selectedYankedVersions": {},
   "moduleExtensions": {
+    "//tools/actiond:extension.bzl%actiond": {
+      "general": {
+        "bzlTransitiveDigest": "Ffq37vXPo0rETTXKaECS2VhpkJ0GEmZvkoY/QZwuvhk=",
+        "usagesDigest": "dSKTXQ2LJKPTJEo0DX6Gqg/im596my6GjbSUGcBKmac=",
+        "recordedInputs": [
+          "REPO_MAPPING:,bazel_tools bazel_tools"
+        ],
+        "generatedRepoSpecs": {
+          "actiond_darwin_arm64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_file",
+            "attributes": {
+              "urls": [
+                "https://github.com/hermeticbuild/actiond/releases/download/v0.0.6/darwin-actiond_macos_arm64"
+              ],
+              "sha256": "4e929779d2eb119a011809c0bc0b2349f16167dadd917078bb9be2b68c615157",
+              "executable": true,
+              "downloaded_file_path": "actiond"
+            }
+          },
+          "actiond_linux_arm64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_file",
+            "attributes": {
+              "urls": [
+                "https://github.com/hermeticbuild/actiond/releases/download/v0.0.6/linux-actiond_linux_arm64"
+              ],
+              "sha256": "13282b589d03a474fc2f6074f36f1f7beac26850d84db716b409b8e4b95e99b5",
+              "executable": true,
+              "downloaded_file_path": "actiond"
+            }
+          },
+          "actiond_linux_amd64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_file",
+            "attributes": {
+              "urls": [
+                "https://github.com/hermeticbuild/actiond/releases/download/v0.0.6/linux-actiond_linux_x86_64"
+              ],
+              "sha256": "006dc798d4363596fe8ab997606fc93766a0cc427c2d005cf4fc1765fa4c2052",
+              "executable": true,
+              "downloaded_file_path": "actiond"
+            }
+          }
+        }
+      }
+    },
     "//tools/fetch:extension.bzl%inner_bazel": {
       "general": {
         "bzlTransitiveDigest": "KMugrA7z3qIoe6J32xRV90mwshp6A0K/2FH/8CrP2wM=",

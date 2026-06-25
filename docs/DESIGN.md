@@ -373,6 +373,17 @@ graph built for aarch64-linux, entirely on-box. (Each change to the platform's
 `exec_properties` re-keys every remote action, so the next build recompiles the
 toolchain from scratch — a one-time cost while tuning.)
 
+`test_actiond_linux_arm64` for abseil **executes the C++ tests on the VM and they
+pass** — with the platform `libc`/`requires-bash` in place, the aarch64 test
+binaries run in the chroot and ~147 passed on the first run. The remainder don't
+fail on test logic: they hit actiond-side **infrastructure** flakes under load —
+`Exit 34` "Output null download failed: digest mismatch" on a small (140-byte)
+output and `INTERNAL: http2 exception` on the worker's gRPC stream — which also
+stall the run. So actiond is a working linux/arm64 **build+test** environment for
+C/C++; its v0.0.6 CAS/transport reliability under a full test fan-out is the
+rough edge (lowering `--jobs` further or a newer actiond should help), not the
+museum wiring.
+
 **cxx (Rust) on actiond is blocked one layer down**, not by our patches: the
 exec properties get rules_rust's prebuilt `rustc` to *start* (bash + glibc
 mounted), but it then dies on `libgcc_s.so.1: cannot open shared object file` —
@@ -404,7 +415,9 @@ Each project lives under `builds/<project>/` and is declared with
 [`tools/fetch/extension.bzl`](../tools/fetch/extension.bzl) (the kickoff's
 "source as a dep in `MODULE.bazel`"), and overlays/patches attach per goal. Each
 project emits the `<command>_<env>_<os>_<arch>` matrix (currently
-`{build,test}_{local_darwin_arm64 | local_linux_amd64 | rbe_linux_amd64}`).
+`{build,test}_{local_darwin_arm64 | local_linux_amd64 | rbe_linux_amd64 |
+rbe_linux_arm64}`, plus `…_actiond_linux_arm64` for the projects that opt into
+the `ACTIOND` environment).
 
 ### Projects
 
@@ -412,7 +425,7 @@ project emits the `<command>_<env>_<os>_<arch>` matrix (currently
 |---------|------|-----------|--------------------------|
 | [abseil-cpp](../builds/abseil_cpp/BUILD.bazel) | C++ | release `20260526.0` | LLVM (`HERMETIC_LLVM`) |
 | [copybara](../builds/copybara/BUILD.bazel) | Java | tag `v20260622` | remote JDK (rules_java) + LLVM (for `ijar`) |
-| [cxx](../builds/cxx/BUILD.bazel) | Rust | tag `1.0.194` | rustc (rules_rust) + LLVM |
+| [cxx](../builds/cxx/BUILD.bazel) | Rust | tag `1.0.194` | rustc (rules_rust, patched via `RULES_RUST_SYSROOT_FIX`) + LLVM |
 
 `bazel test` results, all hermetic (compiles use `external/llvm++.../bin/clang`
 with zero `/usr/bin` compiler calls; copybara runs on a bundled OpenJDK with
@@ -420,7 +433,7 @@ host `java` absent):
 
 | Project | tests | notes |
 |---------|-------|-------|
-| abseil-cpp | **251/251 pass** | — |
+| abseil-cpp | **249/251 pass** (darwin arm64) | the 2 failures are `nanobenchmark_test` / `randen_benchmarks` — abseil's cycle estimator returns zero duration on Apple Silicon (`nanobenchmark.cc: Check est != 0 failed`), a platform/benchmark-harness issue independent of the hermetic toolchain |
 | cxx | **1/1 pass** | `//...` has a single test target |
 | copybara | **220/220 pass** | excludes Mercurial (`hg`) tests; Git tests use host `git` |
 

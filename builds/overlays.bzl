@@ -103,7 +103,13 @@ ACTIOND_WORKER = overlay(
         "--remote_local_fallback=false",
         "--remote_upload_local_results=false",
         "--noremote_cache_compression",
-        "--jobs=50",
+        # actiond is a *single* local VM, not a cloud pool. The museum's first
+        # build compiles the whole hermetic LLVM toolchain (compiler-rt/libcxx/
+        # libunwind) from source; at cloud concurrency (50) that many memory-heavy
+        # clang compiles OOM-kill inside the VM. Keep concurrency modest to fit the
+        # guest RAM (the serve target gives it 14 GiB); the guest CAS makes reruns
+        # fast once the toolchain is warm.
+        "--jobs=8",
         "--remote_download_toplevel",
     ],
 )

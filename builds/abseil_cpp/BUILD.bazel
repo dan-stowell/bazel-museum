@@ -1,6 +1,13 @@
 load("//builds:defs.bzl", "build_spec", "museum_project", "test_spec")
-load("//builds:environments.bzl", "LOCAL", "RBE")
+load("//builds:environments.bzl", "ACTIOND", "LOCAL", "RBE")
 load("//builds:overlays.bzl", "HERMETIC_LLVM")
+
+# cctz/time tests read the host tzdata, absent off-host (RBE/actiond); see below.
+_CCTZ_TIME_TESTS = [
+    "//absl/time:time_test",
+    "//absl/time/internal/cctz:time_zone_format_test",
+    "//absl/time/internal/cctz:time_zone_lookup_test",
+]
 
 # Abseil's C++ common libraries — the museum's first build.
 # Source pinned in //tools/fetch:extension.bzl (@absl_archive, release
@@ -14,21 +21,18 @@ museum_project(
     source_archive = "@absl_archive//file",
     strip_prefix = "abseil-cpp-20260526.0",
     toolchains = [HERMETIC_LLVM],
-    environments = [LOCAL, RBE],
+    environments = [LOCAL, RBE, ACTIOND],
     build = build_spec(targets = ["//absl/..."], flags = ["-c", "opt"]),
     test = test_spec(
         targets = ["//absl/..."],
         # The cctz/time tests read the system timezone database
-        # (/usr/share/zoneinfo), which the RBE executor image doesn't ship and
-        # which isn't a Bazel-tracked input — so they're excluded under rbe (the
-        # local goals still run them). A hermetic tzdata input, or a
-        # tzdata-bearing executor image, would re-include them.
+        # (/usr/share/zoneinfo), which neither the RBE executor image nor the
+        # actiond VM ships and which isn't a Bazel-tracked input — so they're
+        # excluded off-host (the local goals still run them). A hermetic tzdata
+        # input, or a tzdata-bearing executor, would re-include them.
         exclude_on = {
-            "rbe": [
-                "//absl/time:time_test",
-                "//absl/time/internal/cctz:time_zone_format_test",
-                "//absl/time/internal/cctz:time_zone_lookup_test",
-            ],
+            "rbe": _CCTZ_TIME_TESTS,
+            "actiond": _CCTZ_TIME_TESTS,
         },
     ),
 )

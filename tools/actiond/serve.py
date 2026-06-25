@@ -11,9 +11,15 @@ so it lives outside the museum's daemonless inner builds. Its `--root` holds the
 guest-owned CAS/ActionCache; reusing it keeps the cache warm across restarts.
 
 Env overrides:
-  MUSEUM_ACTIOND_LISTEN  endpoint to listen on   (default 127.0.0.1:8980)
-  MUSEUM_ACTIOND_ROOT    VM state / cache dir     (default ~/.cache/actiond/vm)
+  MUSEUM_ACTIOND_LISTEN      endpoint to listen on   (default 127.0.0.1:8980)
+  MUSEUM_ACTIOND_ROOT        VM state / cache dir     (default ~/.cache/actiond/vm)
+  MUSEUM_ACTIOND_MEMORY_MIB  guest RAM in MiB         (default 14336 = 14 GiB)
 Any extra args are forwarded verbatim to `actiond serve-vm`.
+
+The default guest RAM is deliberately generous: the museum's first build
+compiles the whole hermetic LLVM toolchain (compiler-rt/libcxx/libunwind) from
+source, and several concurrent clang/llvm-ar actions OOM-kill in a small VM.
+14 GiB lets the build run at useful concurrency without OOM on a 16 GiB+ host.
 """
 
 import os
@@ -39,9 +45,11 @@ def main(argv):
     listen = os.environ.get("MUSEUM_ACTIOND_LISTEN", "127.0.0.1:8980")
     root = os.environ.get("MUSEUM_ACTIOND_ROOT") or os.path.join(
         os.path.expanduser("~"), ".cache", "actiond", "vm")
+    memory_mib = os.environ.get("MUSEUM_ACTIOND_MEMORY_MIB", "14336")
     os.makedirs(root, exist_ok=True)
 
-    cmd = [actiond, "serve-vm", "--listen=" + listen, "--root=" + root] + extra
+    cmd = [actiond, "serve-vm", "--listen=" + listen, "--root=" + root,
+           "--memory-mib=" + memory_mib] + extra
     print(f"actiond serve: {' '.join(cmd)}", file=sys.stderr)
     os.execv(actiond, cmd)
 

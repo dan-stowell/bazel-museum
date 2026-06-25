@@ -46,6 +46,9 @@ PLATFORMS = {p.name: p for p in [
     }),
     _platform("linux", "arm64", _LINUX, _ARM64, {
         "OSFamily": "Linux",
+        # BuildBuddy routes to its linux arm64 executor pool via Arch=arm64
+        # (the default pool is amd64). The image is multi-arch.
+        "Arch": "arm64",
         "container-image": _RBE_LINUX_IMAGE,
     }),
     # macOS executors are a separate BuildBuddy capability (mac executor pool);

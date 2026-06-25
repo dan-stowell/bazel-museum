@@ -78,3 +78,32 @@ BUILDBUDDY_RBE = overlay(
     ],
     remote_header_envs = ["BUILDBUDDY_API_KEY:x-buildbuddy-api-key"],
 )
+
+# actiond (hermeticbuild/actiond): a *local* Remote Execution worker + cache that
+# runs Bazel actions inside a small Linux VM on this host. Like BUILDBUDDY_RBE
+# this overlay carries only the connection — the target/exec platform is pinned
+# separately, per goal, by museum_project (linux_arm64). Start the worker first
+# with `bazel run //tools/actiond:serve`; it serves grpc on 127.0.0.1:8980.
+#
+# Same zero-sysroot trick as RBE: because HERMETIC_LLVM uploads the whole
+# compiler to the worker's CAS, actions run in actiond's empty VM chroot with no
+# host toolchain. Everything goes remote (no local fallback): with the platform
+# pinned to linux_arm64, a local action would try to run a linux binary on macOS.
+_ACTIOND = "grpc://127.0.0.1:8980"
+
+ACTIOND_WORKER = overlay(
+    name = "actiond_worker",
+    build_flags = [
+        "--remote_executor=" + _ACTIOND,
+        "--remote_cache=" + _ACTIOND,
+        # Everything remote; no local fallback (per actiond's guidance and
+        # because the pinned platform is linux, unrunnable on the macOS host).
+        "--spawn_strategy=remote",
+        "--genrule_strategy=remote",
+        "--remote_local_fallback=false",
+        "--remote_upload_local_results=false",
+        "--noremote_cache_compression",
+        "--jobs=50",
+        "--remote_download_toplevel",
+    ],
+)

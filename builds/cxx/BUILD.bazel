@@ -1,5 +1,5 @@
 load("//builds:defs.bzl", "build_spec", "museum_project", "test_spec")
-load("//builds:environments.bzl", "LOCAL", "RBE")
+load("//builds:environments.bzl", "ACTIOND", "LOCAL", "RBE")
 load("//builds:overlays.bzl", "HERMETIC_LLVM")
 
 # cxx (cxx.rs) — safe FFI between Rust and C++. Build #3: exercises the Rust
@@ -13,7 +13,7 @@ museum_project(
     source_archive = "@cxx_archive//file",
     strip_prefix = "cxx-1.0.194",
     toolchains = [HERMETIC_LLVM],
-    environments = [LOCAL, RBE],
+    environments = [LOCAL, RBE, ACTIOND],
     build = build_spec(targets = ["//:cxx", "//:core"]),
     test = test_spec(targets = ["//..."]),
 )

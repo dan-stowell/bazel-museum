@@ -46,3 +46,15 @@ use_repo(
 
 project_sources = use_extension("//tools/fetch:extension.bzl", "project_sources")
 use_repo(project_sources, "absl_archive", "copybara_archive", "cxx_archive")
+
+# Hermetic `actiond` worker binary (see //tools/actiond:extension.bzl). actiond
+# is the local Linux RE worker behind the ACTIOND environment: it runs the
+# museum's projects for linux/arm64 inside a VM on this host. `bazel run
+# //tools/actiond:serve` boots it.
+actiond = use_extension("//tools/actiond:extension.bzl", "actiond")
+use_repo(
+    actiond,
+    "actiond_darwin_arm64",
+    "actiond_linux_arm64",
+    "actiond_linux_amd64",
+)

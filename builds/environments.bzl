@@ -26,7 +26,7 @@ To add an environment (e.g. a future `actiond`), define it here with the
 platforms it supports and add it to a project's `environments = [...]`.
 """
 
-load(":overlays.bzl", "BUILDBUDDY_RBE")
+load(":overlays.bzl", "ACTIOND_WORKER", "BUILDBUDDY_RBE")
 
 def environment(name, platforms, overlays = [], pin_platform = False, host_only = False, platform_flags = {}):
     return struct(
@@ -59,10 +59,24 @@ LOCAL = environment(
 # `platforms` is the final flip once Layer 2 is fixed upstream.
 RBE = environment(
     name = "rbe",
-    platforms = ["linux_amd64"],
+    platforms = ["linux_amd64", "linux_arm64"],
     overlays = [BUILDBUDDY_RBE],
     pin_platform = True,
     platform_flags = {
         "darwin_arm64": ["--@llvm//toolchain:source=bootstrapped"],
     },
+)
+
+# actiond: a local Linux RE worker (a VM on this host). Builds+tests the museum's
+# projects for linux/arm64 without leaving this macOS machine — the same matrix
+# cell as `rbe` linux_arm64, but executed locally instead of in the cloud. The
+# VM is arm64 (matches Apple silicon), so it serves linux_arm64. pin_platform
+# makes the build fully explicit about os/arch (the worker doesn't turn a macOS
+# toolchain into a Linux one — HERMETIC_LLVM does, by cross-targeting linux).
+# Requires the worker to be running: `bazel run //tools/actiond:serve`.
+ACTIOND = environment(
+    name = "actiond",
+    platforms = ["linux_arm64"],
+    overlays = [ACTIOND_WORKER],
+    pin_platform = True,
 )

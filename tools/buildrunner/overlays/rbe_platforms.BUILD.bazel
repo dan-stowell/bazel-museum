@@ -27,6 +27,9 @@ platform(
     constraint_values = ["@platforms//os:linux", "@platforms//cpu:arm64"],
     exec_properties = {
         "OSFamily": "Linux",
+        # Arch=arm64 routes to BuildBuddy's linux arm64 executor pool (default
+        # is amd64). Keep in sync with PLATFORMS in //builds:platforms.bzl.
+        "Arch": "arm64",
         "container-image": "docker://gcr.io/flame-public/rbe-ubuntu20-04:latest",
     },
 )

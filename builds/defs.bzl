@@ -33,24 +33,31 @@ executors for, and `local` goals are gated on the host matching their platform
 """
 
 load("@rules_python//python:defs.bzl", "py_binary")
+load("//tools/fetch:extension.bzl", "DEFAULT_INNER_BAZEL_VERSION")
 load(":platforms.bzl", "PLATFORMS")
 
 # Per-OS+CPU selection of the pinned inner Bazel binary (data dep + runfiles
-# path). We key on os *and* cpu because the official release binaries differ per
-# platform: a cpu-only select would, e.g., match the linux arm64 binary on a
-# macOS arm64 host. The config settings are defined in //builds:BUILD.bazel.
-_INNER_BAZEL_DATA = select({
-    "//builds:linux_amd64": ["@inner_bazel_linux_amd64//file"],
-    "//builds:linux_arm64": ["@inner_bazel_linux_arm64//file"],
-    "//builds:darwin_amd64": ["@inner_bazel_darwin_amd64//file"],
-    "//builds:darwin_arm64": ["@inner_bazel_darwin_arm64//file"],
-})
-_INNER_BAZEL_ARG = select({
-    "//builds:linux_amd64": ["--bazel=$(rlocationpath @inner_bazel_linux_amd64//file)"],
-    "//builds:linux_arm64": ["--bazel=$(rlocationpath @inner_bazel_linux_arm64//file)"],
-    "//builds:darwin_amd64": ["--bazel=$(rlocationpath @inner_bazel_darwin_amd64//file)"],
-    "//builds:darwin_arm64": ["--bazel=$(rlocationpath @inner_bazel_darwin_arm64//file)"],
-})
+# path), for a given inner Bazel version. We key on os *and* cpu because the
+# official release binaries differ per platform: a cpu-only select would, e.g.,
+# match the linux arm64 binary on a macOS arm64 host. The config settings are
+# defined in //builds:BUILD.bazel; the repos come from //tools/fetch.
+def _inner_bazel_data(version):
+    vtag = version.replace(".", "_")
+    return select({
+        "//builds:linux_amd64": ["@inner_bazel_{}_linux_amd64//file".format(vtag)],
+        "//builds:linux_arm64": ["@inner_bazel_{}_linux_arm64//file".format(vtag)],
+        "//builds:darwin_amd64": ["@inner_bazel_{}_darwin_amd64//file".format(vtag)],
+        "//builds:darwin_arm64": ["@inner_bazel_{}_darwin_arm64//file".format(vtag)],
+    })
+
+def _inner_bazel_arg(version):
+    vtag = version.replace(".", "_")
+    return select({
+        "//builds:linux_amd64": ["--bazel=$(rlocationpath @inner_bazel_{}_linux_amd64//file)".format(vtag)],
+        "//builds:linux_arm64": ["--bazel=$(rlocationpath @inner_bazel_{}_linux_arm64//file)".format(vtag)],
+        "//builds:darwin_amd64": ["--bazel=$(rlocationpath @inner_bazel_{}_darwin_amd64//file)".format(vtag)],
+        "//builds:darwin_arm64": ["--bazel=$(rlocationpath @inner_bazel_{}_darwin_arm64//file)".format(vtag)],
+    })
 
 # The injected RBE platform package (one platform() per os/arch). pin_platform
 # environments append this and point the platform flags at //museum_rbe:<plat>.
@@ -101,7 +108,7 @@ def _dedupe(items):
             out.append(it)
     return out
 
-def _emit_goal(project_id, source_archive, strip_prefix, toolchains, env, plat, spec, visibility):
+def _emit_goal(project_id, source_archive, strip_prefix, toolchains, env, plat, spec, bazel_version, visibility):
     goal_name = "{}_{}_{}".format(spec.command, env.name, plat.name)
 
     overlays = toolchains + env.overlays
@@ -170,7 +177,7 @@ def _emit_goal(project_id, source_archive, strip_prefix, toolchains, env, plat, 
         [label for label, _ in writes] +
         patch_labels,
     )
-    data = [source_archive] + overlay_files + _INNER_BAZEL_DATA
+    data = [source_archive] + overlay_files + _inner_bazel_data(bazel_version)
 
     # host_only environments (local) can only run when the host matches the
     # goal's platform; mark the others incompatible so they're skipped, not run.
@@ -184,7 +191,7 @@ def _emit_goal(project_id, source_archive, strip_prefix, toolchains, env, plat, 
         main = "runner.py",
         deps = ["@rules_python//python/runfiles"],
         data = data,
-        args = args + _INNER_BAZEL_ARG,
+        args = args + _inner_bazel_arg(bazel_version),
         target_compatible_with = compatible,
         visibility = visibility,
     )
@@ -197,6 +204,7 @@ def museum_project(
         test = None,
         strip_prefix = "",
         toolchains = [],
+        bazel_version = DEFAULT_INNER_BAZEL_VERSION,
         visibility = ["//visibility:public"]):
     """Declare a museum project and emit its environment x platform x command grid.
 
@@ -208,6 +216,9 @@ def museum_project(
       test: a test_spec(...) (or None to emit no test goals).
       strip_prefix: top-level directory inside the tarball = workspace root.
       toolchains: overlays applied to every goal (e.g. [HERMETIC_LLVM]).
+      bazel_version: which pinned inner Bazel to run the build with. Defaults to
+        the museum default; set it to match a project's .bazelversion when the
+        project targets an older Bazel (must be a version in //tools/fetch).
       visibility: visibility for the generated goal targets.
     """
 
@@ -228,5 +239,6 @@ def museum_project(
                     env,
                     plat,
                     spec,
+                    bazel_version,
                     visibility,
                 )

@@ -13,7 +13,7 @@ run everything inside — no host Python, no host `gh`, no daemons assumed.
 |-------|------|--------|
 | 1 | **Data pipeline** — discover *and rank* public projects that build with Bazel | ✅ built |
 | 2 | **Run Bazel builds + tests in isolation** — daemonless, hermetic toolchains, composable overlays, BuildBuddy RBE | ✅ built (RBE on linux; macOS RBE next) |
-| 3 | **The build collection** — projects across toolchains, each with build/test + remote build/test | ✅ abseil-cpp (C++), protobuf (C++), copybara (Java), cxx (Rust) |
+| 3 | **The build collection** — projects across toolchains, each with build/test + remote build/test | ✅ abseil-cpp, protobuf, googletest, nlohmann/json, Catch2 (C++), copybara (Java), cxx (Rust) |
 
 See [docs/DESIGN.md](docs/DESIGN.md) for the architecture and
 [docs/KICKOFF.md](docs/KICKOFF.md) for the project's intent.
@@ -65,10 +65,13 @@ bazel run //builds/abseil_cpp:build -- //absl/strings:strings
 # Pass flags through to the inner build:
 bazel run //builds/abseil_cpp:build -- --verbose_failures
 
-# Other projects / toolchains:
-bazel run //builds/protobuf:build   # C++   — first-party Bazel; protoc + runtime
-bazel run //builds/copybara:build   # Java  — rules_java + hermetic remote JDK
-bazel run //builds/cxx:build        # Rust  — rules_rust + hermetic LLVM
+# Other projects / toolchains (goals are <command>_<env>_<os>_<arch>):
+bazel run //builds/protobuf:build_local_linux_amd64    # C++ — protoc + runtime
+bazel run //builds/googletest:build_local_linux_amd64  # C++ — gtest (+gmock)
+bazel run //builds/json:build_local_linux_amd64        # C++ — nlohmann/json (header-only)
+bazel run //builds/catch2:build_local_linux_amd64      # C++ — Catch2 framework
+bazel run //builds/copybara:build_local_linux_amd64    # Java — rules_java + hermetic JDK
+bazel run //builds/cxx:build_local_linux_amd64         # Rust — rules_rust + hermetic LLVM
 
 # Run each project's tests, hermetically (no host toolchain):
 bazel run //builds/abseil_cpp:test  # 251/251 pass

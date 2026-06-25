@@ -1,0 +1,28 @@
+load("//builds:defs.bzl", "build_spec", "museum_project")
+load("//builds:environments.bzl", "LOCAL", "RBE")
+load("//builds:overlays.bzl", "HERMETIC_LLVM", "RULES_CC_DEP", "overlay")
+
+# googletest 1.17.0's root BUILD calls cc_library/cc_test unloaded (fine on
+# Bazel 8, removed from Bazel 9 builtins). Patch in the explicit load();
+# RULES_CC_DEP makes @rules_cc visible for it.
+GTEST_CC_LOAD = overlay(
+    name = "gtest_cc_load",
+    patches = ["//builds/googletest:add_cc_load.patch"],
+)
+
+# GoogleTest — the C++ test framework.
+# Source pinned in //tools/fetch:extension.bzl (@googletest_archive, v1.17.0),
+# built with the fully-hermetic LLVM toolchain. The iconic artifacts: the gtest
+# + gtest_main libraries (//:gtest bundles gmock). Its own test packages also
+# use unloaded cc_test; running them needs a load() patch per test package,
+# deferred — this is a build-only addition for now.
+#
+#   bazel run //builds/googletest:build_local_linux_amd64
+museum_project(
+    name = "googletest",
+    source_archive = "@googletest_archive//file",
+    strip_prefix = "googletest-1.17.0",
+    toolchains = [HERMETIC_LLVM, RULES_CC_DEP, GTEST_CC_LOAD],
+    environments = [LOCAL, RBE],
+    build = build_spec(targets = ["//:gtest", "//:gtest_main"], flags = ["-c", "opt"]),
+)

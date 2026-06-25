@@ -234,13 +234,13 @@
     },
     "//tools/fetch:extension.bzl%inner_bazel": {
       "general": {
-        "bzlTransitiveDigest": "Yj9Ejb1zTzBdxcXew9S6oukcUOlgEiDx1Ct2eWqWWSE=",
+        "bzlTransitiveDigest": "Tx41wdxH/vTTQyXY7JfDxndJr5tAMGroBQRCdGjZdng=",
         "usagesDigest": "h14pbfoGF+xRhbdi2p4ZLtdO3iD9D6LSCzysqtpR8HE=",
         "recordedInputs": [
           "REPO_MAPPING:,bazel_tools bazel_tools"
         ],
         "generatedRepoSpecs": {
-          "inner_bazel_linux_amd64": {
+          "inner_bazel_9_1_1_linux_amd64": {
             "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_file",
             "attributes": {
               "urls": [
@@ -251,7 +251,7 @@
               "downloaded_file_path": "bazel"
             }
           },
-          "inner_bazel_linux_arm64": {
+          "inner_bazel_9_1_1_linux_arm64": {
             "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_file",
             "attributes": {
               "urls": [
@@ -262,7 +262,7 @@
               "downloaded_file_path": "bazel"
             }
           },
-          "inner_bazel_darwin_amd64": {
+          "inner_bazel_9_1_1_darwin_amd64": {
             "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_file",
             "attributes": {
               "urls": [
@@ -273,7 +273,7 @@
               "downloaded_file_path": "bazel"
             }
           },
-          "inner_bazel_darwin_arm64": {
+          "inner_bazel_9_1_1_darwin_arm64": {
             "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_file",
             "attributes": {
               "urls": [
@@ -283,13 +283,57 @@
               "executable": true,
               "downloaded_file_path": "bazel"
             }
+          },
+          "inner_bazel_8_0_1_linux_amd64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_file",
+            "attributes": {
+              "urls": [
+                "https://github.com/bazelbuild/bazel/releases/download/8.0.1/bazel-8.0.1-linux-x86_64"
+              ],
+              "sha256": "40f243b118f46d1c88842315e78ec5f9f6390980d67a90f7b64098613e60d65b",
+              "executable": true,
+              "downloaded_file_path": "bazel"
+            }
+          },
+          "inner_bazel_8_0_1_linux_arm64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_file",
+            "attributes": {
+              "urls": [
+                "https://github.com/bazelbuild/bazel/releases/download/8.0.1/bazel-8.0.1-linux-arm64"
+              ],
+              "sha256": "ebc269a83c64d52017681874d13fce399cc624ab42e8e83bf4dedfe29589eaa6",
+              "executable": true,
+              "downloaded_file_path": "bazel"
+            }
+          },
+          "inner_bazel_8_0_1_darwin_amd64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_file",
+            "attributes": {
+              "urls": [
+                "https://github.com/bazelbuild/bazel/releases/download/8.0.1/bazel-8.0.1-darwin-x86_64"
+              ],
+              "sha256": "32ca8bbf866cb14190bfb019ce1ac4a7d61b8cbb3f0771137974e8d0e5cdf1eb",
+              "executable": true,
+              "downloaded_file_path": "bazel"
+            }
+          },
+          "inner_bazel_8_0_1_darwin_arm64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_file",
+            "attributes": {
+              "urls": [
+                "https://github.com/bazelbuild/bazel/releases/download/8.0.1/bazel-8.0.1-darwin-arm64"
+              ],
+              "sha256": "d10ac6488550c5211aed20084f40dfb77f6367e229b15a1cf287057941d9332b",
+              "executable": true,
+              "downloaded_file_path": "bazel"
+            }
           }
         }
       }
     },
     "//tools/fetch:extension.bzl%project_sources": {
       "general": {
-        "bzlTransitiveDigest": "Yj9Ejb1zTzBdxcXew9S6oukcUOlgEiDx1Ct2eWqWWSE=",
+        "bzlTransitiveDigest": "Tx41wdxH/vTTQyXY7JfDxndJr5tAMGroBQRCdGjZdng=",
         "usagesDigest": "4RQlvpJYAxX2PZxLc3Y4g/kgSEcAiqEkkFheY2guOrA=",
         "recordedInputs": [
           "REPO_MAPPING:,bazel_tools bazel_tools"
@@ -333,6 +377,56 @@
               ],
               "sha256": "75b7b0b36b630c7b6e3aeb07b2e58993fb9494fbb2b08bba0891aaa231d4e4d1",
               "downloaded_file_path": "protobuf-35.1.bazel.tar.gz"
+            }
+          },
+          "grpc_archive": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_file",
+            "attributes": {
+              "urls": [
+                "https://github.com/grpc/grpc/archive/refs/tags/v1.81.1.tar.gz"
+              ],
+              "sha256": "48ae0d05f87206112d9e9144a923191ee1e482141a70686ec58dc86d0b40fddc",
+              "downloaded_file_path": "grpc-1.81.1.tar.gz"
+            }
+          },
+          "googletest_archive": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_file",
+            "attributes": {
+              "urls": [
+                "https://github.com/google/googletest/archive/refs/tags/v1.17.0.tar.gz"
+              ],
+              "sha256": "65fab701d9829d38cb77c14acdc431d2108bfdbf8979e40eb8ae567edf10b27c",
+              "downloaded_file_path": "googletest-1.17.0.tar.gz"
+            }
+          },
+          "json_archive": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_file",
+            "attributes": {
+              "urls": [
+                "https://github.com/nlohmann/json/archive/refs/tags/v3.12.0.tar.gz"
+              ],
+              "sha256": "4b92eb0c06d10683f7447ce9406cb97cd4b453be18d7279320f7b2f025c10187",
+              "downloaded_file_path": "json-3.12.0.tar.gz"
+            }
+          },
+          "flatbuffers_archive": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_file",
+            "attributes": {
+              "urls": [
+                "https://github.com/google/flatbuffers/archive/refs/tags/v25.12.19-2026-02-06-03fffb2.tar.gz"
+              ],
+              "sha256": "ccbce58684691de1e7d51f5e87786266b37d06ab66e9dfe2d0ec106fe50aace0",
+              "downloaded_file_path": "flatbuffers-25.12.19-2026-02-06-03fffb2.tar.gz"
+            }
+          },
+          "catch2_archive": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_file",
+            "attributes": {
+              "urls": [
+                "https://github.com/catchorg/Catch2/archive/refs/tags/v3.15.1.tar.gz"
+              ],
+              "sha256": "be23a52b85cf04cd9587612147a10b023d59ed9757fa1843cc99e615d6c0893c",
+              "downloaded_file_path": "Catch2-3.15.1.tar.gz"
             }
           }
         }

@@ -1,0 +1,11 @@
+
+# === bazel-museum: rules_foreign_cc Bazel-9 bump ===
+#
+# Older rules_foreign_cc releases (e.g. 0.10.1) initialize their toolchains with
+# a rule() kwarg Bazel 9 removed (incompatible_use_toolchain_transition).
+# Projects that pull such a version transitively (e.g. flatbuffers) fail at
+# analysis. Force a newer, Bazel-9-clean rules_foreign_cc.
+single_version_override(
+    module_name = "rules_foreign_cc",
+    version = "0.15.1",
+)

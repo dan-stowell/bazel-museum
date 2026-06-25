@@ -38,14 +38,31 @@ use_repo(
 inner_bazel = use_extension("//tools/fetch:extension.bzl", "inner_bazel")
 use_repo(
     inner_bazel,
-    "inner_bazel_linux_amd64",
-    "inner_bazel_linux_arm64",
-    "inner_bazel_darwin_amd64",
-    "inner_bazel_darwin_arm64",
+    # Bazel 9.1.1 (default inner).
+    "inner_bazel_9_1_1_linux_amd64",
+    "inner_bazel_9_1_1_linux_arm64",
+    "inner_bazel_9_1_1_darwin_amd64",
+    "inner_bazel_9_1_1_darwin_arm64",
+    # Bazel 8.0.1 (for projects that target Bazel 8, e.g. grpc).
+    "inner_bazel_8_0_1_linux_amd64",
+    "inner_bazel_8_0_1_linux_arm64",
+    "inner_bazel_8_0_1_darwin_amd64",
+    "inner_bazel_8_0_1_darwin_arm64",
 )
 
 project_sources = use_extension("//tools/fetch:extension.bzl", "project_sources")
-use_repo(project_sources, "absl_archive", "copybara_archive", "cxx_archive", "protobuf_archive")
+use_repo(
+    project_sources,
+    "absl_archive",
+    "copybara_archive",
+    "cxx_archive",
+    "protobuf_archive",
+    "grpc_archive",
+    "googletest_archive",
+    "json_archive",
+    "flatbuffers_archive",
+    "catch2_archive",
+)
 
 # Hermetic `actiond` worker binary (see //tools/actiond:extension.bzl). actiond
 # is the local Linux RE worker behind the ACTIOND environment: it runs the

@@ -60,6 +60,32 @@ RULES_RUST_SYSROOT_FIX = overlay(
     ],
 )
 
+# Make @rules_cc visible so a BUILD file can `load()` the C/C++ rules. Bazel 9
+# removed cc_library/cc_test/cc_binary from the global builtins; legacy BUILD
+# files that call them unloaded (e.g. googletest) need both an explicit load()
+# (patched in per project) and rules_cc in the module's repo mapping (this
+# append). Apply only to projects that don't already depend on rules_cc — a
+# duplicate bazel_dep errors.
+RULES_CC_DEP = overlay(
+    name = "rules_cc_dep",
+    appends = [("//tools/buildrunner/overlays:rules_cc_dep.MODULE.bazel", "MODULE.bazel")],
+)
+
+# Force a Bazel-9-clean aspect_bazel_lib for projects that pull an old one
+# transitively (its yq/copy_* toolchains use a rule() kwarg Bazel 9 removed).
+# See //tools/buildrunner/overlays/aspect_bazel_lib_bazel9.MODULE.bazel.
+ASPECT_BAZEL_LIB_BAZEL9 = overlay(
+    name = "aspect_bazel_lib_bazel9",
+    appends = [("//tools/buildrunner/overlays:aspect_bazel_lib_bazel9.MODULE.bazel", "MODULE.bazel")],
+)
+
+# Force a Bazel-9-clean rules_foreign_cc (older ones use a removed rule() kwarg).
+# See //tools/buildrunner/overlays/rules_foreign_cc_bazel9.MODULE.bazel.
+RULES_FOREIGN_CC_BAZEL9 = overlay(
+    name = "rules_foreign_cc_bazel9",
+    appends = [("//tools/buildrunner/overlays:rules_foreign_cc_bazel9.MODULE.bazel", "MODULE.bazel")],
+)
+
 # BuildBuddy cloud remote build execution (RBE). We deliberately do NOT use
 # toolchains_buildbuddy: hermetic-llvm is zero-sysroot, so the compiler and all
 # inputs are uploaded to the CAS and run image-agnostically on the executor.

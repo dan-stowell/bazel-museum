@@ -1,0 +1,22 @@
+load("//builds:defs.bzl", "build_spec", "museum_project")
+load("//builds:environments.bzl", "LOCAL", "RBE")
+load("//builds:overlays.bzl", "HERMETIC_LLVM")
+
+# Catch2 — C++ test framework.
+# Source pinned in //tools/fetch:extension.bzl (@catch2_archive, v3.15.1), built
+# with the fully-hermetic LLVM toolchain. Iconic artifact: the catch2_main
+# library (and the full framework underneath it).
+#
+# Build-only for now: Catch2's monolithic self-test (//tests:catch2_self_test)
+# is 503/527 cases green, but one randomized self-test case fails the whole
+# target under the hermetic sandbox — needs triage before we claim test parity.
+#
+#   bazel run //builds/catch2:build_local_linux_amd64
+museum_project(
+    name = "catch2",
+    source_archive = "@catch2_archive//file",
+    strip_prefix = "Catch2-3.15.1",
+    toolchains = [HERMETIC_LLVM],
+    environments = [LOCAL, RBE],
+    build = build_spec(targets = ["//:catch2_main"], flags = ["-c", "opt"]),
+)

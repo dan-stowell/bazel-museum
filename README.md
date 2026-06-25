@@ -11,9 +11,9 @@ run everything inside — no host Python, no host `gh`, no daemons assumed.
 
 | Piece | What | Status |
 |-------|------|--------|
-| 1 | **Data pipeline** — discover public projects that build with Bazel | ✅ built |
+| 1 | **Data pipeline** — discover *and rank* public projects that build with Bazel | ✅ built |
 | 2 | **Run Bazel builds + tests in isolation** — daemonless, hermetic toolchains, composable overlays, BuildBuddy RBE | ✅ built (RBE on linux; macOS RBE next) |
-| 3 | **The build collection** — 3 projects across 3 toolchains, each with build/test + remote build/test | ✅ abseil-cpp (C++), copybara (Java), cxx (Rust) |
+| 3 | **The build collection** — projects across toolchains, each with build/test + remote build/test | ✅ abseil-cpp (C++), protobuf (C++), copybara (Java), cxx (Rust) |
 
 See [docs/DESIGN.md](docs/DESIGN.md) for the architecture and
 [docs/KICKOFF.md](docs/KICKOFF.md) for the project's intent.
@@ -30,7 +30,21 @@ bazel run //pipeline:gather -- --enrich=none
 ```
 
 The result lands in [`data/projects.json`](data/projects.json): a deduped,
-classified, enriched snapshot of public projects that build with Bazel.
+classified, enriched snapshot of public projects that build with Bazel. Each
+project carries a `candidate_score` (recognition × still-maintained ×
+buildability) so the next project to add is a ranking, not a guess.
+
+```sh
+# Order the universe of next candidates from the snapshot (offline, no network):
+bazel run //pipeline:rank                    # top 30, excluding what's already in
+bazel run //pipeline:rank -- --by-language   # best-per-toolchain coverage view
+bazel run //pipeline:rank -- --language C++ --top 50
+```
+
+Buildability signals: `in_bcr` (a Bazel Central Registry module exists — someone
+keeps a build green) and `first_party_bazel` (the repo itself ships Bazel build
+files, vs. a BCR *port* of a CMake/autotools project). `gather` probes the
+latter for projects above `--detect-bazel-min-stars` (default 1000).
 
 Enrichment authenticates GitHub via a hermetic, pinned `gh` (downloaded as a
 Bazel dependency). It uses `GH_TOKEN`/`GITHUB_TOKEN` if set, otherwise the
@@ -52,6 +66,7 @@ bazel run //builds/abseil_cpp:build -- //absl/strings:strings
 bazel run //builds/abseil_cpp:build -- --verbose_failures
 
 # Other projects / toolchains:
+bazel run //builds/protobuf:build   # C++   — first-party Bazel; protoc + runtime
 bazel run //builds/copybara:build   # Java  — rules_java + hermetic remote JDK
 bazel run //builds/cxx:build        # Rust  — rules_rust + hermetic LLVM
 

@@ -45,7 +45,7 @@ use_repo(
 )
 
 project_sources = use_extension("//tools/fetch:extension.bzl", "project_sources")
-use_repo(project_sources, "absl_archive", "copybara_archive", "cxx_archive")
+use_repo(project_sources, "absl_archive", "copybara_archive", "cxx_archive", "protobuf_archive")
 
 # Hermetic `actiond` worker binary (see //tools/actiond:extension.bzl). actiond
 # is the local Linux RE worker behind the ACTIOND environment: it runs the

@@ -234,7 +234,7 @@
     },
     "//tools/fetch:extension.bzl%inner_bazel": {
       "general": {
-        "bzlTransitiveDigest": "KMugrA7z3qIoe6J32xRV90mwshp6A0K/2FH/8CrP2wM=",
+        "bzlTransitiveDigest": "Yj9Ejb1zTzBdxcXew9S6oukcUOlgEiDx1Ct2eWqWWSE=",
         "usagesDigest": "h14pbfoGF+xRhbdi2p4ZLtdO3iD9D6LSCzysqtpR8HE=",
         "recordedInputs": [
           "REPO_MAPPING:,bazel_tools bazel_tools"
@@ -289,7 +289,7 @@
     },
     "//tools/fetch:extension.bzl%project_sources": {
       "general": {
-        "bzlTransitiveDigest": "KMugrA7z3qIoe6J32xRV90mwshp6A0K/2FH/8CrP2wM=",
+        "bzlTransitiveDigest": "Yj9Ejb1zTzBdxcXew9S6oukcUOlgEiDx1Ct2eWqWWSE=",
         "usagesDigest": "4RQlvpJYAxX2PZxLc3Y4g/kgSEcAiqEkkFheY2guOrA=",
         "recordedInputs": [
           "REPO_MAPPING:,bazel_tools bazel_tools"
@@ -323,6 +323,16 @@
               ],
               "sha256": "2edf94915ab43778b02a13e522d050a76dea607d1a05f769911775676d27cb3c",
               "downloaded_file_path": "cxx-1.0.194.tar.gz"
+            }
+          },
+          "protobuf_archive": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_file",
+            "attributes": {
+              "urls": [
+                "https://github.com/protocolbuffers/protobuf/releases/download/v35.1/protobuf-35.1.bazel.tar.gz"
+              ],
+              "sha256": "75b7b0b36b630c7b6e3aeb07b2e58993fb9494fbb2b08bba0891aaa231d4e4d1",
+              "downloaded_file_path": "protobuf-35.1.bazel.tar.gz"
             }
           }
         }

@@ -66,6 +66,14 @@ _PROJECT_SOURCES = {
         "sha256": "2edf94915ab43778b02a13e522d050a76dea607d1a05f769911775676d27cb3c",
         "filename": "cxx-1.0.194.tar.gz",
     },
+    # Protocol Buffers — the canonical first-party Bazel C++ project. We pin the
+    # release's Bazel-specific source dist (the variant the BCR consumes), which
+    # ships the bzlmod MODULE.bazel and depends on abseil-cpp/rules_cc/zlib.
+    "protobuf_archive": {
+        "url": "https://github.com/protocolbuffers/protobuf/releases/download/v35.1/protobuf-35.1.bazel.tar.gz",
+        "sha256": "75b7b0b36b630c7b6e3aeb07b2e58993fb9494fbb2b08bba0891aaa231d4e4d1",
+        "filename": "protobuf-35.1.bazel.tar.gz",
+    },
 }
 
 

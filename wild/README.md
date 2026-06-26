@@ -4,113 +4,119 @@ The museum proper makes projects hermetic *by injection*: a pinned inner Bazel, 
 fully-hermetic LLVM toolchain, and per-project overlays. This directory takes the
 opposite bet:
 
-> Put the reproducibility boundary at the **container**, not the build graph. Ship
-> an image with **nothing but bazelisk**, drop a project's source in *exactly as
-> upstream wrote it* (no overlays, no injected toolchain), and run its build. The
-> question we're measuring: **which projects are already hermetic enough to build
-> with nothing but bazelisk + the network?**
+> Put the reproducibility boundary at the **container**, not the build graph. Drop
+> a project's source in *exactly as upstream wrote it* (no overlays, no injected
+> toolchain) and run its build. Then measure **hermeticity as a dimension**: which
+> projects build with nothing but bazelisk, which need an ordinary host, and which
+> just need a nudge.
 
 ## Pieces
 
-- [`Dockerfile`](Dockerfile) — a two-stage build whose final image is just
-  `debian-slim` + `ca-certificates` + the `bazelisk` binary (~136 MB). No
-  compiler, no language SDK, no build tools. (CA certs are irreducible: bazelisk
-  downloads Bazel, and builds fetch the BCR + toolchains over https.)
-- [`build.sh`](build.sh) — `wild/build.sh <project> [bazel-args…]`. Reuses the
-  museum's pinned source tarball (same url+sha256 as
-  `//tools/fetch:extension.bzl`), verifies it on the host, mounts it into the
-  container, and runs `bazelisk` against the upstream `MODULE.bazel`/`BUILD` as
-  found. `USE_BAZEL_VERSION=<v>` forces a specific Bazel (otherwise bazelisk
-  honors the project's `.bazelversion`, or the latest if it pins none).
+- [`Dockerfile`](Dockerfile) — **strict** image: `debian-slim` + `ca-certificates`
+  + `bazelisk` only (~136 MB). No compiler, no SDK. The "is it hermetic in nature?"
+  probe.
+- [`Dockerfile.baseline`](Dockerfile.baseline) — **baseline** image: the above plus
+  a normal CI machine (gcc/g++, JDK, python, git, zip; ~1.1 GB). The workhorse for
+  "build it as it is."
+- [`build.sh`](build.sh) — `wild/build.sh <project> [bazel-args…]`. Reads the
+  project's pinned `url+sha256` straight from `//tools/fetch:extension.bzl`, fetches
+  + verifies it on the host, mounts it into the container, and runs `bazelisk`
+  against the upstream `MODULE`/`BUILD`. `WILD_IMAGE` picks the image (default
+  baseline); `USE_BAZEL_VERSION=<v>` forces a Bazel (else bazelisk honors the repo's
+  `.bazelversion`, or the latest if it pins none).
+- [`sweep.sh`](sweep.sh) — runs every museum project's curated target through three
+  configs and writes the matrix. Self-committing and resumable.
+- [`CATALOG.md`](CATALOG.md) — the generated result matrix (all 33 projects).
 
 ```sh
-docker build -t bazel-wild wild/
-wild/build.sh buildtools build //buildifier:buildifier
-USE_BAZEL_VERSION=7.4.1 wild/build.sh fast_float build //...
+docker build -t bazel-wild            wild/                                # strict
+docker build -t bazel-wild-baseline -f wild/Dockerfile.baseline wild/      # baseline
+wild/build.sh cpu_features                       # build it as it is (baseline)
+USE_BAZEL_VERSION=8.7.0 wild/build.sh nsync build //:nsync
+WILD_IMAGE=bazel-wild   wild/build.sh fast_float  # the strict (hermeticity) probe
+bash wild/sweep.sh                                # the whole matrix
 ```
 
-## First findings
+## Results
 
-Two failure layers surface immediately, and they are the whole story so far.
+All 33 museum projects, each built **as upstream ships it** (curated target, no
+overlays) under three configs — see [`CATALOG.md`](CATALOG.md) for the full table:
 
-**1. Version drift.** A project that pins no `.bazelversion` gets whatever
-bazelisk thinks is latest (today, Bazel **9.1.1**). Bazel 9 removed the
-autoloaded `cc_*` / `sh_test` built-ins, so older releases break at *load* time:
+- **as-is** — baseline image, whatever Bazel bazelisk picks.
+- **+right-bazel** — baseline image, pinned to the project's known-good Bazel.
+- **hermetic** — *strict* image, known-good Bazel (✅ ⇒ builds with no host toolchain).
+
+|                | builds | of 33 |
+|----------------|:------:|:-----:|
+| as-is          | **20** | 61% |
+| +right-bazel   | **29** | 88% |
+| hermetic in nature | **0** | 0% |
+
+The shape of the result is the finding: **as-is ≈ ⅔, right-Bazel ≈ ⅞, hermetic = 0.**
+
+## The two walls
+
+**1. Version drift (the as-is → right-bazel gap).** A repo that pins no
+`.bazelversion` gets whatever bazelisk thinks is latest (Bazel 9), which removed the
+autoloaded `cc_*` / `sh_test` built-ins — so any package still using them fails at
+*load* time. Nine of the thirteen as-is failures are this: buildtools, cli11, glog,
+googletest, nsync, snappy (`sh_test`/`cc_*` not defined) and cctz, flatbuffers
+(dep-shape on Bazel 9). Give each the Bazel it expects and it builds. doctest *does*
+pin (8.5.0) and bazelisk honors it — version-pinning works in nature when the repo
+bothers; pinned source and a moving toolchain selector are not the same thing.
+
+**2. The host toolchain (why hermetic = 0).** Pin past the drift and *everything*
+that compiles fails the same way in the strict image — Bazel's C/C++ toolchain
+**auto-configuration**, which probes the host for `gcc`/`CC` and finds none:
 
 ```
-buildtools v7.3.1  (no .bazelversion)
-  → bazelisk picks 9.1.1
-  → ERROR: buildifier/BUILD.bazel:60: name 'sh_test' is not defined
+fast_float (pure C++)  → @rules_cc//…/local_config_cc:cc-compiler-k8
+buildtools (pure Go!)  → @rules_go//:cgo_context_data → …/local_config_cc
+  → "Auto-Configuration Error: Cannot find gcc or CC"
 ```
 
-In nature, "reproducible" and "buildable" are not the same thing: the source is
-pinned, but the *toolchain selector* is a moving target the project never nailed
-down.
+Even pure-Go buildifier and Rust `cxx` hit it — rules_go/rules_rust eagerly
+configure a host C toolchain for cgo/linking. Of the 29 projects that build with the
+right Bazel, **27 need a C/C++ compiler**, ortools additionally needs **`git`** (a
+`git_repository` fetch), and protobuf trips a repo-visibility issue — so **none** are
+hermetic for free. That host-toolchain dependency is exactly what the museum's
+`HERMETIC_LLVM` overlay removes by injection: the museum isn't gilding the lily, it's
+supplying something every one of these projects silently assumes.
 
-**2. The host C/C++ toolchain is the universal wall.** Pin past the version drift
-(`USE_BAZEL_VERSION=7.4.1`) and every project that compiles anything fails at the
-*same* place — Bazel's C/C++ toolchain **auto-configuration**, which probes the
-host for `gcc`/`CC` and finds none in a bazelisk-only image:
+## Hermeticity as a dimension
 
-```
-fast_float  (pure C++)   → @rules_cc//…/local_config_cc:cc-compiler-k8
-buildtools  (pure Go!)   → @rules_go//:cgo_context_data → …/local_config_cc
-  both → "Auto-Configuration Error: Cannot find gcc or CC"
-```
+That makes the spectrum the real product, not a pass/fail:
 
-Note buildtools is a *pure-Go* binary, yet rules_go still eagerly configures a
-cgo C toolchain at analysis time. So even "no native code" projects lean on a
-host compiler in nature — exactly the dependency the museum's `HERMETIC_LLVM`
-overlay removes by injection.
+- **hermetic from the start** — builds in the strict image. *Currently none*, but
+  this is the column to grow.
+- **hermetic with a nudge** — would, with a small *declared* change: register a
+  `toolchains_llvm` / `hermetic_cc_toolchain` in its own `MODULE.bazel`. Most C/C++
+  projects here are one `register_toolchains` away.
+- **leans on the host** — builds only with the baseline image's toolchain (today:
+  all 29 that build).
 
-## The baseline image: build it as it is
+## Still failing even with the right Bazel (4)
 
-Almost nothing builds with *literally* nothing but bazelisk, because in nature a
-Bazel project assumes the host is a developer machine. So the working image is
-[`Dockerfile.baseline`](Dockerfile.baseline) — bazelisk + a **normal CI machine**
-(C/C++ toolchain, JDK, python, git, zip; ~1.1 GB). The goal is to *build things
-as they are*; the pinned image is the "nature" they run in. Hermeticity then
-becomes **its own dimension** we measure, not a precondition:
+Each is a distinct "as found in nature" story, not a toolchain problem:
 
-- **hermetic from the start** — builds in the strict, compiler-free image.
-- **hermetic with a nudge** — would, with a small declared change (e.g. register
-  a `toolchains_llvm` toolchain in its own MODULE).
-- **leans on the host** — builds only with the baseline image's toolchain.
+- **bazel** — `//src:bazel-bin` is 6768 actions; hit the 900 s sweep timeout. Builds
+  given time (it's the museum's flagship), just too big for an unscoped sweep slot.
+- **grpc** — ships a `tools/bazel` wrapper that bazelisk respects, which shells out
+  to **`curl`** to download its own pinned Bazel. The image has no `curl` →
+  `curl: command not found`. A host-tool assumption beyond the compiler.
+- **brotli** — ships **no `MODULE.bazel`** (WORKSPACE-only in nature; the museum
+  synthesizes one). bzlmod in the wild sees no workspace marker → *"the 'build'
+  command is only supported from within a workspace."*
+- **doctest** — root `//:doctest` uses `includes = ["."]`, which modern Bazel rejects
+  for the main module ("resolves to the workspace root"). Legal — and fine — only
+  when doctest is consumed as a *dependency*, which is how it's meant to be used.
 
-## First catalog (baseline image, `build //...` unless noted)
+## Takeaway
 
-| project | bazelisk picked | result | wall / note |
-|---------|:--------------:|:------:|-------------|
-| cpu_features | 9.1.1 | ✅ | builds clean as-is (98 actions) |
-| fast_float | 9.1.1→**7.4.1** | ✅¹ | builds at 7.4.1; `//...` on 9 fails (drift) |
-| json | 9.1.1 | ❌ | `//...`: `docs/mkdocs/...` pkg won't load (drift) |
-| googletest | 9.1.1 | ❌ | `//...`: `googlemock/test` pkg won't load (drift) |
-| buildtools | 9.1.1 | ❌ | `sh_test` removed in Bazel 9 (pins no version) |
-| doctest | **8.5.0** | ❌ | root `//:doctest` uses `includes=["."]`, rejected as the main module (fine as a *dep*) |
-
-¹ with `USE_BAZEL_VERSION=7.4.1`.
-
-The dimensions that fell out, each roughly independent:
-
-1. **Bazel version.** Does the repo pin a `.bazelversion`? buildtools/json/fast_float
-   pin none → bazelisk grabs Bazel 9, which removed the `cc_*`/`sh_test` autoloads,
-   so any package still using them fails to *load*. doctest *does* pin (8.5.0) and
-   bazelisk honors it — version-pinning works in nature when the repo bothers.
-2. **Host toolchain.** Cleared by the baseline image (gcc/JDK/python); the strict
-   image is the probe for who doesn't need it.
-3. **Build surface.** `build //...` is the honest "build it all," but one stray
-   docs/test/example package (often the version-drift casualty) fails the whole
-   pattern even when the core lib is fine. Per-target builds tell a different story.
-4. **Consumption shape.** Some libraries (doctest) are meant to be *consumed*, not
-   built as the root module — `includes=["."]` is legal for an external dep, not
-   for the main workspace.
-
-## Status / strict-image findings
-
-The strict (bazelisk-only) image established the two walls below; the baseline
-image clears the host-toolchain one, leaving version drift as the dominant blocker.
-
-| project | lang | result (strict, bazelisk-only) |
-|---------|------|----------------------|
-| buildtools | Go | ❌ no `.bazelversion` → Bazel 9 `sh_test` removed; @7.4.1 → no host gcc (rules_go cgo) |
-| fast_float | C++ | ❌ @7.4.1 → no host gcc (rules_cc autoconfig) |
+"Build it as it is" holds for ~⅔ of real Bazel projects out of the box and ~⅞ once
+you hand them the Bazel they were written for. Hermeticity, though, is cleanly its
+own axis that **nobody satisfies for free** — in nature a Bazel project assumes a
+developer machine (a compiler, sometimes a JDK, `curl`, `git`). The museum's
+injected toolchain is what converts "leans on the host" into "hermetic"; the open,
+interesting work is the **nudge** column — how few declared lines move a project from
+host-dependent to hermetic-from-the-start.

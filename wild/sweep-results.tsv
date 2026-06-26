@@ -23,3 +23,4 @@ highway	8.7.0	ok	ok	no-host-cc
 json	9.1.1	ok	ok	no-host-cc	
 jsoncpp	9.1.1	ok	ok	no-host-cc	
 jsonnet	8.7.0	ok	ok	no-host-cc	
+magic_enum	9.1.1	ok	ok	no-host-cc	

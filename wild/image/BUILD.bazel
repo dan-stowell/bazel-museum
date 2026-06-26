@@ -1,0 +1,84 @@
+# The "build it as it is" container image, assembled entirely with Bazel.
+#
+# rules_img stacks the layers; rules_distroless turns the toolchain.yaml package
+# set into hermetic .deb layers (no `apt install` at build time). The result is
+# a pinned, ordinary CI machine — debian-slim + a C/C++ toolchain, a JDK,
+# python, git, curl, zip — with bazelisk as the entrypoint. This is the image
+# the //wild/<project>:build and :test targets run their builds inside.
+#
+#   bazel run //wild/image:load     # build the image and load it into docker
+#
+# Regenerate the apt lock after editing toolchain.yaml:
+#
+#   bazel run @toolchain_apt//:lock
+
+load("@rules_img//img:image.bzl", "image_manifest")
+load("@rules_img//img:layer.bzl", "file_metadata", "image_layer")
+load("@rules_img//img:load.bzl", "image_load")
+load("@rules_distroless//distroless:defs.bzl", "cacerts")
+load("@tar.bzl", "tar")
+
+exports_files(["toolchain.yaml", "toolchain.lock.json"])
+
+# The ca-certificates .deb ships the individual certs but the bundle at
+# /etc/ssl/certs/ca-certificates.crt (what SSL_CERT_FILE points at) is generated
+# by update-ca-certificates in postinst — which never runs when we extract .deb
+# data directly. This rule generates the bundle from the package data.
+cacerts(
+    name = "cacerts",
+    package = "@toolchain_apt//ca-certificates:data",
+)
+
+# bazelisk binary, installed at /usr/local/bin so it's the one thing on PATH
+# that matters. It downloads + caches the actual Bazel a project pins.
+image_layer(
+    name = "bazelisk_layer",
+    srcs = {"/usr/local/bin/bazelisk": "@bazelisk_linux_amd64//file"},
+    default_metadata = file_metadata(mode = "0755"),
+)
+
+# We extract .deb data layers directly — maintainer scripts (postinst) never
+# run — so the update-alternatives symlinks a normal `apt install` would create
+# are absent. Recreate the ones builds actually look for: Bazel's C/C++
+# auto-configuration probes for `cc`/`gcc`, rules shell to `python`, etc. Also
+# make the writable dirs bazelisk needs ($HOME and the /work mountpoint).
+tar(
+    name = "fixups",
+    mtree = [
+        "./work type=dir mode=0777",
+        "./home/wild type=dir mode=0777",
+        # default-jdk-headless installs the JVM under /usr/lib/jvm; expose `java`.
+        "./usr/bin/cc type=link link=/usr/bin/gcc",
+        "./usr/bin/c++ type=link link=/usr/bin/g++",
+        # default-jdk-headless installs the JVM under /usr/lib/jvm; expose it.
+        "./usr/bin/java type=link link=/usr/lib/jvm/default-java/bin/java",
+        "./usr/bin/javac type=link link=/usr/lib/jvm/default-java/bin/javac",
+    ],
+)
+
+image_manifest(
+    name = "image",
+    base = "@debian_bookworm_slim",
+    entrypoint = ["/usr/local/bin/bazelisk"],
+    env = {
+        "HOME": "/home/wild",
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "JAVA_HOME": "/usr/lib/jvm/default-java",
+        "SSL_CERT_FILE": "/etc/ssl/certs/ca-certificates.crt",
+        # bazelisk needs a Bazel version to fetch when a repo pins none.
+        "USE_BAZEL_VERSION": "9.1.1",
+    },
+    layers = [
+        "@toolchain_apt//:flat",
+        ":cacerts",
+        ":bazelisk_layer",
+        ":fixups",
+    ],
+    working_dir = "/work",
+)
+
+image_load(
+    name = "load",
+    image = ":image",
+    tag = "bazel-wild-baseline:latest",
+)

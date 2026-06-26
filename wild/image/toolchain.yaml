@@ -1,0 +1,47 @@
+# Host toolchain for the "build it as it is" image.
+#
+# rules_distroless resolves this package set (and its full dependency closure)
+# into hermetic .deb layers that rules_img stacks onto a debian:bookworm-slim
+# base. The result is a pinned, ordinary CI machine: a C/C++ toolchain, a JDK,
+# python, git, and the archive tools Bazel genrules commonly shell out to —
+# exactly what a real-world Bazel project assumes is on $PATH "in nature".
+#
+# Pinned to a Debian snapshot so the toolchain is reproducible. To regenerate
+# the lock after editing this file:
+#
+#     bazel run @toolchain_apt//:lock
+#
+# (the snapshot timestamp must also exist under debian-security/ for the
+# bookworm-security channel; pick one from https://snapshot.debian.org/).
+version: 1
+
+sources:
+  - channel: bookworm main
+    url: https://snapshot.debian.org/archive/debian/20260626T024321Z
+  - channel: bookworm-updates main
+    url: https://snapshot.debian.org/archive/debian/20260626T024321Z
+  - channel: bookworm-security main
+    url: https://snapshot.debian.org/archive/debian-security/20260626T024321Z
+
+archs:
+  - "amd64"
+
+packages:
+  # C/C++ toolchain (gcc, g++, make, libc headers) — what Bazel's cc
+  # auto-configuration probes the host for.
+  - build-essential
+  # JDK — for the Java projects (copybara) and any genrule that shells to java.
+  - default-jdk-headless
+  # Python — many C++ Bazel builds run python at build time (protobuf, grpc, …).
+  - python3
+  - python-is-python3
+  # git — some builds fetch a git_repository (ortools).
+  - git
+  # grpc's tools/bazel wrapper shells out to curl to fetch its pinned Bazel.
+  - curl
+  # Bazel genrules commonly shell out to these archivers (e.g. bazel's own
+  # install-base genrule calls zip).
+  - zip
+  - unzip
+  # TLS roots: bazelisk downloads Bazel and builds fetch the BCR over https.
+  - ca-certificates

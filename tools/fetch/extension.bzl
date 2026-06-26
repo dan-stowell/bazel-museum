@@ -234,6 +234,14 @@ _PROJECT_SOURCES = {
         "sha256": "172d27e6f6c1fa69df4be30bc61ea35ed225b74cd3a15500e2d75e981478fb2b",
         "filename": "gperftools-2.18.1.tar.gz",
     },
+    # OpenCC — Open Chinese Convert (C++). First-party Bazel; the library pulls
+    # several BCR deps (marisa-trie, darts-clone, rapidjson, tclap), some of
+    # which call cc_* unloaded, so it runs on the Bazel 8.7 inner.
+    "opencc_archive": {
+        "url": "https://github.com/BYVoid/OpenCC/archive/refs/tags/ver.1.3.1.tar.gz",
+        "sha256": "1cc663704ff15728d6ea41ced8cd9dcc086f7bd9a80e8531b2f8054d2f3b8733",
+        "filename": "OpenCC-1.3.1.tar.gz",
+    },
 }
 
 

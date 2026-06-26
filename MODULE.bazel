@@ -88,6 +88,7 @@ use_repo(
     "ftxui_archive",
     "jsonnet_archive",
     "gperftools_archive",
+    "opencc_archive",
 )
 
 # Hermetic `actiond` worker binary (see //tools/actiond:extension.bzl). actiond

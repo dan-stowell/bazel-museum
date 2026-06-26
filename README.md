@@ -31,14 +31,23 @@ projects also run their upstream test suite hermetically (numbers below).
 | [nlohmann/json](builds/json/BUILD.bazel) | C++ | hermetic LLVM | ✅ | ✅ | ✅ |
 | [copybara](builds/copybara/BUILD.bazel) | Java | rules_java + hermetic JDK | ✅ | ✅ | — |
 | [cxx](builds/cxx/BUILD.bazel) | Rust | rules_rust + hermetic LLVM | ✅ | ✅ | ✅ |
-| [bazel](builds/bazel/BUILD.bazel) | Java / C++ | hermetic LLVM + bundled JDK | ✅¹ | — | — |
+| [bazel](builds/bazel/BUILD.bazel) | Java / C++ | hermetic LLVM + bundled JDK | ✅¹ | ✅¹ | —² |
 
 ¹ **Bazel itself** — `//src:bazel-bin`, 6768 actions, built with the hermetic
-LLVM toolchain (Java side uses Bazel's bundled JDK). Its genrules shell out to
-`zip` (72×); rather than require a host `zip`, the museum builds one from
-Info-ZIP source with hermetic LLVM ([`//tools/zip`](tools/zip)) and stages it on
-the inner build's PATH (the `HERMETIC_ZIP` overlay) — verified green with `zip`
-absent from the host. Build-only for now; RBE/actiond and a test goal are next.
+LLVM toolchain (Java side uses Bazel's bundled JDK), green both locally and on
+RBE. Its genrules shell out to `zip` (72×); rather than require a host `zip`, the
+museum builds one from Info-ZIP source with hermetic LLVM
+([`//tools/zip`](tools/zip)) and stages it on the inner build's PATH (the
+`HERMETIC_ZIP` overlay) — verified green with `zip` absent from the host (on RBE
+the executor image's own `zip` serves instead). The **test** goal runs Bazel's
+C++ client unit tests (`//src/test/cpp/...`): **15/15** local, **14/14** on RBE
+(`file_test`, whose permission/large-file asserts invert under the root executor,
+runs local-only).
+
+² **Not actiond yet.** The C++ tests run there, but Bazel's install-base genrule
+calls system `zip`, which actiond's minimal guest chroot lacks — and the
+`--tool` lever stages `zip` on a *local* PATH that doesn't reach the remote
+guest. Closing it needs `zip` as a real action input in the guest.
 
 **Dimensions:** *local* = the host itself (linux x86_64 or macOS arm64, one at a
 time). *RBE* = BuildBuddy's cloud executors (linux amd64/arm64 + darwin arm64),

@@ -444,12 +444,18 @@ projects that opt into the `ACTIOND` environment).
 (plus protobuf, grpc, googletest, nlohmann/json, Catch2, flatbuffers, OR-Tools,
 brotli — the C++ build collection; see the README matrix for the full grid.)
 
-**Bazel itself — the flagship "Bazel builds Bazel" build (built; LOCAL,
-build-only).** `bazel run //builds/bazel:build_local_linux_amd64` builds
-`//src:bazel-bin` — **5015 actions**, the full Java + C++ Bazel binary, with the
+**Bazel itself — the flagship "Bazel builds Bazel" build (built + tested; LOCAL
+and RBE).** `bazel run //builds/bazel:build_local_linux_amd64` builds
+`//src:bazel-bin` — **6768 actions**, the full Java + C++ Bazel binary, with the
 zero-sysroot hermetic LLVM toolchain (C++ actions) and Bazel's own bundled JDK
-(Java). Three frictions, each instructive about wiring a large first-party Bazel
-project into the museum:
+(Java); the same build runs green on RBE. The **test** goal scopes to Bazel's
+C++ client unit tests (`//src/test/cpp/...` — startup options, rc parsing, the
+launcher's util/path/md5/strings layers): pure gtest+abseil, no running server,
+**15/15** local and **14/14** on RBE. (`file_test` asserts a permission-stripped
+file is unreadable and a protected path unremovable — both false for the root
+RBE executor, which also can't hold its multi-GB sparse write — so it runs
+local-only via `exclude_on`.) Frictions, each instructive about wiring a large
+first-party Bazel project into the museum:
 
 - **Inner Bazel version.** The 9.1.1 source's `.bazelversion` pins `9.0.1`, but
   the museum's `9.1.1` inner builds it fine (a patch-newer Bazel is accepted) —
@@ -466,7 +472,7 @@ project into the museum:
   ([`//tools/zip`](../tools/zip), `@infozip//:zip`) and stages it on the inner
   build's PATH via the new `HERMETIC_ZIP` overlay + the runner's `--tool`
   mechanism (see below). Verified: `//src:bazel-bin` builds green (6768 actions)
-  with `zip` *uninstalled* from the host. RBE/actiond and a test goal remain.
+  with `zip` *uninstalled* from the host.
 
   Two wrinkles worth recording. The hermetic glibc ships no static `libc.a`, so
   the binary can't be `-static`; it links `libc.so.6` by soname (built against
@@ -476,6 +482,17 @@ project into the museum:
   enough: the runner also sets `--action_env=PATH`/`--host_action_env=PATH` to
   put `toolbin/` on the *action* PATH (a stable per-goal path, so the cache key
   is stable).
+
+  This local-PATH staging is also why **actiond is deferred** for Bazel. On RBE
+  the executor image happens to ship `zip`, so the genrules resolve it there; but
+  actiond runs each action in a minimal guest chroot that has no `zip`, and the
+  `--tool`/`toolbin` PATH never reaches that remote guest (it's a host path).
+  Closing it needs the from-source `zip` materialized as a real *action input*
+  inside the guest — a generalization of the `--tool` lever beyond local PATH —
+  rather than a guest that happens to carry `zip`. (Separately, amd64 actiond
+  needs the `requires-bash`/`libc` exec properties the arm64 platform already
+  sets, so shell-script actions don't fail child-setup; that's a broader
+  actiond-on-amd64 task, not Bazel-specific.)
 
 `bazel test` results, all hermetic (compiles use `external/llvm++.../bin/clang`
 with zero `/usr/bin` compiler calls; copybara runs on a bundled OpenJDK with

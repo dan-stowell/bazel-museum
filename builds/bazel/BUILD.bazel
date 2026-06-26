@@ -1,6 +1,14 @@
-load("//builds:defs.bzl", "build_spec", "museum_project")
-load("//builds:environments.bzl", "LOCAL")
+load("//builds:defs.bzl", "build_spec", "museum_project", "test_spec")
+load("//builds:environments.bzl", "LOCAL", "RBE")
 load("//builds:overlays.bzl", "HERMETIC_LLVM", "HERMETIC_ZIP")
+
+# file_test exercises real POSIX filesystem semantics that invert when the test
+# runs as root: it asserts a permission-stripped file is *unreadable* and that a
+# protected path *can't* be removed — both false for root, which the RBE executor
+# runs as. (It also writes a multi-GB sparse file the executor's tmp can't hold.)
+# So it's excluded off-host; the local goal, not root, still runs it. The rest of
+# //src/test/cpp/... is environment-neutral.
+_ROOT_SENSITIVE_TESTS = ["//src/test/cpp/util:file_test"]
 
 # Bazel itself — the flagship "Bazel builds Bazel" build (Java + C++).
 # Source pinned in //tools/fetch:extension.bzl (@bazel_archive, release 9.1.1).
@@ -15,15 +23,26 @@ load("//builds:overlays.bzl", "HERMETIC_LLVM", "HERMETIC_ZIP")
 # built from Info-ZIP source — so no host `zip` is required.
 #
 #   bazel run //builds/bazel:build_local_linux_amd64 -- //src:bazel-bin
+#   bazel run //builds/bazel:test_local_linux_amd64
+#   bazel run //builds/bazel:test_rbe_linux_amd64
 #
-# Starts LOCAL + build-only: a large build, validated on the host before fanning
-# out to RBE/actiond.
+# LOCAL + RBE. The build is //src:bazel-bin; the test goal scopes to the C++
+# client unit tests (see test_spec below). On RBE the zip genrules are satisfied
+# by the executor image's own `zip` (HERMETIC_ZIP's from-source `zip` is what
+# makes the *local* build need no host zip).
+#
+# Not actiond (yet). The C++ test execution path works there, but Bazel's
+# genrule-heavy Java-toolchain path doesn't: actiond's minimal guest chroot has
+# no `zip` for the install-base genrule (`//src:zip_builtins`, which calls system
+# zip), and the from-source HERMETIC_ZIP is staged on a *local* PATH that doesn't
+# reach the remote guest. Closing this needs `zip` materialized as a real action
+# input in the guest (vs. the local-only --tool PATH lever), so it's deferred.
 museum_project(
     name = "bazel",
     source_archive = "@bazel_archive//file",
     strip_prefix = "bazel-9.1.1",
     toolchains = [HERMETIC_LLVM, HERMETIC_ZIP],
-    environments = [LOCAL],
+    environments = [LOCAL, RBE],
     # HERMETIC_LLVM appends the `llvm` module, which resolves newer transitive
     # versions of platforms/bazel_features/rules_cc than Bazel's own MODULE pins
     # as direct deps. Bazel-the-tool builds with strict direct-dependency
@@ -32,5 +51,18 @@ museum_project(
     build = build_spec(
         targets = ["//src:bazel-bin"],
         flags = ["--check_direct_dependencies=off"],
+    ),
+    # Test parity is the C++ client unit tests (//src/test/cpp/...): pure
+    # gtest+abseil unit tests that exercise Bazel's own C++ (startup options, rc
+    # parsing, the launcher's archive/util layers) under the hermetic LLVM
+    # toolchain — no running server, no bazel-in-bazel. The Java and shell
+    # integration suites need a built Bazel + many host tools, so we scope to the
+    # hermetic C++ core, mirroring grpc (promise core) and ortools (CP-SAT core).
+    test = test_spec(
+        targets = ["//src/test/cpp/..."],
+        flags = ["--check_direct_dependencies=off"],
+        # file_test's permission/large-file assertions fail under the root RBE
+        # executor; run it only on the (non-root) local host. See above.
+        exclude_on = {"rbe": _ROOT_SENSITIVE_TESTS},
     ),
 )

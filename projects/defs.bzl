@@ -3,9 +3,10 @@
 Each museum project gets a //projects/<project> package whose `:build` and
 `:test` targets run the project's *upstream* build/test (its pinned source, its
 own MODULE/BUILD, no overlays, no injected toolchain) inside the //wild/image
-container via //projects:run.sh:
+container via //projects:run.sh. The pinned crun binary and image OCI layout are
+ordinary runfiles/data dependencies of each runner:
 
-    bazel run //wild/image:rootfs          # once: stage the daemonless runtime
+    bazel build //wild/image:oci_layout   # optional prebuild
     bazel run //projects/cpu_features:build
     bazel run //projects/cpu_features:test
 
@@ -30,6 +31,10 @@ def wild_project(name, version = "-", build = None, test = None):
                 name = goal,
                 srcs = ["//projects:run.sh"],
                 args = [name, version, goal] + targets,
+                data = [
+                    "//wild/image:crun",
+                    "//wild/image:oci_layout",
+                ],
                 # docker run reaches the network and isn't sandboxable; keep
                 # these out of `bazel build //...` wildcards.
                 tags = ["manual", "no-sandbox", "requires-network"],

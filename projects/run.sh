@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Runner behind the //wild/<project>:build and :test targets.
+# Runner behind the //projects/<project>:build and :test targets.
 #
 #   run.sh <key> <bazel-version|-> <build|test> [targets/flags...]
 #
@@ -7,15 +7,17 @@
 # overlays, no injected toolchain) run by bazelisk inside the //wild/image
 # container (a pinned, ordinary CI machine). The project's source url+sha256 is
 # read straight from //tools/fetch:extension.bzl, so the target needs no
-# separate table. Source is fetched + verified on the host, mounted into the
-# container, and bazelisk runs the upstream MODULE/BUILD as found.
+# separate table. Source is fetched + verified on the host, mounted into a
+# container rootfs, and bazelisk runs the upstream MODULE/BUILD as found.
 #
 # Runtime (WILD_RUNTIME):
-#   crun   (default) daemonless + rootless via the pinned //tools/crun in an
-#          OCI bundle over the rootfs staged by `bash wild/image/rootfs.sh`. No
-#          dockerd, no host runtime.
+#   crun   (default) daemonless + rootless via the pinned //tools/crun plus the
+#          //wild/image:image OCI layout in runfiles. The rootfs is extracted
+#          into WILD_CACHE on demand, keyed by manifest digest. No dockerd, no
+#          host runtime, no manual pre-staging step.
 #   docker the image loaded by `bazel run //wild/image:load` (needs a daemon).
-# Env: WILD_CACHE (default ~/.cache/wild), WILD_IMAGE (docker tag).
+# Env: WILD_CACHE (default ~/.cache/wild), WILD_IMAGE (docker tag),
+#      WILD_OCI_LAYOUT/WILD_ROOTFS/WILD_CRUN (debug overrides for crun mode).
 set -euo pipefail
 
 # Under `bazel run`, the repo root is $BUILD_WORKSPACE_DIRECTORY; fall back to
@@ -26,9 +28,66 @@ RUNTIME="${WILD_RUNTIME:-crun}"
 IMAGE="${WILD_IMAGE:-bazel-wild-baseline:latest}"
 CACHE="${WILD_CACHE:-$HOME/.cache/wild}"
 SRC_CACHE="$CACHE/src"
-ROOTFS="$CACHE/rootfs"
-CRUN="$CACHE/crun"
 mkdir -p "$SRC_CACHE" "$CACHE/home"
+
+runfile() {
+  local path="$1"
+  if [[ -n "${RUNFILES_DIR:-}" ]]; then
+    for prefix in "_main" "${TEST_WORKSPACE:-}"; do
+      [[ -n "$prefix" && -e "$RUNFILES_DIR/$prefix/$path" ]] && { printf '%s\n' "$RUNFILES_DIR/$prefix/$path"; return 0; }
+    done
+    [[ -e "$RUNFILES_DIR/$path" ]] && { printf '%s\n' "$RUNFILES_DIR/$path"; return 0; }
+  fi
+  if [[ -n "${RUNFILES_MANIFEST_FILE:-}" && -f "$RUNFILES_MANIFEST_FILE" ]]; then
+    awk -v p="_main/$path" '$1 == p {print substr($0, index($0, $2)); found=1; exit} END {exit !found}' "$RUNFILES_MANIFEST_FILE" && return 0
+    awk -v p="$path" '$1 == p {print substr($0, index($0, $2)); found=1; exit} END {exit !found}' "$RUNFILES_MANIFEST_FILE" && return 0
+  fi
+  local from_root="$ROOT/bazel-bin/$path"
+  [[ -e "$from_root" ]] && { printf '%s\n' "$from_root"; return 0; }
+  return 1
+}
+
+rootfs_from_oci_layout() {
+  local layout="$1"
+  local mani rootfs digest_file
+  mani="$(python3 -c "import json,sys;print(json.load(open(sys.argv[1] + '/index.json'))['manifests'][0]['digest'].split(':')[1])" "$layout")"
+  rootfs="$CACHE/rootfs/$mani"
+  digest_file="$rootfs/.manifest-digest"
+  if [[ -f "$digest_file" && "$(cat "$digest_file")" == "$mani" ]]; then
+    printf '%s\n' "$rootfs"
+    return 0
+  fi
+
+  echo ">> extracting image rootfs -> $rootfs" >&2
+  rm -rf "$rootfs"
+  mkdir -p "$rootfs"
+
+  mapfile -t layers < <(python3 - "$layout" "$mani" <<'PY'
+import json, sys
+layout, mani = sys.argv[1], sys.argv[2]
+m = json.load(open(f"{layout}/blobs/sha256/{mani}"))
+for l in m["layers"]:
+    print(l["digest"].split(":")[1], "gz" if l["mediaType"].endswith("gzip") else "raw")
+PY
+)
+
+  local first=1 entry hex gz z
+  for entry in "${layers[@]}"; do
+    read -r hex gz <<<"$entry"
+    z=""; [[ "$gz" == gz ]] && z="z"
+    tar --overwrite -p${z}xf "$layout/blobs/sha256/$hex" -C "$rootfs" \
+      --warning=no-unknown-keyword --no-same-owner 2>/dev/null || true
+    if [[ "$first" == 1 ]]; then
+      for d in bin lib lib64 sbin; do
+        [[ -L "$rootfs/$d" ]] && rm -f "$rootfs/$d"
+      done
+      first=0
+    fi
+  done
+
+  echo "$mani" > "$digest_file"
+  printf '%s\n' "$rootfs"
+}
 
 key="${1:?usage: run.sh <key> <version|-> <build|test> [targets...]}"
 ver="${2:-}"; cmd="${3:-build}"; shift 3 || true
@@ -36,9 +95,19 @@ targets=("$@")
 
 # Runtime present?
 if [[ "$RUNTIME" == crun ]]; then
+  OCI_LAYOUT="${WILD_OCI_LAYOUT:-$(runfile wild/image/image_oci_layout || runfile wild/image/oci_layout || true)}"
+  CRUN="${WILD_CRUN:-$(runfile wild/image/crun.bin || true)}"
+  if [[ -n "${WILD_ROOTFS:-}" ]]; then
+    ROOTFS="$WILD_ROOTFS"
+  elif [[ -n "$OCI_LAYOUT" && -d "$OCI_LAYOUT" ]]; then
+    ROOTFS="$(rootfs_from_oci_layout "$OCI_LAYOUT")"
+  else
+    ROOTFS=""
+  fi
   if [[ ! -x "$CRUN" || ! -d "$ROOTFS" ]]; then
-    echo "error: daemonless runtime not staged. Build it first with:" >&2
-    echo "    bash wild/image/rootfs.sh   # (or: bazel run //wild/image:rootfs)" >&2
+    echo "error: daemonless runtime runfiles are missing." >&2
+    echo "expected executable: wild/image/crun.bin" >&2
+    echo "expected directory:  wild/image/image_oci_layout" >&2
     exit 1
   fi
 elif [[ "$RUNTIME" == docker ]]; then

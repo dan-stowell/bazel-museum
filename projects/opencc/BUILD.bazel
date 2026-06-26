@@ -6,4 +6,5 @@ wild_project(
     name = "opencc",
     version = "8.7.0",
     build = ["//:opencc"],
+    test = ["//src/...", "//test/..."],
 )

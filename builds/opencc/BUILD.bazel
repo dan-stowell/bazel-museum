@@ -1,4 +1,4 @@
-load("//builds:defs.bzl", "build_spec", "museum_project")
+load("//builds:defs.bzl", "build_spec", "museum_project", "test_spec")
 load("//builds:environments.bzl", "LOCAL", "RBE")
 load("//builds:overlays.bzl", "HERMETIC_LLVM")
 
@@ -10,10 +10,8 @@ load("//builds:overlays.bzl", "HERMETIC_LLVM")
 # darts-clone, rapidjson, tclap); some call cc_* unloaded, so it runs on the
 # Bazel 8.7 inner. (OpenCC declares platforms directly, so no PLATFORMS_DEP.)
 #
-# Build-only: OpenCC's conversion tests need generated dictionary data (.ocd2
-# built from text dictionaries via the project's own tooling) — not wired here.
-#
 #   bazel run //builds/opencc:build_local_linux_amd64
+#   bazel run //builds/opencc:test_local_linux_amd64
 museum_project(
     name = "opencc",
     source_archive = "@opencc_archive//file",
@@ -22,4 +20,5 @@ museum_project(
     bazel_version = "8.7.0",
     environments = [LOCAL, RBE],
     build = build_spec(targets = ["//:opencc"], flags = ["-c", "opt"]),
+    test = test_spec(targets = ["//src/...", "//test/..."], flags = ["-c", "opt"]),
 )

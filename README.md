@@ -8,20 +8,21 @@ sudo curl -fsSL -o /usr/local/bin/bazel \
     https://github.com/bazelbuild/bazelisk/releases/download/v1.25.0/bazelisk-linux-amd64
 sudo chmod +x /usr/local/bin/bazel
 
-# 2. Build the container image once:
-#    this extracts its rootfs + the pinned crun runtime into ~/.cache/wild:
-bazel run //wild/image:rootfs
+# 2. Optionally prebuild the container image artifact:
+bazel build //wild/image:oci_layout
 
-# 3. Build and test a project:
+# 3. Build and test a project; this also builds the image artifact if needed:
 bazel run //projects/re2:build      # fetches re2's pinned source, runs its own BUILD
 bazel run //projects/re2:test       # runs re2's upstream test suite in the image
 ```
 
 Each `//projects/<project>:build` / `:test` target fetches the project's pinned
-source, runs `bazelisk` against the upstream `MODULE`/`BUILD` inside the image
-(via [crun](https://github.com/containers/crun) in a rootless OCI bundle) with
-the project's known-good Bazel pinned. The first build compiles from scratch;
-reruns hit a warm cache.
+source, builds the shared image artifact as a Bazel dependency, extracts that
+image rootfs into `~/.cache/wild` by manifest digest, then runs `bazelisk`
+against the upstream `MODULE`/`BUILD` inside it (via
+[crun](https://github.com/containers/crun) in a rootless OCI bundle) with the
+project's known-good Bazel pinned. The first build compiles from scratch; reruns
+hit a warm cache.
 
 ## Projects that build as they are
 
@@ -52,7 +53,7 @@ reruns hit a warm cache.
 | [nlohmann/json](https://github.com/nlohmann/json) | JSON for Modern C++ | 9.1.1 | `bazel run //projects/json:build` | — (no upstream test target) |
 | [nsync](https://github.com/google/nsync) | C library of synchronization primitives | 8.7.0 | `bazel run //projects/nsync:build` | `bazel run //projects/nsync:test` |
 | [oneTBB](https://github.com/uxlfoundation/oneTBB) | Intel's Threading Building Blocks | 8.7.0 | `bazel run //projects/onetbb:build` | `bazel run //projects/onetbb:test` |
-| [OpenCC](https://github.com/BYVoid/OpenCC) | Traditional/Simplified Chinese conversion | 8.7.0 | `bazel run //projects/opencc:build` | — (no upstream test target) |
+| [OpenCC](https://github.com/BYVoid/OpenCC) | Traditional/Simplified Chinese conversion | 8.7.0 | `bazel run //projects/opencc:build` | `bazel run //projects/opencc:test` |
 | [OR-Tools](https://github.com/google/or-tools) | Google's optimization suite (CP-SAT) | 8.7.0 | `bazel run //projects/ortools:build` | `bazel run //projects/ortools:test` (88/89 pass) |
 | [protobuf](https://github.com/protocolbuffers/protobuf) | Protocol Buffers serialization | 9.1.1 | `bazel run //projects/protobuf:build` | `bazel run //projects/protobuf:test` (100/101 pass) |
 | [re2](https://github.com/google/re2) | Fast, safe regular-expression engine | 8.7.0 | `bazel run //projects/re2:build` | `bazel run //projects/re2:test` |

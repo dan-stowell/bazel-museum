@@ -4,7 +4,7 @@
 # set into hermetic .deb layers (no `apt install` at build time). The result is
 # a pinned, ordinary CI machine — debian-slim + a C/C++ toolchain, a JDK,
 # python, git, curl, zip — with bazelisk as the entrypoint. This is the image
-# the //wild/<project>:build and :test targets run their builds inside.
+# the //projects/<project>:build and :test targets run their builds inside.
 #
 #   bazel run //wild/image:load     # build the image and load it into docker
 #
@@ -93,6 +93,40 @@ image_manifest(
         ":fixups",
     ],
     working_dir = "/work",
+)
+
+filegroup(
+    name = "oci_layout",
+    srcs = [":image"],
+    output_group = "oci_layout",
+    visibility = ["//visibility:public"],
+)
+
+config_setting(
+    name = "linux_amd64",
+    constraint_values = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+)
+
+config_setting(
+    name = "linux_arm64",
+    constraint_values = [
+        "@platforms//os:linux",
+        "@platforms//cpu:arm64",
+    ],
+)
+
+genrule(
+    name = "crun",
+    srcs = select({
+        ":linux_amd64": ["@crun_linux_amd64//file"],
+        ":linux_arm64": ["@crun_linux_arm64//file"],
+    }),
+    outs = ["crun.bin"],
+    cmd = "cp $(SRCS) $@ && chmod 0755 $@",
+    visibility = ["//visibility:public"],
 )
 
 image_load(

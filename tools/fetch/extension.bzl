@@ -303,6 +303,14 @@ _PROJECT_SOURCES = {
         "sha256": "051951c10ff8addeb4f10be3b0cf474b304b2ccd675f2cc7683cdd9010320ca9",
         "filename": "buildtools-7.3.1.tar.gz",
     },
+    # BoringSSL — Google's OpenSSL fork (crypto/TLS). Its BUILD wraps cc_* via
+    # util/util.bzl and its deps are current Bazel-9-era BCR modules, so it runs
+    # on the default 9.1.1 inner.
+    "boringssl_archive": {
+        "url": "https://github.com/google/boringssl/archive/refs/tags/0.20260616.0.tar.gz",
+        "sha256": "d1c599485fd1919d75ea2925af5fff81c1d5b21ab2f0d41fee1f788b1d917159",
+        "filename": "boringssl-0.20260616.0.tar.gz",
+    },
 }
 
 

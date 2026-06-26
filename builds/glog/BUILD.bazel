@@ -1,0 +1,29 @@
+load("//builds:defs.bzl", "build_spec", "museum_project", "test_spec")
+load("//builds:environments.bzl", "LOCAL", "RBE")
+load("//builds:overlays.bzl", "HERMETIC_LLVM", "PLATFORMS_DEP")
+
+# glog — Google's C++ application-level logging library.
+# Source pinned in //tools/fetch:extension.bzl (@glog_archive, release v0.7.1),
+# built with the fully-hermetic LLVM toolchain. Its Bazel BUILD uses the
+# unloaded cc_* rules, so it runs on the Bazel 8.7 inner; PLATFORMS_DEP supplies
+# the @platforms visibility the injected RBE platform package needs (glog's
+# MODULE declares no platforms dep). gflags comes from glog's own MODULE dep
+# (pulled from the BCR by the inner Bazel).
+#
+# glog's exhaustive unit tests are CMake-driven and not exposed as Bazel
+# cc_test; its only Bazel test is //bazel/example:main, a smoke test that links
+# against glog and exercises LOG/CHECK at runtime — honest build+link+run parity
+# (see [[test-wiring-preference]]).
+#
+#   bazel run //builds/glog:build_local_linux_amd64
+#   bazel run //builds/glog:test_local_linux_amd64
+museum_project(
+    name = "glog",
+    source_archive = "@glog_archive//file",
+    strip_prefix = "glog-0.7.1",
+    toolchains = [HERMETIC_LLVM, PLATFORMS_DEP],
+    bazel_version = "8.7.0",
+    environments = [LOCAL, RBE],
+    build = build_spec(targets = ["//:glog"], flags = ["-c", "opt"]),
+    test = test_spec(targets = ["//bazel/example:main"], flags = ["-c", "opt"]),
+)

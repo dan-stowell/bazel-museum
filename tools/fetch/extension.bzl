@@ -265,6 +265,13 @@ _PROJECT_SOURCES = {
         "sha256": "f2d893a65c3b1324c50d4e682c0cdc021dd0477ae2c048544f39eed6654b699a",
         "filename": "CLI11-2.4.2.tar.gz",
     },
+    # glog — Google's C++ application-level logging library. Its Bazel BUILD uses
+    # the unloaded cc_* rules, so it runs on the Bazel 8.7 inner.
+    "glog_archive": {
+        "url": "https://github.com/google/glog/archive/refs/tags/v0.7.1.tar.gz",
+        "sha256": "00e4a87e87b7e7612f519a41e491f16623b12423620006f59f5688bfd8d13b08",
+        "filename": "glog-0.7.1.tar.gz",
+    },
 }
 
 

@@ -211,6 +211,13 @@ _PROJECT_SOURCES = {
         "sha256": "1e54959a3f3cb675938d858603ad69d0f3f7c82439fc2bf86d7232daec2bd10e",
         "filename": "magic_enum-0.9.8.tar.gz",
     },
+    # FTXUI — a C++ functional terminal UI library. First-party Bazel; its tests
+    # use googletest (cc_* unloaded), so it runs on the Bazel 8.7 inner.
+    "ftxui_archive": {
+        "url": "https://github.com/ArthurSonzogni/FTXUI/archive/refs/tags/v7.0.0.tar.gz",
+        "sha256": "14bef1f8caff548c49af8eeadfca21910d66e93e68237f0c3d20236b60c01e7e",
+        "filename": "FTXUI-7.0.0.tar.gz",
+    },
 }
 
 

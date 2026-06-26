@@ -258,7 +258,7 @@
     },
     "//tools/fetch:extension.bzl%inner_bazel": {
       "general": {
-        "bzlTransitiveDigest": "fhv/gKXIh2TsQsjIbtz43BQ1v/gi11nCvvmb5skYfFs=",
+        "bzlTransitiveDigest": "VZwgClZ9nDEi7uqUyyIXQj3J71NUPlJ3v+f1lEes1to=",
         "usagesDigest": "h14pbfoGF+xRhbdi2p4ZLtdO3iD9D6LSCzysqtpR8HE=",
         "recordedInputs": [
           "REPO_MAPPING:,bazel_tools bazel_tools"
@@ -357,7 +357,7 @@
     },
     "//tools/fetch:extension.bzl%project_sources": {
       "general": {
-        "bzlTransitiveDigest": "fhv/gKXIh2TsQsjIbtz43BQ1v/gi11nCvvmb5skYfFs=",
+        "bzlTransitiveDigest": "VZwgClZ9nDEi7uqUyyIXQj3J71NUPlJ3v+f1lEes1to=",
         "usagesDigest": "4RQlvpJYAxX2PZxLc3Y4g/kgSEcAiqEkkFheY2guOrA=",
         "recordedInputs": [
           "REPO_MAPPING:,bazel_tools bazel_tools"
@@ -551,6 +551,16 @@
               ],
               "sha256": "1e54959a3f3cb675938d858603ad69d0f3f7c82439fc2bf86d7232daec2bd10e",
               "downloaded_file_path": "magic_enum-0.9.8.tar.gz"
+            }
+          },
+          "ftxui_archive": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_file",
+            "attributes": {
+              "urls": [
+                "https://github.com/ArthurSonzogni/FTXUI/archive/refs/tags/v7.0.0.tar.gz"
+              ],
+              "sha256": "14bef1f8caff548c49af8eeadfca21910d66e93e68237f0c3d20236b60c01e7e",
+              "downloaded_file_path": "FTXUI-7.0.0.tar.gz"
             }
           }
         }

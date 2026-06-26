@@ -226,6 +226,14 @@ _PROJECT_SOURCES = {
         "sha256": "5914b9904d97efa662d919519cef1a14e4132bfddddaeed8b061b4a8af628f8d",
         "filename": "jsonnet-0.22.0.tar.gz",
     },
+    # gperftools — Google performance tools (tcmalloc + profilers), C++. First-
+    # party Bazel; its tests use googletest (cc_* unloaded), so it runs on the
+    # Bazel 8.7 inner. Note the doubled top-level dir: gperftools-gperftools-X.
+    "gperftools_archive": {
+        "url": "https://github.com/gperftools/gperftools/archive/refs/tags/gperftools-2.18.1.tar.gz",
+        "sha256": "172d27e6f6c1fa69df4be30bc61ea35ed225b74cd3a15500e2d75e981478fb2b",
+        "filename": "gperftools-2.18.1.tar.gz",
+    },
 }
 
 

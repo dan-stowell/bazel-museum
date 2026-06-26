@@ -258,7 +258,7 @@
     },
     "//tools/fetch:extension.bzl%inner_bazel": {
       "general": {
-        "bzlTransitiveDigest": "55++msig6HS+FCVyE6QIh9O0jxnKcT8gewPfqLVT0PI=",
+        "bzlTransitiveDigest": "0i1YfWOPZEdOWNATLs4dh+3MirJh0bZrgjb5CW298ng=",
         "usagesDigest": "h14pbfoGF+xRhbdi2p4ZLtdO3iD9D6LSCzysqtpR8HE=",
         "recordedInputs": [
           "REPO_MAPPING:,bazel_tools bazel_tools"
@@ -357,7 +357,7 @@
     },
     "//tools/fetch:extension.bzl%project_sources": {
       "general": {
-        "bzlTransitiveDigest": "55++msig6HS+FCVyE6QIh9O0jxnKcT8gewPfqLVT0PI=",
+        "bzlTransitiveDigest": "0i1YfWOPZEdOWNATLs4dh+3MirJh0bZrgjb5CW298ng=",
         "usagesDigest": "4RQlvpJYAxX2PZxLc3Y4g/kgSEcAiqEkkFheY2guOrA=",
         "recordedInputs": [
           "REPO_MAPPING:,bazel_tools bazel_tools"
@@ -571,6 +571,16 @@
               ],
               "sha256": "5914b9904d97efa662d919519cef1a14e4132bfddddaeed8b061b4a8af628f8d",
               "downloaded_file_path": "jsonnet-0.22.0.tar.gz"
+            }
+          },
+          "gperftools_archive": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_file",
+            "attributes": {
+              "urls": [
+                "https://github.com/gperftools/gperftools/archive/refs/tags/gperftools-2.18.1.tar.gz"
+              ],
+              "sha256": "172d27e6f6c1fa69df4be30bc61ea35ed225b74cd3a15500e2d75e981478fb2b",
+              "downloaded_file_path": "gperftools-2.18.1.tar.gz"
             }
           }
         }

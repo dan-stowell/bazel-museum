@@ -114,21 +114,23 @@ or set the CC environment variable
 
 Even pure-Go (buildifier) and Rust (`cxx`) projects hit it — `rules_go` and
 `rules_rust` eagerly configure a host C toolchain for cgo/linking. So the image
-([`//wild/image`](wild/image)) carries exactly the set of host tools these
-projects reach for, and no more:
+([`//wild/image`](wild/image)) carries the set of host tools a real CI runner has
+and that these projects reach for:
 
-| Tool | Why it's there | Reached for by |
-|------|----------------|----------------|
-| **gcc / g++** (build-essential) | Bazel's C/C++ toolchain auto-configuration | every compiling project (the universal wall) |
-| **JDK** (default-jdk-headless) | host `java` for genrules / Java projects | copybara, bazel |
-| **python3** | build-time scripts | protobuf, grpc, … |
+| Tool | Why a Bazel project reaches for it | Seen with |
+|------|------------------------------------|-----------|
+| **gcc / g++** (build-essential) | Bazel's C/C++ toolchain auto-configuration | **every compiling project** — the universal wall (proven by the strict image) |
+| **python3** | build-time scripts in the build graph | protobuf, grpc, … |
 | **git** | a `git_repository` fetch at build time | ortools |
 | **curl** | a `tools/bazel` wrapper that downloads its own Bazel | grpc |
-| **zip / unzip** | Bazel genrules that shell out to archivers | bazel (install-base) |
+| **zip / unzip** | genrules that shell out to archivers | bazel (install-base) |
+| **JDK** (default-jdk-headless) | host `java` for Java projects / genrules | copybara, bazel (a generic CI machine has one) |
 
 That table *is* the finding: the gap between "has a green BUILD" and "builds on
 a clean machine" is a short, nameable list of host assumptions — and the
-container is where they're pinned down reproducibly.
+container is where they're pinned down reproducibly. Only the compiler is
+*proven* universal here (remove it → the strict image fails everything); the
+rest are the assumptions these specific projects exercised.
 
 ## How it works
 
@@ -143,7 +145,8 @@ container is where they're pinned down reproducibly.
   list. Each runs [`wild/run.sh`](wild/run.sh): fetch the pinned source (verified
   against [`tools/fetch`](tools/fetch)), mount it, run `bazelisk` in the image.
 - **[`wild/verify.sh`](wild/verify.sh)** — the build+test sweep that produces the
-  table above; a test command is only listed if it genuinely passes in the image.
+  table above; a test command is listed only when its upstream suite actually runs
+  and passes in the image (partial passes are annotated `N/M pass` inline).
 
 ## Explorations
 

@@ -15,15 +15,15 @@ module(
 bazel_dep(name = "rules_python", version = "2.0.3")
 bazel_dep(name = "platforms", version = "1.1.0")
 
-# The "build it as it is" container (//wild/image): a pinned, ordinary CI
+# The "build it as it is" container (//runner/image): a pinned, ordinary CI
 # machine assembled entirely with Bazel. rules_img stacks the layers; the host
 # toolchain comes in as hermetic .deb layers resolved by rules_distroless (see
-# //wild/image/toolchain.yaml). This is the reproducibility boundary for the
+# //runner/image/toolchain.yaml). This is the reproducibility boundary for the
 # "builds with bazelisk alone (plus the host tools real projects assume)" goal.
 bazel_dep(name = "rules_img", version = "0.3.13")
 bazel_dep(name = "rules_distroless", version = "0.8.0")
 bazel_dep(name = "tar.bzl", version = "0.10.4")
-bazel_dep(name = "rules_shell", version = "0.4.1")  # sh_binary for //wild/<p> targets
+bazel_dep(name = "rules_shell", version = "0.4.1")  # sh_binary for //projects/<p> targets
 
 # For building the hermetic `zip` tool (//tools/zip) from Info-ZIP source. We
 # build it with the same hermetic LLVM toolchain the inner builds use, so the
@@ -123,7 +123,7 @@ use_repo(
     "actiond_linux_amd64",
 )
 
-# --- The "build it as it is" container image (//wild/image) ----------------
+# --- The "build it as it is" container image (//runner/image) ----------------
 
 # Base userland: debian:bookworm-slim, pinned by digest. layer_handling=eager
 # so the base layers are available to assemble a loadable image (not just for
@@ -139,12 +139,12 @@ pull(
 )
 
 # Host toolchain (gcc/g++, JDK, python, git, curl, zip) resolved from a pinned
-# Debian snapshot into hermetic .deb layers. See //wild/image/toolchain.yaml.
+# Debian snapshot into hermetic .deb layers. See //runner/image/toolchain.yaml.
 apt = use_extension("@rules_distroless//apt:extensions.bzl", "apt")
 apt.install(
     name = "toolchain_apt",
-    manifest = "//wild/image:toolchain.yaml",
-    lock = "//wild/image:toolchain.lock.json",
+    manifest = "//runner/image:toolchain.yaml",
+    lock = "//runner/image:toolchain.lock.json",
 )
 use_repo(apt, "toolchain_apt")
 

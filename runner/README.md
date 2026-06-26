@@ -1,4 +1,4 @@
-# wild — build it as it is
+# runner — build it as it is
 
 The implementation behind the top-level [README](../README.md): build & test each
 museum project **exactly as upstream ships it** (its pinned source, its own
@@ -17,16 +17,16 @@ enumerating.
   build time, no Dockerfile.
 
   ```sh
-  bazel build //wild/image:oci_layout      # daemonless image artifact used by //projects/*
-  bazel run //wild/image:rootfs            # legacy/manual: stage rootfs + crun into ~/.cache/wild
-  bazel run //wild/image:load              # docker: build + load bazel-wild-baseline:latest
+  bazel build //runner/image:oci_layout      # daemonless image artifact used by //projects/*
+  bazel run //runner/image:rootfs            # legacy/manual: stage rootfs + crun into ~/.cache/runner
+  bazel run //runner/image:load              # docker: build + load bazel-runner-baseline:latest
   bazel run @toolchain_apt//:lock          # regenerate the apt lock after editing toolchain.yaml
   ```
 
   The default run path is **daemonless and rootless**: each
   `//projects/<project>` runner has the image OCI layout plus pinned static
   `crun` ([`//tools/crun`](../../tools/crun)) as Bazel runfiles. At run time it
-  extracts that image's filesystem into `~/.cache/wild` by manifest digest. No
+  extracts that image's filesystem into `~/.cache/runner` by manifest digest. No
   dockerd, no host runtime, no root — just a single-id user namespace.
 
 - **[`//projects/<project>`](../projects)** — one package per project with
@@ -48,7 +48,7 @@ enumerating.
   upstream `MODULE`/`BUILD` with the project's known-good Bazel pinned
   (`USE_BAZEL_VERSION`). Each project gets its own Bazel output base; a shared
   content-addressed `--repository_cache` keeps the BCR + toolchain downloads warm
-  across projects. `WILD_RUNTIME` selects `crun` (default) or `docker`.
+  across projects. `RUNNER_RUNTIME` selects `crun` (default) or `docker`.
 
 - **[`verify.sh`](verify.sh)** — the build+test sweep. Runs every project's
   upstream build, then (if green) its upstream test, and records the result to
@@ -56,9 +56,9 @@ enumerating.
   the README table — a test command is only listed if it genuinely passes here.
 
   ```sh
-  bash wild/verify.sh                       # the whole matrix (resumable)
-  WILD_ONLY="re2 snappy" bash wild/verify.sh # just these
-  python3 wild/_readme_table.py --notes      # regenerate the README table
+  bash runner/verify.sh                       # the whole matrix (resumable)
+  RUNNER_ONLY="re2 snappy" bash runner/verify.sh # just these
+  python3 runner/_readme_table.py --notes      # regenerate the README table
   ```
 
 ## The two walls

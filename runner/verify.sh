@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Verify every museum project "as it is" inside //wild/image: run its upstream
+# Verify every museum project "as it is" inside //runner/image: run its upstream
 # BUILD target, then (if the build is green) its upstream TEST target, and
 # record the result. This is the source of truth for the README's "projects
 # that work" table — a test command is only listed if it genuinely passes here.
@@ -7,18 +7,18 @@
 # Resumable: skips projects already in the results TSV. Per-project, per-goal
 # Bazel output bases (run.sh) keep reruns warm.
 #
-#   bazel run //wild/image:load     # once
-#   bash wild/verify.sh             # the whole matrix
-#   WILD_ONLY="re2 snappy" bash wild/verify.sh   # just these
+#   bazel run //runner/image:load     # once
+#   bash runner/verify.sh             # the whole matrix
+#   RUNNER_ONLY="re2 snappy" bash runner/verify.sh   # just these
 set -uo pipefail   # not -e: builds/tests are expected to fail and must continue
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
-TSV="wild/verify-results.tsv"
-CACHE="${WILD_CACHE:-$HOME/.cache/wild}"
+TSV="runner/verify-results.tsv"
+CACHE="${RUNNER_CACHE:-${WILD_CACHE:-$HOME/.cache/runner}}"
 LOGS="$CACHE/verifylogs"; mkdir -p "$LOGS"
-BUILD_TIMEOUT="${WILD_BUILD_TIMEOUT:-1500}"
-TEST_TIMEOUT="${WILD_TEST_TIMEOUT:-1500}"
-ONLY="${WILD_ONLY:-}"
+BUILD_TIMEOUT="${RUNNER_BUILD_TIMEOUT:-${WILD_BUILD_TIMEOUT:-1500}}"
+TEST_TIMEOUT="${RUNNER_TEST_TIMEOUT:-${WILD_TEST_TIMEOUT:-1500}}"
+ONLY="${RUNNER_ONLY:-${WILD_ONLY:-}}"
 [[ -f "$TSV" ]] || printf 'proj\tkey\tversion\tbuild\ttest\ttest_summary\n' > "$TSV"
 
 classify_build() {  # <logfile> <rc>
@@ -81,7 +81,7 @@ while IFS=$'\t' read -r proj key version build test; do
   echo "  test:  $tstat   $tsum"
 
   printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$proj" "$key" "$version" "$bstat" "$tstat" "$tsum" >> "$TSV"
-done < <(python3 wild/_sweep_projects.py)
+done < <(python3 runner/_sweep_projects.py)
 
 echo "== verify complete =="
 column -t -s$'\t' "$TSV"

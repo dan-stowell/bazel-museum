@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-# Emit one TSV row per museum project for wild/verify.sh:
+# Emit one TSV row per museum project for runner/verify.sh:
 #   proj_dir <TAB> key <TAB> version <TAB> build_targets <TAB> test_targets
 # (targets space-joined; empty field when the project declares none). Mirrors
-# wild/gen_targets.py so the swept commands match the //wild/<project> targets.
+# runner/gen_targets.py so the swept commands match the //projects/<project>
+# runner targets.
 import re
 import pathlib
 

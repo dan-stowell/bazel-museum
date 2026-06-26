@@ -9,13 +9,13 @@ here.
 Each of these is real and green; they're "explorations" only in the sense that
 they go past the headline goal (hermeticity by injection, remote execution, a
 local RE worker, a discovery pipeline) rather than measuring the host the way
-the [`wild/`](../wild) track does.
+the [`runner/`](../runner) track does.
 
 ---
 
 ## 1. The hermetic museum (`builds/`)
 
-The opposite bet from `wild/`: instead of putting the reproducibility boundary
+The opposite bet from `runner/`: instead of putting the reproducibility boundary
 at a container and letting projects use the host, make each project **hermetic
 by injection**. Every [`builds/<project>`](../builds) wires its pinned source to
 a fully-hermetic LLVM toolchain, a pinned + daemonless *inner* Bazel, and
@@ -79,7 +79,7 @@ not a guess.
 
 ---
 
-These tracks share infrastructure with `wild/`: the pinned project sources
+These tracks share infrastructure with `runner/`: the pinned project sources
 ([`tools/fetch`](../tools/fetch)) and the project list ([`builds/`](../builds))
-are reused by the `wild/` targets, which build those same projects *as upstream
+are reused by the `runner/` targets, which build those same projects *as upstream
 ships them* instead of hermetically.

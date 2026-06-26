@@ -9,7 +9,7 @@ sudo curl -fsSL -o /usr/local/bin/bazel \
 sudo chmod +x /usr/local/bin/bazel
 
 # 2. Optionally prebuild the container image artifact:
-bazel build //wild/image:oci_layout
+bazel build //runner/image:oci_layout
 
 # 3. Build and test a project; this also builds the image artifact if needed:
 bazel run //projects/re2:build      # fetches re2's pinned source, runs its own BUILD
@@ -18,7 +18,7 @@ bazel run //projects/re2:test       # runs re2's upstream test suite in the imag
 
 Each `//projects/<project>:build` / `:test` target fetches the project's pinned
 source, builds the shared image artifact as a Bazel dependency, extracts that
-image rootfs into `~/.cache/wild` by manifest digest, then runs `bazelisk`
+image rootfs into `~/.cache/runner` by manifest digest, then runs `bazelisk`
 against the upstream `MODULE`/`BUILD` inside it (via
 [crun](https://github.com/containers/crun) in a rootless OCI bundle) with the
 project's known-good Bazel pinned. The first build compiles from scratch; reruns
@@ -26,7 +26,7 @@ hit a warm cache.
 
 ## Projects that build as they are
 
-<!-- BEGIN GENERATED TABLE (wild/_readme_table.py) -->
+<!-- BEGIN GENERATED TABLE (runner/_readme_table.py) -->
 | Project | Description | Bazel | Build | Test |
 |---------|-------------|:-----:|-------|------|
 | [abseil-cpp](https://github.com/abseil/abseil-cpp) | Google's C++ standard-library extensions | 9.1.1 | `bazel run //projects/abseil_cpp:build` | `bazel run //projects/abseil_cpp:test` |

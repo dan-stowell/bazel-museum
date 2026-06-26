@@ -6,7 +6,7 @@
 # python, git, curl, zip — with bazelisk as the entrypoint. This is the image
 # the //projects/<project>:build and :test targets run their builds inside.
 #
-#   bazel run //wild/image:load     # build the image and load it into docker
+#   bazel run //runner/image:load     # build the image and load it into docker
 #
 # Regenerate the apt lock after editing toolchain.yaml:
 #
@@ -22,8 +22,8 @@ load("@tar.bzl", "tar")
 exports_files(["toolchain.yaml", "toolchain.lock.json", "rootfs.sh"])
 
 # Stage the daemonless run path (rootless crun + the extracted rootfs) into the
-# cache, materialised entirely from Bazel — no docker. See wild/image/rootfs.sh.
-#   bazel run //wild/image:rootfs
+# cache, materialised entirely from Bazel — no docker. See runner/image/rootfs.sh.
+#   bazel run //runner/image:rootfs
 sh_binary(
     name = "rootfs",
     srcs = ["rootfs.sh"],
@@ -57,7 +57,7 @@ tar(
     name = "fixups",
     mtree = [
         "./work type=dir mode=0777",
-        "./home/wild type=dir mode=0777",
+        "./home/runner type=dir mode=0777",
         # The debian-slim base is merged-/usr (/bin -> /usr/bin), but the apt
         # .deb layer ships a real /bin directory, which clobbers that symlink
         # and hides the shells (they live in /usr/bin). Bazel's default genrule
@@ -79,7 +79,7 @@ image_manifest(
     base = "@debian_bookworm_slim",
     entrypoint = ["/usr/local/bin/bazelisk"],
     env = {
-        "HOME": "/home/wild",
+        "HOME": "/home/runner",
         "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
         "JAVA_HOME": "/usr/lib/jvm/default-java",
         "SSL_CERT_FILE": "/etc/ssl/certs/ca-certificates.crt",
@@ -132,7 +132,7 @@ genrule(
 image_load(
     name = "load",
     image = ":image",
-    tag = "bazel-wild-baseline:latest",
+    tag = "bazel-runner-baseline:latest",
 )
 
 # --- strict variant: bazelisk and nothing else --------------------------------
@@ -145,7 +145,7 @@ tar(
     name = "strict_dirs",
     mtree = [
         "./work type=dir mode=0777",
-        "./home/wild type=dir mode=0777",
+        "./home/runner type=dir mode=0777",
     ],
 )
 
@@ -154,7 +154,7 @@ image_manifest(
     base = "@debian_bookworm_slim",
     entrypoint = ["/usr/local/bin/bazelisk"],
     env = {
-        "HOME": "/home/wild",
+        "HOME": "/home/runner",
         "SSL_CERT_FILE": "/etc/ssl/certs/ca-certificates.crt",
         "USE_BAZEL_VERSION": "9.1.1",
     },
@@ -169,5 +169,5 @@ image_manifest(
 image_load(
     name = "strict_load",
     image = ":strict",
-    tag = "bazel-wild-strict:latest",
+    tag = "bazel-runner-strict:latest",
 )

@@ -4,29 +4,30 @@
 #   run.sh <key> <bazel-version|-> <build|test> [targets/flags...]
 #
 # Builds/tests a project "as upstream ships it": its pinned source (no museum
-# overlays, no injected toolchain) run by bazelisk inside the //wild/image
+# overlays, no injected toolchain) run by bazelisk inside the //runner/image
 # container (a pinned, ordinary CI machine). The project's source url+sha256 is
 # read straight from //tools/fetch:extension.bzl, so the target needs no
 # separate table. Source is fetched + verified on the host, mounted into a
 # container rootfs, and bazelisk runs the upstream MODULE/BUILD as found.
 #
-# Runtime (WILD_RUNTIME):
+# Runtime (RUNNER_RUNTIME):
 #   crun   (default) daemonless + rootless via the pinned //tools/crun plus the
-#          //wild/image:image OCI layout in runfiles. The rootfs is extracted
-#          into WILD_CACHE on demand, keyed by manifest digest. No dockerd, no
+#          //runner/image:image OCI layout in runfiles. The rootfs is extracted
+#          into RUNNER_CACHE on demand, keyed by manifest digest. No dockerd, no
 #          host runtime, no manual pre-staging step.
-#   docker the image loaded by `bazel run //wild/image:load` (needs a daemon).
-# Env: WILD_CACHE (default ~/.cache/wild), WILD_IMAGE (docker tag),
-#      WILD_OCI_LAYOUT/WILD_ROOTFS/WILD_CRUN (debug overrides for crun mode).
+#   docker the image loaded by `bazel run //runner/image:load` (needs a daemon).
+# Env: RUNNER_CACHE (default ~/.cache/runner), RUNNER_IMAGE (docker tag),
+#      RUNNER_OCI_LAYOUT/RUNNER_ROOTFS/RUNNER_CRUN (debug overrides for crun
+#      mode). The old WILD_* names are accepted as fallbacks.
 set -euo pipefail
 
 # Under `bazel run`, the repo root is $BUILD_WORKSPACE_DIRECTORY; fall back to
 # deriving it from this script's location for direct CLI use.
 ROOT="${BUILD_WORKSPACE_DIRECTORY:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 EXT="$ROOT/tools/fetch/extension.bzl"
-RUNTIME="${WILD_RUNTIME:-crun}"
-IMAGE="${WILD_IMAGE:-bazel-wild-baseline:latest}"
-CACHE="${WILD_CACHE:-$HOME/.cache/wild}"
+RUNTIME="${RUNNER_RUNTIME:-${WILD_RUNTIME:-crun}}"
+IMAGE="${RUNNER_IMAGE:-${WILD_IMAGE:-bazel-runner-baseline:latest}}"
+CACHE="${RUNNER_CACHE:-${WILD_CACHE:-$HOME/.cache/runner}}"
 SRC_CACHE="$CACHE/src"
 mkdir -p "$SRC_CACHE" "$CACHE/home"
 
@@ -95,10 +96,10 @@ targets=("$@")
 
 # Runtime present?
 if [[ "$RUNTIME" == crun ]]; then
-  OCI_LAYOUT="${WILD_OCI_LAYOUT:-$(runfile wild/image/image_oci_layout || runfile wild/image/oci_layout || true)}"
-  CRUN="${WILD_CRUN:-$(runfile wild/image/crun.bin || true)}"
-  if [[ -n "${WILD_ROOTFS:-}" ]]; then
-    ROOTFS="$WILD_ROOTFS"
+  OCI_LAYOUT="${RUNNER_OCI_LAYOUT:-${WILD_OCI_LAYOUT:-$(runfile runner/image/image_oci_layout || runfile runner/image/oci_layout || true)}}"
+  CRUN="${RUNNER_CRUN:-${WILD_CRUN:-$(runfile runner/image/crun.bin || true)}}"
+  if [[ -n "${RUNNER_ROOTFS:-${WILD_ROOTFS:-}}" ]]; then
+    ROOTFS="${RUNNER_ROOTFS:-$WILD_ROOTFS}"
   elif [[ -n "$OCI_LAYOUT" && -d "$OCI_LAYOUT" ]]; then
     ROOTFS="$(rootfs_from_oci_layout "$OCI_LAYOUT")"
   else
@@ -106,18 +107,18 @@ if [[ "$RUNTIME" == crun ]]; then
   fi
   if [[ ! -x "$CRUN" || ! -d "$ROOTFS" ]]; then
     echo "error: daemonless runtime runfiles are missing." >&2
-    echo "expected executable: wild/image/crun.bin" >&2
-    echo "expected directory:  wild/image/image_oci_layout" >&2
+    echo "expected executable: runner/image/crun.bin" >&2
+    echo "expected directory:  runner/image/image_oci_layout" >&2
     exit 1
   fi
 elif [[ "$RUNTIME" == docker ]]; then
   if ! docker image inspect "$IMAGE" >/dev/null 2>&1; then
     echo "error: image '$IMAGE' not loaded. Build it first with:" >&2
-    echo "    bazel run //wild/image:load" >&2
+    echo "    bazel run //runner/image:load" >&2
     exit 1
   fi
 else
-  echo "error: unknown WILD_RUNTIME='$RUNTIME' (use crun or docker)" >&2; exit 2
+  echo "error: unknown RUNNER_RUNTIME='$RUNTIME' (use crun or docker)" >&2; exit 2
 fi
 
 # Pull url/sha256/filename for "<key>_archive" out of extension.bzl.
@@ -149,16 +150,16 @@ env_args=()
 # Every project mounts its source at /work, so give each its own Bazel output
 # base (keyed by project) — otherwise they'd collide in one shared base and
 # re-fetch each other's deps. Lives under the mounted $HOME so reruns stay warm.
-startup=("--output_user_root=/home/wild/ob/$key")
+startup=("--output_user_root=/home/runner/ob/$key")
 
 # Extra bazel flags (e.g. --verbose_failures) go before the `--` marker; the
 # targets go after it so negative patterns like `-//:exhaustive_test` parse as
 # target patterns rather than options. A shared, content-addressed repository
 # cache (under the mounted $HOME) means the BCR + toolchains download once
 # across all projects rather than once per project's output base.
-flags=("--repository_cache=/home/wild/repocache")
-if [[ -n "${WILD_BAZEL_FLAGS:-}" ]]; then
-  read -ra _extra <<<"$WILD_BAZEL_FLAGS"; flags+=("${_extra[@]}")
+flags=("--repository_cache=/home/runner/repocache")
+if [[ -n "${RUNNER_BAZEL_FLAGS:-${WILD_BAZEL_FLAGS:-}}" ]]; then
+  read -ra _extra <<<"${RUNNER_BAZEL_FLAGS:-$WILD_BAZEL_FLAGS}"; flags+=("${_extra[@]}")
 fi
 
 echo ">> [$RUNTIME] bazelisk $cmd ${targets[*]}   (project=$key, bazel=${ver:--})"
@@ -169,7 +170,7 @@ bazelisk=(/usr/local/bin/bazelisk "${startup[@]}" "$cmd" "${flags[@]}" -- "${tar
 if [[ "$RUNTIME" == docker ]]; then
   exec docker run --rm \
     -v "$workdir":/work \
-    -v "$CACHE/home":/home/wild \
+    -v "$CACHE/home":/home/runner \
     "${env_args[@]}" \
     "$IMAGE" "${startup[@]}" "$cmd" "${flags[@]}" -- "${targets[@]}"
 fi
@@ -180,7 +181,7 @@ trap 'rm -rf "$bundle"' EXIT
 "$CRUN" spec --rootless --bundle "$bundle" >/dev/null
 
 ENV_JSON="PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-HOME=/home/wild
+HOME=/home/runner
 JAVA_HOME=/usr/lib/jvm/default-java
 SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt"
 [[ -n "$ver" && "$ver" != "-" ]] && ENV_JSON+=$'\n'"USE_BAZEL_VERSION=$ver"
@@ -200,10 +201,10 @@ c["linux"]["namespaces"] = [n for n in c["linux"]["namespaces"] if n["type"] != 
 c["linux"]["resources"] = {}  # rootless, no cgroup limits
 c["mounts"] += [
     {"destination": "/work", "type": "bind", "source": os.environ["WORKDIR"], "options": ["rbind", "rw"]},
-    {"destination": "/home/wild", "type": "bind", "source": os.environ["HOMEDIR"], "options": ["rbind", "rw"]},
+    {"destination": "/home/runner", "type": "bind", "source": os.environ["HOMEDIR"], "options": ["rbind", "rw"]},
     {"destination": "/etc/resolv.conf", "type": "bind", "source": "/etc/resolv.conf", "options": ["rbind", "ro"]},
 ]
 json.dump(c, open(cfg, "w"), indent=2)
 PY
 
-exec "$CRUN" --cgroup-manager=disabled run -b "$bundle" "wild-$key-$$"
+exec "$CRUN" --cgroup-manager=disabled run -b "$bundle" "runner-$key-$$"

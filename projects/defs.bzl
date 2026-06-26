@@ -1,12 +1,12 @@
-"""`wild_project` — per-project "build it as it is" targets.
+"""`runner_project` — per-project "build it as it is" targets.
 
 Each museum project gets a //projects/<project> package whose `:build` and
 `:test` targets run the project's *upstream* build/test (its pinned source, its
-own MODULE/BUILD, no overlays, no injected toolchain) inside the //wild/image
+own MODULE/BUILD, no overlays, no injected toolchain) inside the //runner/image
 container via //projects:run.sh. The pinned crun binary and image OCI layout are
 ordinary runfiles/data dependencies of each runner:
 
-    bazel build //wild/image:oci_layout   # optional prebuild
+    bazel build //runner/image:oci_layout   # optional prebuild
     bazel run //projects/cpu_features:build
     bazel run //projects/cpu_features:test
 
@@ -16,7 +16,7 @@ USE_BAZEL_VERSION); "-" lets bazelisk honor the repo's own .bazelversion.
 
 load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 
-def wild_project(name, version = "-", build = None, test = None):
+def runner_project(name, version = "-", build = None, test = None):
     """Generate :build and/or :test runners for one project.
 
     Args:
@@ -32,8 +32,8 @@ def wild_project(name, version = "-", build = None, test = None):
                 srcs = ["//projects:run.sh"],
                 args = [name, version, goal] + targets,
                 data = [
-                    "//wild/image:crun",
-                    "//wild/image:oci_layout",
+                    "//runner/image:crun",
+                    "//runner/image:oci_layout",
                 ],
                 # docker run reaches the network and isn't sandboxable; keep
                 # these out of `bazel build //...` wildcards.

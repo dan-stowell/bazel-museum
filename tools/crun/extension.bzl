@@ -1,6 +1,6 @@
 """Module extension fetching a hermetic, pinned `crun` (static OCI runtime).
 
-`crun` runs the //wild/image rootfs **daemonlessly and rootlessly** — no
+`crun` runs the //runner/image rootfs **daemonlessly and rootlessly** — no
 dockerd, no host-installed runtime. We download the official statically-linked
 release binary (a single self-contained ELF) and expose it as a file. Pinning
 version + sha256 keeps it reproducible and removes any dependency on a host

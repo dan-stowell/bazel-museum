@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # Render the README's "projects that build as they are" table from
-# wild/verify-results.tsv (produced by wild/verify.sh).
+# runner/verify-results.tsv (produced by runner/verify.sh).
 #
-#   python3 wild/_readme_table.py            # the works table (markdown)
-#   python3 wild/_readme_table.py --notes    # also the "doesn't build as-is" list
+#   python3 runner/_readme_table.py            # the works table (markdown)
+#   python3 runner/_readme_table.py --notes    # also the "doesn't build as-is" list
 #
 # Each project: name (linked to source), one-line description, Bazel version,
 # build command, test command — only listing what actually passed in the image.
@@ -66,7 +66,7 @@ def pass_fail(summary):
 
 
 def main():
-    rows = list(csv.DictReader(open("wild/verify-results.tsv"), delimiter="\t"))
+    rows = list(csv.DictReader(open("runner/verify-results.tsv"), delimiter="\t"))
     works = [r for r in rows if r["build"] == "ok"]
     works.sort(key=lambda r: META.get(r["proj"], (r["proj"],))[0].lower())
 

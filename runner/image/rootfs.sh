@@ -1,20 +1,20 @@
 #!/usr/bin/env bash
 # Materialise the daemonless run path from Bazel — no docker, no host runtime.
 #
-#   bash wild/image/rootfs.sh        # or: bazel run //wild/image:rootfs
+#   bash runner/image/rootfs.sh        # or: bazel run //runner/image:rootfs
 #
-# Produces, under $WILD_CACHE (default ~/.cache/wild):
-#   rootfs/   the //wild/image filesystem, extracted from the OCI layout that
+# Produces, under $RUNNER_CACHE (default ~/.cache/runner):
+#   rootfs/   the //runner/image filesystem, extracted from the OCI layout that
 #             rules_img builds *without a daemon* (bazel --output_groups=oci_layout).
 #   crun      the pinned static OCI runtime (//tools/crun), copied out of Bazel's
 #             cache so projects/run.sh can exec it.
 #
-# After this, `bazel run //wild/<project>:build` runs rootless via crun. Re-run
-# this whenever the image changes (idempotent: keyed on the manifest digest).
+# Legacy/manual staging path. Project runners now use the OCI layout from
+# runfiles and extract the rootfs into RUNNER_CACHE automatically.
 set -euo pipefail
 
 ROOT="${BUILD_WORKSPACE_DIRECTORY:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
-CACHE="${WILD_CACHE:-$HOME/.cache/wild}"
+CACHE="${RUNNER_CACHE:-${WILD_CACHE:-$HOME/.cache/runner}}"
 ROOTFS="$CACHE/rootfs"
 case "$(uname -m)" in
   x86_64) ARCH=amd64 ;; aarch64|arm64) ARCH=arm64 ;;
@@ -24,7 +24,7 @@ mkdir -p "$CACHE"
 cd "$ROOT"
 
 echo ">> building image OCI layout + crun (daemonless)…"
-bazel build //wild/image:image --output_groups=oci_layout "@crun_linux_${ARCH}//file" >/dev/null 2>&1
+bazel build //runner/image:image --output_groups=oci_layout "@crun_linux_${ARCH}//file" >/dev/null 2>&1
 
 # Stage the pinned crun next to the rootfs so run.sh can exec it without Bazel.
 ob="$(bazel info output_base 2>/dev/null)"
@@ -32,7 +32,7 @@ crun_rel="$(bazel cquery --output=files "@crun_linux_${ARCH}//file" 2>/dev/null 
 install -m 0755 "$ob/$crun_rel" "$CACHE/crun"
 echo ">> staged crun -> $CACHE/crun ($("$CACHE/crun" --version | head -1))"
 
-layout="$ROOT/bazel-bin/wild/image/image_oci_layout"
+layout="$ROOT/bazel-bin/runner/image/image_oci_layout"
 [[ -d "$layout" ]] || { echo "OCI layout not found at $layout" >&2; exit 1; }
 mani=$(python3 -c "import json;print(json.load(open('$layout/index.json'))['manifests'][0]['digest'].split(':')[1])")
 digest_file="$ROOTFS/.manifest-digest"

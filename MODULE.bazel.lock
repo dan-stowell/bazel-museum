@@ -294,7 +294,7 @@
     },
     "//tools/crun:extension.bzl%crun": {
       "general": {
-        "bzlTransitiveDigest": "YaUVnLIvZZffpCWWD9MlFt7LnA+jTLB+zEKzs0uhBAM=",
+        "bzlTransitiveDigest": "VU82go9Ihb+xxdTpXLNBqhpBuBmPbmnFoINXzCZNlsE=",
         "usagesDigest": "q4vJwO4RUrbJ89rdv4BJP71jth8Ko3vpvKoaiSJSbHs=",
         "recordedInputs": [
           "REPO_MAPPING:,bazel_tools bazel_tools"

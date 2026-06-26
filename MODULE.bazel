@@ -81,6 +81,7 @@ use_repo(
     "re2_archive",
     "snappy_archive",
     "benchmark_archive",
+    "zlib_archive",
 )
 
 # Hermetic `actiond` worker binary (see //tools/actiond:extension.bzl). actiond

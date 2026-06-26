@@ -179,6 +179,14 @@ _PROJECT_SOURCES = {
         "sha256": "9631341c82bac4a288bef951f8b26b41f69021794184ece969f8473977eaa340",
         "filename": "benchmark-1.9.5.tar.gz",
     },
+    # zlib — the ubiquitous DEFLATE compression library (C). First-party Bazel
+    # (ships MODULE.bazel + a BUILD that loads rules_cc), so it builds on the
+    # default 9.1.1 inner. Exercises the hermetic LLVM toolchain's C path.
+    "zlib_archive": {
+        "url": "https://github.com/madler/zlib/archive/refs/tags/v1.3.2.tar.gz",
+        "sha256": "b99a0b86c0ba9360ec7e78c4f1e43b1cbdf1e6936c8fa0f6835c0cd694a495a1",
+        "filename": "zlib-1.3.2.tar.gz",
+    },
 }
 
 

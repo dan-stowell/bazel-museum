@@ -258,7 +258,7 @@
     },
     "//tools/fetch:extension.bzl%inner_bazel": {
       "general": {
-        "bzlTransitiveDigest": "4NiPRFPoyIPvGW32Ce+Qnx17NA0qG9p+S+dq3ungnRc=",
+        "bzlTransitiveDigest": "RtA0esTDyvg8ZPy1TnqdY/BpLDjfzCQved3hfGfPQNE=",
         "usagesDigest": "h14pbfoGF+xRhbdi2p4ZLtdO3iD9D6LSCzysqtpR8HE=",
         "recordedInputs": [
           "REPO_MAPPING:,bazel_tools bazel_tools"
@@ -357,7 +357,7 @@
     },
     "//tools/fetch:extension.bzl%project_sources": {
       "general": {
-        "bzlTransitiveDigest": "4NiPRFPoyIPvGW32Ce+Qnx17NA0qG9p+S+dq3ungnRc=",
+        "bzlTransitiveDigest": "RtA0esTDyvg8ZPy1TnqdY/BpLDjfzCQved3hfGfPQNE=",
         "usagesDigest": "4RQlvpJYAxX2PZxLc3Y4g/kgSEcAiqEkkFheY2guOrA=",
         "recordedInputs": [
           "REPO_MAPPING:,bazel_tools bazel_tools"
@@ -511,6 +511,16 @@
               ],
               "sha256": "9631341c82bac4a288bef951f8b26b41f69021794184ece969f8473977eaa340",
               "downloaded_file_path": "benchmark-1.9.5.tar.gz"
+            }
+          },
+          "zlib_archive": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_file",
+            "attributes": {
+              "urls": [
+                "https://github.com/madler/zlib/archive/refs/tags/v1.3.2.tar.gz"
+              ],
+              "sha256": "b99a0b86c0ba9360ec7e78c4f1e43b1cbdf1e6936c8fa0f6835c0cd694a495a1",
+              "downloaded_file_path": "zlib-1.3.2.tar.gz"
             }
           }
         }

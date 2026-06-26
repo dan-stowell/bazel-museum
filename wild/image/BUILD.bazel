@@ -54,7 +54,7 @@ tar(
         # recreate the two that builds reach for.
         "./bin/sh type=link link=/usr/bin/dash",
         "./bin/bash type=link link=/usr/bin/bash",
-        # default-jdk-headless installs the JVM under /usr/lib/jvm; expose `java`.
+        # Bazel's cc auto-configuration probes for `cc`/`gcc`/`c++`.
         "./usr/bin/cc type=link link=/usr/bin/gcc",
         "./usr/bin/c++ type=link link=/usr/bin/g++",
         # default-jdk-headless installs the JVM under /usr/lib/jvm; expose it.
@@ -88,4 +88,41 @@ image_load(
     name = "load",
     image = ":image",
     tag = "bazel-wild-baseline:latest",
+)
+
+# --- strict variant: bazelisk and nothing else --------------------------------
+# The "is it hermetic in nature?" probe. Same base, but WITHOUT the toolchain
+# .deb layer — a libc (debian-slim), CA certs, and bazelisk. No compiler, no
+# SDK. Every compiling project fails here with Bazel's "Cannot find gcc or CC"
+# auto-configuration error: that's the finding. (No /bin fixups needed — without
+# the apt layer the base's merged-/usr stays intact.)
+tar(
+    name = "strict_dirs",
+    mtree = [
+        "./work type=dir mode=0777",
+        "./home/wild type=dir mode=0777",
+    ],
+)
+
+image_manifest(
+    name = "strict",
+    base = "@debian_bookworm_slim",
+    entrypoint = ["/usr/local/bin/bazelisk"],
+    env = {
+        "HOME": "/home/wild",
+        "SSL_CERT_FILE": "/etc/ssl/certs/ca-certificates.crt",
+        "USE_BAZEL_VERSION": "9.1.1",
+    },
+    layers = [
+        ":cacerts",
+        ":bazelisk_layer",
+        ":strict_dirs",
+    ],
+    working_dir = "/work",
+)
+
+image_load(
+    name = "strict_load",
+    image = ":strict",
+    tag = "bazel-wild-strict:latest",
 )

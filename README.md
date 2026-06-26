@@ -1,169 +1,163 @@
 # bazel-museum
 
-**Clone onto any machine that has only Bazel, and build & test 33 real
-open-source projects — including Bazel itself — across 3 execution backends, 2
-operating systems, and 2 CPU architectures.** No host compiler, no host Python,
-no `gh`, no daemons — every toolchain is hermetic and pinned, and the inner
-Bazel is pinned too.
+**A collection of real open-source projects you can build and test *as they
+ship* — with nothing but [bazelisk] and the handful of host tools that
+real-world Bazel projects quietly assume. The point is to enumerate exactly what
+those tools are.**
 
-```sh
-bazel run //builds/abseil_cpp:test                       # 251 tests, hermetic LLVM, on this host
-bazel run //builds/abseil_cpp:test_rbe_linux_amd64       # …the same, on BuildBuddy's cloud
-bazel run //builds/abseil_cpp:build_actiond_linux_arm64  # …or in a local Linux VM
-```
+Almost no Bazel project in the wild builds with bazelisk *alone*: the moment
+anything compiles, Bazel's C/C++ toolchain auto-configuration probes the host
+for `gcc`/`cc` — and that's just the start (some projects also reach for a JDK,
+python, git, or curl). This repo pins that "ordinary CI machine" into a single
+container image built **entirely with Bazel** ([rules_img] + [rules_distroless]),
+then builds and tests each project's *upstream* `MODULE`/`BUILD` inside it — no
+overlays, no patches, no injected toolchains. What works, and what host tool
+each project leans on, is the result.
 
-### What builds where
+> Looking for the hermetic-by-injection builds, remote execution on BuildBuddy,
+> the local `actiond` RE worker, or the project-discovery pipeline? Those go
+> past this headline goal and live under **[explorations/](explorations)**.
 
-Each project is a pinned source tarball + hermetic toolchain, built by a pinned,
-daemonless inner Bazel in an isolated build root. ✅ = wired and green; most
-projects also run their upstream test suite hermetically (numbers below).
-
-| Project | Lang | Toolchain | local | BuildBuddy RBE | actiond (local VM) |
-|---------|------|-----------|:-----:|:--------------:|:------------------:|
-| [abseil-cpp](builds/abseil_cpp/BUILD.bazel) | C++ | hermetic LLVM | ✅ | ✅ | ✅ |
-| [protobuf](builds/protobuf/BUILD.bazel) | C++ | hermetic LLVM | ✅ | ✅ | ✅ |
-| [grpc](builds/grpc/BUILD.bazel) | C++ | hermetic LLVM | ✅ | ✅ | ✅ |
-| [googletest](builds/googletest/BUILD.bazel) | C++ | hermetic LLVM | ✅ | ✅ | ✅ |
-| [flatbuffers](builds/flatbuffers/BUILD.bazel) | C++ | hermetic LLVM | ✅ | ✅ | ✅ |
-| [OR-Tools](builds/ortools/BUILD.bazel) | C++ | hermetic LLVM | ✅ | ✅ | ✅ |
-| [Catch2](builds/catch2/BUILD.bazel) | C++ | hermetic LLVM | ✅ | ✅ | ✅ |
-| [brotli](builds/brotli/BUILD.bazel) | C++ / Go | hermetic LLVM | ✅ | ✅ | ✅ |
-| [nlohmann/json](builds/json/BUILD.bazel) | C++ | hermetic LLVM | ✅ | ✅ | ✅ |
-| [re2](builds/re2/BUILD.bazel) | C++ | hermetic LLVM | ✅ | ✅ | — |
-| [snappy](builds/snappy/BUILD.bazel) | C++ | hermetic LLVM | ✅ | ✅ | — |
-| [google/benchmark](builds/benchmark/BUILD.bazel) | C++ | hermetic LLVM | ✅ | ✅ | — |
-| [zlib](builds/zlib/BUILD.bazel) | C | hermetic LLVM | ✅ | ✅ | — |
-| [highway](builds/highway/BUILD.bazel) | C++ | hermetic LLVM | ✅ | ✅ | — |
-| [jsoncpp](builds/jsoncpp/BUILD.bazel) | C++ | hermetic LLVM | ✅ | ✅ | — |
-| [magic_enum](builds/magic_enum/BUILD.bazel) | C++ | hermetic LLVM | ✅ | ✅ | — |
-| [FTXUI](builds/ftxui/BUILD.bazel) | C++ | hermetic LLVM | ✅ | ✅ | — |
-| [jsonnet](builds/jsonnet/BUILD.bazel) | C++ | hermetic LLVM | ✅ | ✅ | — |
-| [gperftools](builds/gperftools/BUILD.bazel) | C++ | hermetic LLVM | ✅ | ✅ | — |
-| [OpenCC](builds/opencc/BUILD.bazel) | C++ | hermetic LLVM | ✅ | ✅ | — |
-| [cpu_features](builds/cpu_features/BUILD.bazel) | C | hermetic LLVM | ✅ | ✅ | — |
-| [fast_float](builds/fast_float/BUILD.bazel) | C++ | hermetic LLVM | ✅ | ✅ | — |
-| [CLI11](builds/cli11/BUILD.bazel) | C++ | hermetic LLVM | ✅ | ✅ | — |
-| [glog](builds/glog/BUILD.bazel) | C++ | hermetic LLVM | ✅ | ✅ | — |
-| [oneTBB](builds/onetbb/BUILD.bazel) | C++ | hermetic LLVM | ✅ | ✅ | — |
-| [doctest](builds/doctest/BUILD.bazel) | C++ | hermetic LLVM | ✅ | ✅ | — |
-| [cctz](builds/cctz/BUILD.bazel) | C++ | hermetic LLVM | ✅ | ✅ | — |
-| [buildtools](builds/buildtools/BUILD.bazel) | Go | rules_go + hermetic LLVM | ✅ | ✅ | — |
-| [BoringSSL](builds/boringssl/BUILD.bazel) | C++ | hermetic LLVM | ✅ | ✅ | — |
-| [nsync](builds/nsync/BUILD.bazel) | C / C++ | hermetic LLVM | ✅ | ✅ | — |
-| [copybara](builds/copybara/BUILD.bazel) | Java | rules_java + hermetic JDK | ✅ | ✅ | — |
-| [cxx](builds/cxx/BUILD.bazel) | Rust | rules_rust + hermetic LLVM | ✅ | ✅ | ✅ |
-| [bazel](builds/bazel/BUILD.bazel) | Java / C++ | hermetic LLVM + bundled JDK | ✅¹ | ✅¹ | —² |
-
-¹ **Bazel itself** — `//src:bazel-bin`, 6768 actions, built with the hermetic
-LLVM toolchain (Java side uses Bazel's bundled JDK), green both locally and on
-RBE. Its genrules shell out to `zip` (72×); rather than require a host `zip`, the
-museum builds one from Info-ZIP source with hermetic LLVM
-([`//tools/zip`](tools/zip)) and stages it on the inner build's PATH (the
-`HERMETIC_ZIP` overlay) — verified green with `zip` absent from the host (on RBE
-the executor image's own `zip` serves instead). The **test** goal runs Bazel's
-C++ client unit tests (`//src/test/cpp/...`): **15/15** local, **14/14** on RBE
-(`file_test`, whose permission/large-file asserts invert under the root executor,
-runs local-only).
-
-² **Not actiond yet.** The C++ tests run there, but Bazel's install-base genrule
-calls system `zip`, which actiond's minimal guest chroot lacks — and the
-`--tool` lever stages `zip` on a *local* PATH that doesn't reach the remote
-guest. Closing it needs `zip` as a real action input in the guest.
-
-**Dimensions:** *local* = the host itself (linux x86_64 or macOS arm64, one at a
-time). *RBE* = BuildBuddy's cloud executors (linux amd64/arm64 + darwin arm64),
-host-neutral. *actiond* = a Linux VM on this machine ([hermeticbuild/actiond])
-that runs arm64 (or amd64) actions locally. New backends, caches, OSes, and
-arches drop into [`builds/environments.bzl`](builds/environments.bzl) and
-[`builds/platforms.bzl`](builds/platforms.bzl).
-
-[hermeticbuild/actiond]: https://github.com/hermeticbuild/actiond
-
-See [docs/DESIGN.md](docs/DESIGN.md) for the architecture and
-[docs/KICKOFF.md](docs/KICKOFF.md) for the project's intent.
+[bazelisk]: https://github.com/bazelbuild/bazelisk
+[rules_img]: https://github.com/bazel-contrib/rules_img
+[rules_distroless]: https://github.com/bazel-contrib/rules_distroless
 
 ## Quick start
 
-```sh
-# Discover projects (fetches awesome-bazel lists + the Bazel Central Registry,
-# enriches with GitHub stars/metadata via a hermetic gh) and write the snapshot:
-bazel run //pipeline:gather
-
-# Offline (no GitHub API calls):
-bazel run //pipeline:gather -- --enrich=none
-```
-
-The result lands in [`data/projects.json`](data/projects.json): a deduped,
-classified, enriched snapshot of public projects that build with Bazel. Each
-project carries a `candidate_score` (recognition × still-maintained ×
-buildability) so the next project to add is a ranking, not a guess.
+You need **bazelisk** and **docker**. Nothing else — not even a compiler; the
+toolchain lives in the image.
 
 ```sh
-# Order the universe of next candidates from the snapshot (offline, no network):
-bazel run //pipeline:rank                    # top 30, excluding what's already in
-bazel run //pipeline:rank -- --by-language   # best-per-toolchain coverage view
-bazel run //pipeline:rank -- --language C++ --top 50
+# 1. Get bazelisk (it becomes your `bazel`; it downloads the exact Bazel each
+#    project pins). On a bare Linux box:
+sudo curl -fsSL -o /usr/local/bin/bazel \
+    https://github.com/bazelbuild/bazelisk/releases/download/v1.25.0/bazelisk-linux-amd64
+sudo chmod +x /usr/local/bin/bazel
+#    (macOS/Windows/other arches: see the bazelisk releases page.)
+
+# 2. Build the "build it as it is" container once (rules_img assembles it and
+#    loads it into docker as bazel-wild-baseline:latest):
+bazel run //wild/image:load
+
+# 3. Build and test any project, exactly as upstream ships it:
+bazel run //wild/re2:build      # fetches re2's pinned source, runs its own BUILD
+bazel run //wild/re2:test       # runs re2's upstream test suite in the container
 ```
 
-Buildability signals: `in_bcr` (a Bazel Central Registry module exists — someone
-keeps a build green) and `first_party_bazel` (the repo itself ships Bazel build
-files, vs. a BCR *port* of a CMake/autotools project). `gather` probes the
-latter for projects above `--detect-bazel-min-stars` (default 1000).
+Each `//wild/<project>:build` / `:test` target fetches the project's pinned
+source, mounts it into the container, and runs `bazelisk` against the upstream
+`MODULE`/`BUILD` with the project's known-good Bazel version pinned. The first
+build of a project compiles from scratch; reruns hit a warm cache.
 
-Enrichment authenticates GitHub via a hermetic, pinned `gh` (downloaded as a
-Bazel dependency). It uses `GH_TOKEN`/`GITHUB_TOKEN` if set, otherwise the
-host's `gh auth` credentials. Pass one explicitly with
-`GH_TOKEN=… bazel run //pipeline:gather`.
+## Projects that build as they are
 
-### Build a project in isolation
+<!-- BEGIN GENERATED TABLE (wild/_readme_table.py) -->
+| Project | Description | Bazel | Build | Test |
+|---------|-------------|:-----:|-------|------|
+| [abseil-cpp](https://github.com/abseil/abseil-cpp) | Google's C++ standard-library extensions | 9.1.1 | `bazel run //wild/abseil_cpp:build` | `bazel run //wild/abseil_cpp:test` |
+| [bazel](https://github.com/bazelbuild/bazel) | The Bazel build system itself (Java/C++) | 9.1.1 | `bazel run //wild/bazel:build` | `bazel run //wild/bazel:test` (14/15 pass) |
+| [BoringSSL](https://github.com/google/boringssl) | Google's fork of OpenSSL | 9.1.1 | `bazel run //wild/boringssl:build` | `bazel run //wild/boringssl:test` |
+| [buildtools](https://github.com/bazelbuild/buildtools) | Bazel BUILD formatter/linter, buildifier (Go) | 8.7.0 | `bazel run //wild/buildtools:build` | `bazel run //wild/buildtools:test` |
+| [Catch2](https://github.com/catchorg/Catch2) | C++ unit-testing framework | 9.1.1 | `bazel run //wild/catch2:build` | — (test fails as-is) |
+| [cctz](https://github.com/google/cctz) | C++ civil-time and time-zone library | 8.7.0 | `bazel run //wild/cctz:build` | `bazel run //wild/cctz:test` |
+| [CLI11](https://github.com/CLIUtils/CLI11) | Command-line parser for C++11 | 8.7.0 | `bazel run //wild/cli11:build` | `bazel run //wild/cli11:test` |
+| [copybara](https://github.com/google/copybara) | Transforms and moves code between repositories (Java) | 9.1.1 | `bazel run //wild/copybara:build` | `bazel run //wild/copybara:test` (216/220 pass) |
+| [cpu_features](https://github.com/google/cpu_features) | Cross-platform CPU feature detection | 8.7.0 | `bazel run //wild/cpu_features:build` | `bazel run //wild/cpu_features:test` |
+| [cxx](https://github.com/dtolnay/cxx) | Safe interop between Rust and C++ (Rust) | 9.1.1 | `bazel run //wild/cxx:build` | — (test fails as-is) |
+| [fast_float](https://github.com/fastfloat/fast_float) | Fast number parsing from strings | 8.7.0 | `bazel run //wild/fast_float:build` | `bazel run //wild/fast_float:test` |
+| [FlatBuffers](https://github.com/google/flatbuffers) | Memory-efficient serialization library | 8.7.0 | `bazel run //wild/flatbuffers:build` | `bazel run //wild/flatbuffers:test` |
+| [FTXUI](https://github.com/ArthurSonzogni/FTXUI) | Functional terminal-UI library for C++ | 8.7.0 | `bazel run //wild/ftxui:build` | `bazel run //wild/ftxui:test` |
+| [glog](https://github.com/google/glog) | Google application-level logging library | 8.7.0 | `bazel run //wild/glog:build` | `bazel run //wild/glog:test` |
+| [google/benchmark](https://github.com/google/benchmark) | Microbenchmark support library | 8.7.0 | `bazel run //wild/benchmark:build` | `bazel run //wild/benchmark:test` |
+| [GoogleTest](https://github.com/google/googletest) | Google's C++ test & mocking framework | 8.7.0 | `bazel run //wild/googletest:build` | `bazel run //wild/googletest:test` |
+| [gperftools](https://github.com/gperftools/gperftools) | tcmalloc and performance profilers | 8.7.0 | `bazel run //wild/gperftools:build` | `bazel run //wild/gperftools:test` |
+| [highway](https://github.com/google/highway) | Portable SIMD/vector intrinsics | 8.7.0 | `bazel run //wild/highway:build` | `bazel run //wild/highway:test` |
+| [jsoncpp](https://github.com/open-source-parsers/jsoncpp) | C++ library for reading/writing JSON | 9.1.1 | `bazel run //wild/jsoncpp:build` | `bazel run //wild/jsoncpp:test` |
+| [jsonnet](https://github.com/google/jsonnet) | Data-templating language | 8.7.0 | `bazel run //wild/jsonnet:build` | `bazel run //wild/jsonnet:test` |
+| [magic_enum](https://github.com/Neargye/magic_enum) | Static reflection for C++ enums | 9.1.1 | `bazel run //wild/magic_enum:build` | — (test fails as-is) |
+| [nlohmann/json](https://github.com/nlohmann/json) | JSON for Modern C++ | 9.1.1 | `bazel run //wild/json:build` | — (no upstream test target) |
+| [nsync](https://github.com/google/nsync) | C library of synchronization primitives | 8.7.0 | `bazel run //wild/nsync:build` | `bazel run //wild/nsync:test` |
+| [oneTBB](https://github.com/uxlfoundation/oneTBB) | Intel's Threading Building Blocks | 8.7.0 | `bazel run //wild/onetbb:build` | `bazel run //wild/onetbb:test` |
+| [OpenCC](https://github.com/BYVoid/OpenCC) | Traditional/Simplified Chinese conversion | 8.7.0 | `bazel run //wild/opencc:build` | — (no upstream test target) |
+| [OR-Tools](https://github.com/google/or-tools) | Google's optimization suite (CP-SAT) | 8.7.0 | `bazel run //wild/ortools:build` | `bazel run //wild/ortools:test` (88/89 pass) |
+| [protobuf](https://github.com/protocolbuffers/protobuf) | Protocol Buffers serialization | 9.1.1 | `bazel run //wild/protobuf:build` | `bazel run //wild/protobuf:test` (100/101 pass) |
+| [re2](https://github.com/google/re2) | Fast, safe regular-expression engine | 8.7.0 | `bazel run //wild/re2:build` | `bazel run //wild/re2:test` |
+| [snappy](https://github.com/google/snappy) | Fast compression/decompression library | 8.7.0 | `bazel run //wild/snappy:build` | `bazel run //wild/snappy:test` |
+| [zlib](https://github.com/madler/zlib) | The zlib compression library | 9.1.1 | `bazel run //wild/zlib:build` | — (no upstream test target) |
 
-```sh
-# Build all of abseil-cpp with a pinned, hermetic inner Bazel, daemonless,
-# in an isolated build root, using a fully-hermetic LLVM toolchain (no host
-# compiler/sysroot, no host Bazel state touched):
-bazel run //builds/abseil_cpp:build
+_30 projects build as they are; 24 also run their upstream test suite in the image — most fully green, a few with environment-sensitive local failures noted inline (`N/M pass`)._
 
-# Build a subset (overrides the default targets):
-bazel run //builds/abseil_cpp:build -- //absl/strings:strings
+### Doesn't build as-is
 
-# Pass flags through to the inner build:
-bazel run //builds/abseil_cpp:build -- --verbose_failures
+- **brotli** — ships no `MODULE.bazel` (WORKSPACE-only), so bzlmod sees no workspace
+- **brotli (Go)** — same archive as brotli — no `MODULE.bazel`
+- **doctest** — root `//:doctest` uses `includes=["."]`, rejected for the main module (it's meant to be consumed as a dep)
+- **gRPC** — its `tools/bazel` wrapper downloads its own Bazel, which then can't find the host `gcc`
+<!-- END GENERATED TABLE -->
 
-# Other projects / toolchains (goals are <command>_<env>_<os>_<arch>):
-bazel run //builds/protobuf:build_local_linux_amd64    # C++ — protoc + runtime
-bazel run //builds/grpc:build_local_linux_amd64        # C++ — grpc + grpc++ (Bazel 8.7 inner)
-bazel run //builds/googletest:build_local_linux_amd64  # C++ — gtest (+gmock)
-bazel run //builds/json:build_local_linux_amd64        # C++ — nlohmann/json (header-only)
-bazel run //builds/catch2:build_local_linux_amd64      # C++ — Catch2 framework
-bazel run //builds/flatbuffers:build_local_linux_amd64 # C++ — flatc + runtime (Bazel 8.7 inner)
-bazel run //builds/ortools:build_local_linux_amd64     # C++ — OR-Tools CP-SAT (Bazel 8.7 inner)
-bazel run //builds/brotli:build_local_linux_amd64      # C++ — brotli CLI + libs (Bazel 8.7 inner)
-bazel run //builds/copybara:build_local_linux_amd64    # Java — rules_java + hermetic JDK
-bazel run //builds/cxx:build_local_linux_amd64         # Rust — rules_rust + hermetic LLVM
+The Bazel column is the version bazelisk pins for that project (its known-good
+inner). Most projects that don't pin a `.bazelversion` need it: bazelisk would
+otherwise pick the latest Bazel, which dropped the autoloaded `cc_*`/`sh_test`
+built-ins and breaks their `load`-less BUILD files.
 
-# Run each project's tests, hermetically (no host toolchain):
-bazel run //builds/abseil_cpp:test  # 251/251 pass
-bazel run //builds/cxx:test         # 1/1 pass
-bazel run //builds/copybara:test    # 220/220 pass (Mercurial tests excluded)
-bazel run //builds/protobuf:test_local_linux_amd64     # 101/102 pass (1 skipped)
-bazel run //builds/googletest:test_local_linux_amd64   # 41/41 pass
-bazel run //builds/flatbuffers:test_local_linux_amd64  # 1/1 pass (monolithic suite)
-bazel run //builds/catch2:test_local_linux_amd64       # 500 pass / 6 skipped (self-test)
-bazel run //builds/ortools:test_local_linux_amd64      # 89/89 pass (CP-SAT core)
-bazel run //builds/grpc:test_local_linux_amd64         # 50 pass / 50 skipped (//test/core/promise/...)
-bazel run //builds/brotli_go:test_local_linux_amd64    # 4/4 go_test (cgo round-trips the C lib)
-# Build-only: nlohmann/json — it's a CMake project whose BUILD.bazel is a
-# library-consumption shim; its doctest suite has no Bazel test rules and no
-# minimal way to run it under `bazel test` (Gazelle is Go/proto-only).
+## The host tools, enumerated
 
-# Build AND test on BuildBuddy remote execution (no toolchains_buildbuddy;
-# hermetic-llvm runs on the executors). Needs BUILDBUDDY_API_KEY in the env:
-bazel run //builds/abseil_cpp:build.remote
-bazel run //builds/abseil_cpp:test.remote   # 248/248 pass remotely
-bazel run //builds/cxx:test.remote
-bazel run //builds/copybara:test.remote
+The whole exercise is to make the host dependency *explicit*. With **bazelisk
+alone** — a strict image of a libc, CA certs, and the bazelisk binary, nothing
+else ([`bazel run //wild/image:strict_load`](wild/image/BUILD.bazel)) — **zero**
+of these projects build. The wall is always the same:
+
+```
+Auto-Configuration Error: Cannot find gcc or CC; either correct your path
+or set the CC environment variable
 ```
 
-First run compiles from scratch (~5 min); reruns hit the inner action cache
-(~5 s). See [docs/DESIGN.md](docs/DESIGN.md#piece-2--running-bazel-builds-in-isolation-built)
-for how the isolation works.
+Even pure-Go (buildifier) and Rust (`cxx`) projects hit it — `rules_go` and
+`rules_rust` eagerly configure a host C toolchain for cgo/linking. So the image
+([`//wild/image`](wild/image)) carries exactly the set of host tools these
+projects reach for, and no more:
+
+| Tool | Why it's there | Reached for by |
+|------|----------------|----------------|
+| **gcc / g++** (build-essential) | Bazel's C/C++ toolchain auto-configuration | every compiling project (the universal wall) |
+| **JDK** (default-jdk-headless) | host `java` for genrules / Java projects | copybara, bazel |
+| **python3** | build-time scripts | protobuf, grpc, … |
+| **git** | a `git_repository` fetch at build time | ortools |
+| **curl** | a `tools/bazel` wrapper that downloads its own Bazel | grpc |
+| **zip / unzip** | Bazel genrules that shell out to archivers | bazel (install-base) |
+
+That table *is* the finding: the gap between "has a green BUILD" and "builds on
+a clean machine" is a short, nameable list of host assumptions — and the
+container is where they're pinned down reproducibly.
+
+## How it works
+
+- **[`wild/image`](wild/image)** — the container, assembled entirely with Bazel.
+  [rules_img] stacks the layers onto a pinned `debian:bookworm-slim`; the host
+  toolchain rides on top as hermetic `.deb` layers resolved by
+  [rules_distroless] from a pinned Debian snapshot
+  ([`toolchain.yaml`](wild/image/toolchain.yaml)). No `apt install` at image
+  build time, no Dockerfile.
+- **[`wild/<project>`](wild)** — one `:build` and `:test` target per project,
+  generated by [`wild/gen_targets.py`](wild/gen_targets.py) from the project
+  list. Each runs [`wild/run.sh`](wild/run.sh): fetch the pinned source (verified
+  against [`tools/fetch`](tools/fetch)), mount it, run `bazelisk` in the image.
+- **[`wild/verify.sh`](wild/verify.sh)** — the build+test sweep that produces the
+  table above; a test command is only listed if it genuinely passes in the image.
+
+## Explorations
+
+Earlier directions that proved out real capability but go beyond the headline
+goal are documented under **[explorations/](explorations)**:
+
+- **[The hermetic museum](explorations#1-the-hermetic-museum-builds)** — the same
+  projects built *hermetically by injection* (pinned inner Bazel + fully-hermetic
+  LLVM, no host toolchain at all), including Bazel itself.
+- **[Remote execution on BuildBuddy](explorations#2-remote-execution-on-buildbuddy-rbe)**
+  and **[actiond](explorations#3-actiond--a-local-linux-re-worker-toolsactiond)** —
+  the hermetic builds run on cloud and local RE.
+- **[The discovery pipeline](explorations#4-the-discovery-pipeline-pipeline)** —
+  how the projects were chosen, ranked by recognition × maintained × buildability.
+
+See [docs/DESIGN.md](docs/DESIGN.md) for the hermetic architecture and
+[docs/KICKOFF.md](docs/KICKOFF.md) for the project's original intent.

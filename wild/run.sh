@@ -67,9 +67,13 @@ startup=("--output_user_root=/home/wild/ob/$key")
 
 # Extra bazel flags (e.g. --verbose_failures) go before the `--` marker; the
 # targets go after it so negative patterns like `-//:exhaustive_test` parse as
-# target patterns rather than options.
-flags=()
-[[ -n "${WILD_BAZEL_FLAGS:-}" ]] && read -ra flags <<<"$WILD_BAZEL_FLAGS"
+# target patterns rather than options. A shared, content-addressed repository
+# cache (under the mounted $HOME) means the BCR + toolchains download once
+# across all projects rather than once per project's output base.
+flags=("--repository_cache=/home/wild/repocache")
+if [[ -n "${WILD_BAZEL_FLAGS:-}" ]]; then
+  read -ra _extra <<<"$WILD_BAZEL_FLAGS"; flags+=("${_extra[@]}")
+fi
 
 echo ">> [$IMAGE] bazelisk $cmd ${targets[*]}   (project=$key, bazel=${ver:--})"
 exec docker run --rm \

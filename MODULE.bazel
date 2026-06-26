@@ -15,6 +15,18 @@ module(
 bazel_dep(name = "rules_python", version = "2.0.3")
 bazel_dep(name = "platforms", version = "1.0.0")
 
+# For building the hermetic `zip` tool (//tools/zip) from Info-ZIP source. We
+# build it with the same hermetic LLVM toolchain the inner builds use, so the
+# museum needs no host C compiler and no host `zip` — registered here, it's the
+# default C++ toolchain for the (only) C target in this module, the zip CLI.
+# Lazy: @llvm is only fetched/built when a C++ target is actually built.
+bazel_dep(name = "rules_cc", version = "0.2.17")
+bazel_dep(name = "llvm", version = "0.8.9")
+register_toolchains("@llvm//toolchain:all")
+
+infozip = use_extension("//tools/zip:extension.bzl", "infozip")
+use_repo(infozip, "infozip")
+
 # Hermetic Python toolchain so the pipeline runs the same everywhere.
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
 python.toolchain(
@@ -65,6 +77,7 @@ use_repo(
     "catch2_archive",
     "ortools_archive",
     "brotli_archive",
+    "bazel_archive",
 )
 
 # Hermetic `actiond` worker binary (see //tools/actiond:extension.bzl). actiond

@@ -117,12 +117,14 @@ def _emit_goal(project_id, source_archive, strip_prefix, toolchains, env, plat, 
     patch_labels = []
     overlay_flags = []
     header_envs = []
+    tools = []  # (binary_label, name)
     for ov in overlays:
         appends += ov.appends
         writes += ov.writes
         patch_labels += ov.patches
         overlay_flags += ov.build_flags
         header_envs += ov.remote_header_envs
+        tools += getattr(ov, "tools", [])
 
     # Pin the explicit execution+target platform for remote environments.
     platform_flags = []
@@ -154,6 +156,8 @@ def _emit_goal(project_id, source_archive, strip_prefix, toolchains, env, plat, 
         args.append("--patch=$(rlocationpath {})".format(label))
     for env_spec in header_envs:
         args.append("--remote-header-env=" + env_spec)
+    for tool_label, tool_name in tools:
+        args.append("--tool=$(rlocationpath {})={}".format(tool_label, tool_name))
 
     all_flags = (
         _COMMAND_DEFAULT_FLAGS.get(spec.command, []) +
@@ -175,7 +179,8 @@ def _emit_goal(project_id, source_archive, strip_prefix, toolchains, env, plat, 
     overlay_files = _dedupe(
         [label for label, _ in appends] +
         [label for label, _ in writes] +
-        patch_labels,
+        patch_labels +
+        [label for label, _ in tools],
     )
     data = [source_archive] + overlay_files + _inner_bazel_data(bazel_version)
 

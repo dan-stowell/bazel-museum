@@ -145,6 +145,16 @@ _PROJECT_SOURCES = {
         "sha256": "816c96e8e8f193b40151dad7e8ff37b1221d019dbcb9c35cd3fadbfe6477dfec",
         "filename": "brotli-1.2.0.tar.gz",
     },
+    # Bazel itself — the flagship "Bazel builds Bazel" build (Java + C++). The
+    # release's own .bazelversion pins 9.0.1 to build it; we run the 9.1.1 inner
+    # (a patch-newer Bazel builds it). Target //src:bazel-bin. Bazel's MODULE
+    # uses rules_cc's autodetected Unix toolchain, so HERMETIC_LLVM slots in as
+    # for the other C++ projects.
+    "bazel_archive": {
+        "url": "https://github.com/bazelbuild/bazel/archive/refs/tags/9.1.1.tar.gz",
+        "sha256": "bdc0f7fb282eaa31df2e97d1bb1fc22965ec6d9ec95a8e8f126c7a2a7636552c",
+        "filename": "bazel-9.1.1.tar.gz",
+    },
 }
 
 

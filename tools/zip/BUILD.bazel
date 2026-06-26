@@ -1,0 +1,6 @@
+# Hermetic `zip` tool, built from Info-ZIP source with the museum's LLVM
+# toolchain. The cc_binary itself lives in the @infozip repo (built via
+# infozip.BUILD); this package only exports that build file for the extension.
+# See //tools/zip:extension.bzl and HERMETIC_ZIP in //builds:overlays.bzl.
+
+exports_files(["infozip.BUILD"])

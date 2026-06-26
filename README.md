@@ -1,19 +1,53 @@
 # bazel-museum
 
-A collection of reproducible **Bazel builds of public open-source projects**.
+**Clone onto any machine that has only Bazel, and build & test 12 real
+open-source projects — including Bazel itself — across 3 execution backends, 2
+operating systems, and 2 CPU architectures.** No host compiler, no host Python,
+no `gh`, no daemons — every toolchain is hermetic and pinned, and the inner
+Bazel is pinned too.
 
-Clone onto a host that has only Bazel (via [`bazelisk`]) and you can build and
-run everything inside — no host Python, no host `gh`, no daemons assumed.
+```sh
+bazel run //builds/abseil_cpp:test                       # 251 tests, hermetic LLVM, on this host
+bazel run //builds/abseil_cpp:test_rbe_linux_amd64       # …the same, on BuildBuddy's cloud
+bazel run //builds/abseil_cpp:build_actiond_linux_arm64  # …or in a local Linux VM
+```
 
-[`bazelisk`]: https://github.com/bazelbuild/bazelisk
+### What builds where
 
-## Status
+Each project is a pinned source tarball + hermetic toolchain, built by a pinned,
+daemonless inner Bazel in an isolated build root. ✅ = wired and green; most
+projects also run their upstream test suite hermetically (numbers below).
 
-| Piece | What | Status |
-|-------|------|--------|
-| 1 | **Data pipeline** — discover *and rank* public projects that build with Bazel | ✅ built |
-| 2 | **Run Bazel builds + tests in isolation** — daemonless, hermetic toolchains, composable overlays, BuildBuddy RBE | ✅ built (RBE on linux; macOS RBE next) |
-| 3 | **The build collection** — projects across toolchains, each with build/test + remote build/test | ✅ abseil-cpp, protobuf, grpc, googletest, nlohmann/json, Catch2, flatbuffers, OR-Tools, brotli (C++), copybara (Java), cxx (Rust) |
+| Project | Lang | Toolchain | local | BuildBuddy RBE | actiond (local VM) |
+|---------|------|-----------|:-----:|:--------------:|:------------------:|
+| [abseil-cpp](builds/abseil_cpp/BUILD.bazel) | C++ | hermetic LLVM | ✅ | ✅ | ✅ |
+| [protobuf](builds/protobuf/BUILD.bazel) | C++ | hermetic LLVM | ✅ | ✅ | ✅ |
+| [grpc](builds/grpc/BUILD.bazel) | C++ | hermetic LLVM | ✅ | ✅ | ✅ |
+| [googletest](builds/googletest/BUILD.bazel) | C++ | hermetic LLVM | ✅ | ✅ | ✅ |
+| [flatbuffers](builds/flatbuffers/BUILD.bazel) | C++ | hermetic LLVM | ✅ | ✅ | ✅ |
+| [OR-Tools](builds/ortools/BUILD.bazel) | C++ | hermetic LLVM | ✅ | ✅ | ✅ |
+| [Catch2](builds/catch2/BUILD.bazel) | C++ | hermetic LLVM | ✅ | ✅ | ✅ |
+| [brotli](builds/brotli/BUILD.bazel) | C++ / Go | hermetic LLVM | ✅ | ✅ | ✅ |
+| [nlohmann/json](builds/json/BUILD.bazel) | C++ | hermetic LLVM | ✅ | ✅ | ✅ |
+| [copybara](builds/copybara/BUILD.bazel) | Java | rules_java + hermetic JDK | ✅ | ✅ | — |
+| [cxx](builds/cxx/BUILD.bazel) | Rust | rules_rust + hermetic LLVM | ✅ | ✅ | ✅ |
+| [bazel](builds/bazel/BUILD.bazel) | Java / C++ | hermetic LLVM + bundled JDK | ✅¹ | — | — |
+
+¹ **Bazel itself** — `//src:bazel-bin`, 6768 actions, built with the hermetic
+LLVM toolchain (Java side uses Bazel's bundled JDK). Its genrules shell out to
+`zip` (72×); rather than require a host `zip`, the museum builds one from
+Info-ZIP source with hermetic LLVM ([`//tools/zip`](tools/zip)) and stages it on
+the inner build's PATH (the `HERMETIC_ZIP` overlay) — verified green with `zip`
+absent from the host. Build-only for now; RBE/actiond and a test goal are next.
+
+**Dimensions:** *local* = the host itself (linux x86_64 or macOS arm64, one at a
+time). *RBE* = BuildBuddy's cloud executors (linux amd64/arm64 + darwin arm64),
+host-neutral. *actiond* = a Linux VM on this machine ([hermeticbuild/actiond])
+that runs arm64 (or amd64) actions locally. New backends, caches, OSes, and
+arches drop into [`builds/environments.bzl`](builds/environments.bzl) and
+[`builds/platforms.bzl`](builds/platforms.bzl).
+
+[hermeticbuild/actiond]: https://github.com/hermeticbuild/actiond
 
 See [docs/DESIGN.md](docs/DESIGN.md) for the architecture and
 [docs/KICKOFF.md](docs/KICKOFF.md) for the project's intent.

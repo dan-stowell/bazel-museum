@@ -110,13 +110,42 @@ def _extract(archive, dest, strip_prefix):
     return dest
 
 
-def _clean_env(home, tmp):
+def _clean_env(home, tmp, path_prepend=None):
     env = {k: os.environ[k] for k in _ENV_ALLOWLIST if k in os.environ}
     env["HOME"] = home
     env["TMPDIR"] = tmp
     env.setdefault("LANG", "C.UTF-8")
     env.setdefault("USER", "museum")
+    if path_prepend:
+        env["PATH"] = os.pathsep.join([path_prepend] + ([env["PATH"]] if env.get("PATH") else []))
     return env
+
+
+def _stage_tools(rf, specs, toolbin):
+    """Stage pinned tool binaries into toolbin/ so the inner build finds them on
+    PATH instead of the host's. Each spec is RLOC=NAME; the resolved binary is
+    symlinked to toolbin/NAME (executable). Returns toolbin if any were staged.
+
+    This is how a project whose build shells out to a host tool stays hermetic:
+    e.g. Bazel's own genrules call `zip`, which the scrubbed environment doesn't
+    provide -- the HERMETIC_ZIP overlay pins one built from source and injects it
+    here, so no host `zip` is required.
+    """
+    if not specs:
+        return None
+    os.makedirs(toolbin, exist_ok=True)
+    for spec in specs:
+        src_rloc, _, name = spec.rpartition("=")
+        if not src_rloc or not name:
+            sys.exit(f"runner: bad --tool spec {spec!r} (want RLOC=NAME)")
+        src = _resolve(rf, src_rloc)
+        dest = os.path.join(toolbin, name)
+        if os.path.islink(dest) or os.path.exists(dest):
+            os.remove(dest)
+        os.symlink(src, dest)
+        os.chmod(src, os.stat(src).st_mode | 0o111)
+        print(f"  tool: {name} <= {os.path.basename(src)} (on PATH)", file=sys.stderr)
+    return toolbin
 
 
 def main(argv=None):
@@ -152,6 +181,12 @@ def main(argv=None):
                    help="read ENVVAR from the environment and pass it to the inner build as "
                         "--remote_header=HEADER=<value>, keeping the secret off the command "
                         "the macro bakes in (e.g. BUILDBUDDY_API_KEY:x-buildbuddy-api-key)")
+    p.add_argument("--tool", action="append", default=[], dest="tools",
+                   metavar="RLOC=NAME",
+                   help="stage the pinned binary RLOC into a private toolbin/ dir as NAME "
+                        "and prepend that dir to the inner build's PATH -- so a project whose "
+                        "build shells out to a host tool (e.g. Bazel's genrules call `zip`) "
+                        "gets a hermetic, pinned one instead of the host's (repeatable)")
     p.add_argument("extra", nargs="*", help="extra args/targets forwarded to the inner build")
     # parse_known_args so that any flag we don't define (e.g. --subcommands,
     # --verbose_failures passed after `bazel run ... --`) is forwarded verbatim
@@ -169,6 +204,7 @@ def main(argv=None):
     home = os.path.join(root, "home")
     tmp = os.path.join(root, "tmp")
     work = os.path.join(root, "work")
+    toolbin = os.path.join(root, "toolbin")
     for d in (output_user_root, repo_cache, home, tmp):
         os.makedirs(d, exist_ok=True)
     # Fresh source tree each run for reproducibility; caches persist for speed.
@@ -249,7 +285,22 @@ def main(argv=None):
     extra_flags = [a for a in extra if _is_flag(a)]
     extra_targets = [a for a in extra if not _is_flag(a)]
 
-    flags = list(args.build_flags) + header_flags + extra_flags
+    # If we're staging pinned tools onto a toolbin/, that dir must be on the
+    # *action* PATH, not just the runner's: Bazel doesn't pass the client PATH to
+    # action environments — genrules run with a default PATH (/bin:/usr/bin), so
+    # without this the inner build looks for `zip` etc. on the host, not in our
+    # toolbin. --action_env/--host_action_env put it on PATH for both the target
+    # and exec (host-tool) configurations. toolbin is a stable per-goal path, so
+    # the action-cache key it adds is stable across runs.
+    tool_flags = []
+    if args.tools:
+        action_path = os.pathsep.join([toolbin, "/usr/bin", "/bin"])
+        tool_flags = [
+            "--action_env=PATH=" + action_path,
+            "--host_action_env=PATH=" + action_path,
+        ]
+
+    flags = list(args.build_flags) + header_flags + tool_flags + extra_flags
     # Targets passed via `-- <targets>` override the configured defaults.
     targets = extra_targets if extra_targets else list(args.targets)
     if not targets:
@@ -267,7 +318,9 @@ def main(argv=None):
         "--color=no",
     ] + flags + ["--"] + targets
 
-    env = _clean_env(home, tmp)
+    # Stage any pinned tools (e.g. a hermetic `zip`) and put them on PATH.
+    tool_path = _stage_tools(rf, args.tools, toolbin)
+    env = _clean_env(home, tmp, path_prepend=tool_path)
 
     # Redact secret-bearing header flags when echoing the command.
     shown = [a if not a.startswith("--remote_header=") else

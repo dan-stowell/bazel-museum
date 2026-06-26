@@ -12,13 +12,17 @@ condition (a toolchain, an environment like remote cache / RBE, a project fix):
   * build_flags        — flags added to the inner `bazel <command>`
   * remote_header_envs — "ENVVAR:HEADER" pairs; the runner reads ENVVAR and adds
                          --remote_header=HEADER=<value> (keeps secrets off disk)
+  * tools     — list of (binary_label, name): stage the built binary onto the
+                inner build's PATH as `name` (the runner's --tool). For a project
+                whose build shells out to a host tool (e.g. Bazel's genrules call
+                `zip`), this supplies a hermetic, pinned one instead.
 
 Overlays compose: a project sets base overlays for all its goals, and each goal
 can add more (e.g. a remote-execution overlay). This is how we capture
 overlays/patches per (project x goal x environment).
 """
 
-def overlay(name, appends = [], writes = [], patches = [], build_flags = [], remote_header_envs = []):
+def overlay(name, appends = [], writes = [], patches = [], build_flags = [], remote_header_envs = [], tools = []):
     return struct(
         name = name,
         appends = appends,
@@ -26,6 +30,7 @@ def overlay(name, appends = [], writes = [], patches = [], build_flags = [], rem
         patches = patches,
         build_flags = build_flags,
         remote_header_envs = remote_header_envs,
+        tools = tools,
     )
 
 # Fully-hermetic LLVM C/C++ toolchain (hermeticbuild/hermetic-llvm). Zero-sysroot:
@@ -42,6 +47,17 @@ HERMETIC_LLVM = overlay(
         ("//tools/buildrunner/overlays:museum_patches.BUILD.bazel", "museum_patches/BUILD.bazel"),
     ],
     build_flags = ["--extra_toolchains=@llvm//toolchain:all"],
+)
+
+# Hermetic `zip` on PATH. Some projects' builds shell out to `zip` (Bazel
+# itself: its genrules call `zip` ~72x to pack the embedded install base), which
+# the scrubbed inner environment doesn't provide. Instead of requiring a host
+# `zip`, we build one from Info-ZIP's pinned source with the hermetic LLVM
+# toolchain (//tools/zip, @infozip//:zip) and stage it onto the inner build's
+# PATH via the runner's --tool. Pair with HERMETIC_LLVM on projects that need it.
+HERMETIC_ZIP = overlay(
+    name = "hermetic_zip",
+    tools = [("@infozip//:zip", "zip")],
 )
 
 # rules_rust sysroot fix. Patches the published `rules_rust` (unforked, via

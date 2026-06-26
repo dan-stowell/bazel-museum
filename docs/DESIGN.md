@@ -189,9 +189,12 @@ An **overlay** ([`builds/overlays.bzl`](../builds/overlays.bzl)) is a reusable,
 named bundle of source `appends` (file → `MODULE.bazel` / `.bazelrc`), `writes`
 (file copied verbatim to a path — e.g. dropping a patch + a `BUILD` marker into a
 fresh package, where `appends`' leading newline would corrupt the file),
-`patches` (unified diffs, `patch -p1`), `build_flags`, and `remote_header_envs`
+`patches` (unified diffs, `patch -p1`), `build_flags`, `remote_header_envs`
 (`ENV:HEADER` pairs the runner turns into `--remote_header=HEADER=<value>`, to
-inject secrets like an API key without committing them).
+inject secrets like an API key without committing them), and `tools`
+(`(binary_label, name)` pairs the runner stages into a `toolbin/` on the inner
+build's PATH via `--tool` — e.g. `HERMETIC_ZIP` supplies a from-source `zip` so
+Bazel's own genrules need no host `zip`; the same lever could pin `git`).
 
 **Patching a dependency module without forking it.** Some fixes live in a
 project's *dependencies* (a BCR module), not the project. We ride the latest
@@ -405,9 +408,10 @@ compiler-rt instead of libgcc, don't hit this.
 
 - **Host tooling in tests.** Some projects' tests shell out to host binaries.
   copybara's Mercurial (`hg`) tests are excluded (not a hermetic input); its Git
-  tests currently use the host `git`. A pinned-binary overlay for `git` (same
-  pattern as bazel/gh/llvm) would close this. Test actions otherwise run with a
-  pinned UTF-8 locale for reproducibility.
+  tests currently use the host `git`. The `tools`/`--tool` mechanism added for
+  `HERMETIC_ZIP` (a from-source `zip` on the inner PATH) is exactly the lever to
+  close this: stage a pinned `git` the same way. Test actions otherwise run with
+  a pinned UTF-8 locale for reproducibility.
 - **Network is open** during the inner build (to fetch BCR deps + the toolchain);
   the repository cache makes this a one-time cost. Vendoring for fully offline
   builds is possible later.
@@ -435,6 +439,43 @@ projects that opt into the `ACTIOND` environment).
 | [abseil-cpp](../builds/abseil_cpp/BUILD.bazel) | C++ | release `20260526.0` | LLVM (`HERMETIC_LLVM`) |
 | [copybara](../builds/copybara/BUILD.bazel) | Java | tag `v20260622` | remote JDK (rules_java) + LLVM (for `ijar`) |
 | [cxx](../builds/cxx/BUILD.bazel) | Rust | tag `1.0.194` | rustc (rules_rust, patched via `RULES_RUST_SYSROOT_FIX`) + LLVM |
+| [bazel](../builds/bazel/BUILD.bazel) | Java/C++ | release `9.1.1` | LLVM (`HERMETIC_LLVM`) + Bazel's bundled JDK |
+
+(plus protobuf, grpc, googletest, nlohmann/json, Catch2, flatbuffers, OR-Tools,
+brotli — the C++ build collection; see the README matrix for the full grid.)
+
+**Bazel itself — the flagship "Bazel builds Bazel" build (built; LOCAL,
+build-only).** `bazel run //builds/bazel:build_local_linux_amd64` builds
+`//src:bazel-bin` — **5015 actions**, the full Java + C++ Bazel binary, with the
+zero-sysroot hermetic LLVM toolchain (C++ actions) and Bazel's own bundled JDK
+(Java). Three frictions, each instructive about wiring a large first-party Bazel
+project into the museum:
+
+- **Inner Bazel version.** The 9.1.1 source's `.bazelversion` pins `9.0.1`, but
+  the museum's `9.1.1` inner builds it fine (a patch-newer Bazel is accepted) —
+  no separate inner pin needed.
+- **Strict direct-dependency checking.** `HERMETIC_LLVM` appends the `llvm`
+  module, which resolves *newer* transitive `platforms`/`bazel_features`/
+  `rules_cc` than Bazel's `MODULE.bazel` pins as direct deps; Bazel-the-tool
+  builds with `--check_direct_dependencies` at error, so the project sets
+  `--check_direct_dependencies=off` (the upgrades are backward-compatible).
+- **Host tool `zip` (resolved, hermetically).** Bazel's genrules shell out to
+  `zip` (72× — assembling the embedded install base), which the scrubbed inner
+  environment doesn't provide. Rather than require a host `zip`, the museum
+  *builds* one from Info-ZIP's pinned source with the hermetic LLVM toolchain
+  ([`//tools/zip`](../tools/zip), `@infozip//:zip`) and stages it on the inner
+  build's PATH via the new `HERMETIC_ZIP` overlay + the runner's `--tool`
+  mechanism (see below). Verified: `//src:bazel-bin` builds green (6768 actions)
+  with `zip` *uninstalled* from the host. RBE/actiond and a test goal remain.
+
+  Two wrinkles worth recording. The hermetic glibc ships no static `libc.a`, so
+  the binary can't be `-static`; it links `libc.so.6` by soname (built against
+  2.28, and glibc is backward-compatible) and runs against whatever glibc the
+  host has — fine inside the Tier-1 sandbox, which mounts host `/` read-only.
+  And Bazel doesn't pass the client PATH to actions, so staging the tool isn't
+  enough: the runner also sets `--action_env=PATH`/`--host_action_env=PATH` to
+  put `toolbin/` on the *action* PATH (a stable per-goal path, so the cache key
+  is stable).
 
 `bazel test` results, all hermetic (compiles use `external/llvm++.../bin/clang`
 with zero `/usr/bin` compiler calls; copybara runs on a bundled OpenJDK with

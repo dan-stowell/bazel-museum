@@ -54,6 +54,7 @@ META = {
     "bazel":        ("bazel", "https://github.com/bazelbuild/bazel", "The Bazel build system itself (Java/C++)"),
     "quill":        ("quill", "https://github.com/odygrd/quill", "Asynchronous low-latency C++ logging library"),
     "z3":           ("z3", "https://github.com/Z3Prover/z3", "Microsoft's Z3 SMT theorem prover"),
+    "double_conversion": ("double-conversion", "https://github.com/google/double-conversion", "IEEE-754 double/string conversion (C++)"),
 }
 
 # Human-readable reason for the projects that don't build as they are.

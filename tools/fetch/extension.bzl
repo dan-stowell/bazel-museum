@@ -164,6 +164,13 @@ _PROJECT_SOURCES = {
         "sha256": "86974f76a2ca229460b027aed656ee9d3c5c1c5df70507448cb434d5e477d868",
         "filename": "quill-12.0.0.tar.gz",
     },
+    # double-conversion — Google's IEEE-754 double<->string conversion (C++). First-
+    # party Bazel; root BUILD calls cc_* unloaded, so the 8.7 inner.
+    "double_conversion_archive": {
+        "url": "https://github.com/google/double-conversion/archive/refs/tags/v3.4.0.tar.gz",
+        "sha256": "42fd4d980ea86426e457b24bdfa835a6f5ad9517ddb01cdb42b99ab9c8dd5dc9",
+        "filename": "double-conversion-3.4.0.tar.gz",
+    },
     # GoogleTest — the C++ test framework. First-party Bazel, builds + tests
     # itself with the hermetic LLVM toolchain.
     "googletest_archive": {

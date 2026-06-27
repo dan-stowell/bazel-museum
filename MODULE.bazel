@@ -82,6 +82,7 @@ use_repo(
     "protobuf_archive",
     "grpc_archive",
     "grpc_gateway_archive",
+    "double_conversion_archive",
     "quill_archive",
     "z3_archive",
     "gflags_archive",

@@ -1,0 +1,23 @@
+load("//builds:defs.bzl", "build_spec", "museum_project", "test_spec")
+load("//builds:environments.bzl", "LOCAL", "RBE")
+load("//builds:overlays.bzl", "HERMETIC_LLVM")
+
+# iceoryx — Eclipse iceoryx, a real-time, zero-copy inter-process communication
+# middleware for C++ (shared-memory pub/sub). Source pinned in
+# //tools/fetch:extension.bzl (@iceoryx_archive, v2.95.8). First-party Bazel, run
+# on the 8.7 inner with the hermetic LLVM toolchain. We build the "hoofs" utility
+# library and run its module tests. iceoryx's MODULE declares a direct platforms
+# dep (no PLATFORMS_DEP).
+#
+#   bazel run //builds/iceoryx:build_local_linux_amd64
+#   bazel run //builds/iceoryx:test_local_linux_amd64
+museum_project(
+    name = "iceoryx",
+    source_archive = "@iceoryx_archive//file",
+    strip_prefix = "iceoryx-2.95.8",
+    toolchains = [HERMETIC_LLVM],
+    bazel_version = "8.7.0",
+    environments = [LOCAL, RBE],
+    build = build_spec(targets = ["//iceoryx_hoofs:iceoryx_hoofs"], flags = ["-c", "opt"]),
+    test = test_spec(targets = ["//iceoryx_hoofs/test:hoofs_moduletests"], flags = ["-c", "opt"]),
+)

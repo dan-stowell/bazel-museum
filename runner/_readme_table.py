@@ -59,6 +59,7 @@ META = {
     "openexr":      ("OpenEXR", "https://github.com/AcademySoftwareFoundation/openexr", "High-dynamic-range image format (C++, ASWF)"),
     "highs":        ("HiGHS", "https://github.com/ERGO-Code/HiGHS", "Linear/mixed-integer optimization solver (C++)"),
     "opentelemetry_cpp": ("opentelemetry-cpp", "https://github.com/open-telemetry/opentelemetry-cpp", "Observability API/SDK for C++ (traces/metrics/logs)"),
+    "lcm":          ("LCM", "https://github.com/lcm-proj/lcm", "Lightweight Communications and Marshalling (robotics)"),
 }
 
 # Human-readable reason for the projects that don't build as they are.

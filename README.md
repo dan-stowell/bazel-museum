@@ -111,6 +111,7 @@ and rendered by [`runner/_local_table.py`](runner/_local_table.py).
 | [highway](https://github.com/google/highway) | 8.7.0 | ✅ | ✅ |
 | [jsoncpp](https://github.com/open-source-parsers/jsoncpp) | 9.1.1 | ✅ | ✅ |
 | [jsonnet](https://github.com/google/jsonnet) | 8.7.0 | ✅ | ✅ |
+| [LCM](https://github.com/lcm-proj/lcm) | 8.7.0 | ✅ | ✅ |
 | [magic_enum](https://github.com/Neargye/magic_enum) | 9.1.1 | ✅ | ❌ |
 | [nlohmann/json](https://github.com/nlohmann/json) | 9.1.1 | ✅ | — |
 | [nsync](https://github.com/google/nsync) | 8.7.0 | ✅ | ✅ |
@@ -127,5 +128,5 @@ and rendered by [`runner/_local_table.py`](runner/_local_table.py).
 | [z3](https://github.com/Z3Prover/z3) | 9.1.1 | ✅ | — |
 | [zlib](https://github.com/madler/zlib) | 9.1.1 | ✅ | — |
 
-_Host-local sweep of 46 projects: 41 build and 30 run their test suite directly on the host toolchain (✅ success · ❌ failure · ⏱️ timeout · — no such target)._
+_Host-local sweep of 47 projects: 42 build and 31 run their test suite directly on the host toolchain (✅ success · ❌ failure · ⏱️ timeout · — no such target)._
 <!-- END GENERATED LOCAL TABLE -->

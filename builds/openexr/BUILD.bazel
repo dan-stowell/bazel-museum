@@ -1,0 +1,22 @@
+load("//builds:defs.bzl", "build_spec", "museum_project", "test_spec")
+load("//builds:environments.bzl", "LOCAL", "RBE")
+load("//builds:overlays.bzl", "HERMETIC_LLVM")
+
+# OpenEXR — the Academy Software Foundation's high-dynamic-range image format and
+# library (C++). Source pinned in //tools/fetch:extension.bzl (@openexr_archive,
+# v3.4.13-rc3). First-party Bazel: its BUILD loads cc_* from rules_cc, so the
+# 9.1.1 inner with the hermetic LLVM toolchain. OpenEXR's MODULE declares a
+# direct platforms dep (no PLATFORMS_DEP).
+#
+#   bazel run //builds/openexr:build_local_linux_amd64
+#   bazel run //builds/openexr:test_local_linux_amd64
+museum_project(
+    name = "openexr",
+    source_archive = "@openexr_archive//file",
+    strip_prefix = "openexr-3.4.13-rc3",
+    toolchains = [HERMETIC_LLVM],
+    bazel_version = "9.1.1",
+    environments = [LOCAL, RBE],
+    build = build_spec(targets = ["//:OpenEXR"], flags = ["-c", "opt"]),
+    test = test_spec(targets = ["//:IexTest"], flags = ["-c", "opt"]),
+)

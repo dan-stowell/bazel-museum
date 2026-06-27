@@ -171,6 +171,27 @@ _PROJECT_SOURCES = {
         "sha256": "42fd4d980ea86426e457b24bdfa835a6f5ad9517ddb01cdb42b99ab9c8dd5dc9",
         "filename": "double-conversion-3.4.0.tar.gz",
     },
+    # prometheus-cpp — Prometheus client library for C++. First-party Bazel; root
+    # BUILDs call cc_* unloaded, so the 8.7 inner. Core lib + its unit tests.
+    "prometheus_cpp_archive": {
+        "url": "https://github.com/jupp0r/prometheus-cpp/archive/refs/tags/v1.3.0.tar.gz",
+        "sha256": "ac6e958405a29fbbea9db70b00fa3c420e16ad32e1baf941ab233ba031dd72ee",
+        "filename": "prometheus-cpp-1.3.0.tar.gz",
+    },
+    # OpenEXR — the high-dynamic-range image file format (C++), from ASWF.
+    # First-party Bazel; root BUILD loads cc_*, so the 9.1.1 inner.
+    "openexr_archive": {
+        "url": "https://github.com/AcademySoftwareFoundation/openexr/archive/refs/tags/v3.4.13-rc3.tar.gz",
+        "sha256": "3aac58c94bc0324f2c46954b967aa26aae32ade03f49f5447df9db4372efffef",
+        "filename": "openexr-3.4.13-rc3.tar.gz",
+    },
+    # HiGHS — high-performance linear/mixed-integer optimization solver (C++).
+    # First-party Bazel; root BUILD loads cc_*, so the 9.1.1 inner.
+    "highs_archive": {
+        "url": "https://github.com/ERGO-Code/HiGHS/archive/refs/tags/v1.14.0.tar.gz",
+        "sha256": "05931e8dd8c8cac514da8297003c31a206a0004d542b7da500810b85c87c20b9",
+        "filename": "HiGHS-1.14.0.tar.gz",
+    },
     # GoogleTest — the C++ test framework. First-party Bazel, builds + tests
     # itself with the hermetic LLVM toolchain.
     "googletest_archive": {

@@ -67,3 +67,53 @@ toolchain and installed tools.
 | [re2](https://github.com/google/re2) | Fast, safe regular-expression engine | 8.7.0 | `bazel run //projects/re2:build` | `bazel run //projects/re2:test` | ✅ |
 | [snappy](https://github.com/google/snappy) | Fast compression/decompression library | 8.7.0 | `bazel run //projects/snappy:build` | `bazel run //projects/snappy:test` | ✅ |
 | [zlib](https://github.com/madler/zlib) | The zlib compression library | 9.1.1 | `bazel run //projects/zlib:build` | — (no upstream test target) | ✅ |
+
+<!-- END GENERATED TABLE -->
+
+## Host-local build/test sweep
+
+The same upstream builds and tests run directly on the host toolchain via the
+`:local_build` / `:local_test` targets (no container). Swept by
+[`runner/local_sweep.sh`](runner/local_sweep.sh) into `runner/local-results.tsv`
+and rendered by [`runner/_local_table.py`](runner/_local_table.py).
+
+<!-- BEGIN GENERATED LOCAL TABLE (runner/_local_table.py) -->
+| Project | Bazel | `:local_build` | `:local_test` |
+|---------|:-----:|:--------------:|:-------------:|
+| [abseil-cpp](https://github.com/abseil/abseil-cpp) | 9.1.1 | ✅ | ✅ |
+| [bazel](https://github.com/bazelbuild/bazel) | 9.1.1 | ❌ | ❌ (1/15) |
+| [BoringSSL](https://github.com/google/boringssl) | 9.1.1 | ✅ | ✅ |
+| [brotli](https://github.com/google/brotli) | 8.7.0 | ❌ | — |
+| [brotli (Go)](https://github.com/google/brotli) | 8.7.0 | — | ❌ |
+| [buildtools](https://github.com/bazelbuild/buildtools) | 8.7.0 | ✅ | ✅ |
+| [Catch2](https://github.com/catchorg/Catch2) | 9.1.1 | ✅ | ❌ |
+| [cctz](https://github.com/google/cctz) | 8.7.0 | ✅ | ✅ |
+| [CLI11](https://github.com/CLIUtils/CLI11) | 8.7.0 | ✅ | ✅ |
+| [copybara](https://github.com/google/copybara) | 9.1.1 | ✅ | ❌ (219/220) |
+| [cpu_features](https://github.com/google/cpu_features) | 8.7.0 | ✅ | ✅ |
+| [cxx](https://github.com/dtolnay/cxx) | 9.1.1 | ✅ | ❌ |
+| [doctest](https://github.com/doctest/doctest) | 9.1.1 | ❌ | ❌ |
+| [fast_float](https://github.com/fastfloat/fast_float) | 8.7.0 | ✅ | ✅ |
+| [FlatBuffers](https://github.com/google/flatbuffers) | 8.7.0 | ✅ | ✅ |
+| [FTXUI](https://github.com/ArthurSonzogni/FTXUI) | 8.7.0 | ✅ | ✅ |
+| [glog](https://github.com/google/glog) | 8.7.0 | ✅ | ✅ |
+| [google/benchmark](https://github.com/google/benchmark) | 8.7.0 | ✅ | ✅ |
+| [GoogleTest](https://github.com/google/googletest) | 8.7.0 | ✅ | ✅ |
+| [gperftools](https://github.com/gperftools/gperftools) | 8.7.0 | ✅ | ✅ |
+| [gRPC](https://github.com/grpc/grpc) | 8.7.0 | ❌ | ❌ |
+| [highway](https://github.com/google/highway) | 8.7.0 | ✅ | ✅ |
+| [jsoncpp](https://github.com/open-source-parsers/jsoncpp) | 9.1.1 | ✅ | ✅ |
+| [jsonnet](https://github.com/google/jsonnet) | 8.7.0 | ✅ | ✅ |
+| [magic_enum](https://github.com/Neargye/magic_enum) | 9.1.1 | ✅ | ❌ |
+| [nlohmann/json](https://github.com/nlohmann/json) | 9.1.1 | ✅ | — |
+| [nsync](https://github.com/google/nsync) | 8.7.0 | ✅ | ✅ |
+| [oneTBB](https://github.com/uxlfoundation/oneTBB) | 8.7.0 | ✅ | ✅ |
+| [OpenCC](https://github.com/BYVoid/OpenCC) | 8.7.0 | ✅ | ✅ |
+| [OR-Tools](https://github.com/google/or-tools) | 8.7.0 | ✅ | ❌ |
+| [protobuf](https://github.com/protocolbuffers/protobuf) | 9.1.1 | ✅ | ✅ |
+| [re2](https://github.com/google/re2) | 8.7.0 | ✅ | ✅ |
+| [snappy](https://github.com/google/snappy) | 8.7.0 | ✅ | ✅ |
+| [zlib](https://github.com/madler/zlib) | 9.1.1 | ✅ | — |
+
+_Host-local sweep of 34 projects: 29 build and 22 run their test suite directly on the host toolchain (✅ success · ❌ failure · ⏱️ timeout · — no such target)._
+<!-- END GENERATED LOCAL TABLE -->

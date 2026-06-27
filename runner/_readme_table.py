@@ -25,6 +25,7 @@ META = {
     "fast_float":   ("fast_float", "https://github.com/fastfloat/fast_float", "Fast number parsing from strings"),
     "flatbuffers":  ("FlatBuffers", "https://github.com/google/flatbuffers", "Memory-efficient serialization library"),
     "ftxui":        ("FTXUI", "https://github.com/ArthurSonzogni/FTXUI", "Functional terminal-UI library for C++"),
+    "gflags":       ("gflags", "https://github.com/gflags/gflags", "Google's C++ command-line flags library"),
     "glog":         ("glog", "https://github.com/google/glog", "Google application-level logging library"),
     "googletest":   ("GoogleTest", "https://github.com/google/googletest", "Google's C++ test & mocking framework"),
     "gperftools":   ("gperftools", "https://github.com/gperftools/gperftools", "tcmalloc and performance profilers"),

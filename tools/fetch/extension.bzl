@@ -115,6 +115,14 @@ _PROJECT_SOURCES = {
         "sha256": "c067650666440981109965953c4636cb08a556d0986ad4861167fec4553d8d74",
         "filename": "grpc-gateway-2.29.0.tar.gz",
     },
+    # gflags — Google's C++ command-line flags library. First-party Bazel; its
+    # gflags_library macro loads cc_library from rules_cc, so it builds on the
+    # Bazel 9 inner. Tests are CMake-only, so this is a build-only project.
+    "gflags_archive": {
+        "url": "https://github.com/gflags/gflags/archive/refs/tags/v2.3.0.tar.gz",
+        "sha256": "f619a51371f41c0ad6837b2a98af9d4643b3371015d873887f7e8d3237320b2f",
+        "filename": "gflags-2.3.0.tar.gz",
+    },
     # GoogleTest — the C++ test framework. First-party Bazel, builds + tests
     # itself with the hermetic LLVM toolchain.
     "googletest_archive": {

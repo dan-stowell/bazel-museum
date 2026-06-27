@@ -96,6 +96,7 @@ and rendered by [`runner/_local_table.py`](runner/_local_table.py).
 | [fast_float](https://github.com/fastfloat/fast_float) | 8.7.0 | ✅ | ✅ |
 | [FlatBuffers](https://github.com/google/flatbuffers) | 8.7.0 | ✅ | ✅ |
 | [FTXUI](https://github.com/ArthurSonzogni/FTXUI) | 8.7.0 | ✅ | ✅ |
+| [gflags](https://github.com/gflags/gflags) | 8.7.0 | ✅ | — |
 | [glog](https://github.com/google/glog) | 8.7.0 | ✅ | ✅ |
 | [google/benchmark](https://github.com/google/benchmark) | 8.7.0 | ✅ | ✅ |
 | [GoogleTest](https://github.com/google/googletest) | 8.7.0 | ✅ | ✅ |
@@ -116,5 +117,5 @@ and rendered by [`runner/_local_table.py`](runner/_local_table.py).
 | [snappy](https://github.com/google/snappy) | 8.7.0 | ✅ | ✅ |
 | [zlib](https://github.com/madler/zlib) | 9.1.1 | ✅ | — |
 
-_Host-local sweep of 35 projects: 30 build and 23 run their test suite directly on the host toolchain (✅ success · ❌ failure · ⏱️ timeout · — no such target)._
+_Host-local sweep of 36 projects: 31 build and 23 run their test suite directly on the host toolchain (✅ success · ❌ failure · ⏱️ timeout · — no such target)._
 <!-- END GENERATED LOCAL TABLE -->

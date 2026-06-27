@@ -140,6 +140,15 @@ _PROJECT_SOURCES = {
         "sha256": "9c463043a05c1e833c57136521e808ee8df192131f00c636235a2b54823d8c4c",
         "filename": "go-jsonnet-0.22.0.tar.gz",
     },
+    # Crow — a header-only C++ microframework for web services. First-party Bazel
+    # (bzlmod): pulls asio, zlib and catch2 from the BCR. Its root BUILD calls
+    # cc_library unloaded, so the 8.7 inner. Its one Bazel cc_test is SSL-gated
+    # (empty without the ssl flag), so this is a build-only project.
+    "crow_archive": {
+        "url": "https://github.com/CrowCpp/Crow/archive/refs/tags/v1.3.2.tar.gz",
+        "sha256": "82926bba66a48fa8dd0165cbc1f1b96b6dc9c3e56d08d318d901196e13eccf1a",
+        "filename": "Crow-1.3.2.tar.gz",
+    },
     # GoogleTest — the C++ test framework. First-party Bazel, builds + tests
     # itself with the hermetic LLVM toolchain.
     "googletest_archive": {

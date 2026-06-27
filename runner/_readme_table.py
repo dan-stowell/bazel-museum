@@ -22,6 +22,7 @@ META = {
     "cli11":        ("CLI11", "https://github.com/CLIUtils/CLI11", "Command-line parser for C++11"),
     "copybara":     ("copybara", "https://github.com/google/copybara", "Transforms and moves code between repositories (Java)"),
     "cpu_features": ("cpu_features", "https://github.com/google/cpu_features", "Cross-platform CPU feature detection"),
+    "crow":         ("Crow", "https://github.com/CrowCpp/Crow", "Header-only C++ web microframework"),
     "cxx":          ("cxx", "https://github.com/dtolnay/cxx", "Safe interop between Rust and C++ (Rust)"),
     "fast_float":   ("fast_float", "https://github.com/fastfloat/fast_float", "Fast number parsing from strings"),
     "flatbuffers":  ("FlatBuffers", "https://github.com/google/flatbuffers", "Memory-efficient serialization library"),

@@ -1,0 +1,22 @@
+load("//builds:defs.bzl", "build_spec", "museum_project")
+load("//builds:environments.bzl", "LOCAL", "RBE")
+load("//builds:overlays.bzl", "HERMETIC_LLVM")
+
+# PCRE2 — Perl Compatible Regular Expressions (version 2), the C regex engine used
+# by Git, PHP, Apache, nginx and many others. Source pinned in
+# //tools/fetch:extension.bzl (@pcre2_archive, pcre2-10.47). First-party Bazel:
+# root BUILD loads cc_* from rules_cc, so the 9.1.1 inner with the hermetic LLVM
+# toolchain. Upstream's tests run through the pcre2test CLI rather than a Bazel
+# test target, so this is a build-only project. pcre2's MODULE declares a direct
+# platforms dep (no PLATFORMS_DEP).
+#
+#   bazel run //builds/pcre2:build_local_linux_amd64
+museum_project(
+    name = "pcre2",
+    source_archive = "@pcre2_archive//file",
+    strip_prefix = "pcre2-pcre2-10.47",
+    toolchains = [HERMETIC_LLVM],
+    bazel_version = "9.1.1",
+    environments = [LOCAL, RBE],
+    build = build_spec(targets = ["//:pcre2"], flags = ["-c", "opt"]),
+)

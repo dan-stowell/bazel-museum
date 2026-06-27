@@ -60,6 +60,7 @@ META = {
     "highs":        ("HiGHS", "https://github.com/ERGO-Code/HiGHS", "Linear/mixed-integer optimization solver (C++)"),
     "opentelemetry_cpp": ("opentelemetry-cpp", "https://github.com/open-telemetry/opentelemetry-cpp", "Observability API/SDK for C++ (traces/metrics/logs)"),
     "lcm":          ("LCM", "https://github.com/lcm-proj/lcm", "Lightweight Communications and Marshalling (robotics)"),
+    "pcre2":        ("PCRE2", "https://github.com/PCRE2Project/pcre2", "Perl-compatible regular expressions (C)"),
 }
 
 # Human-readable reason for the projects that don't build as they are.

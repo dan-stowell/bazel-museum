@@ -200,14 +200,6 @@ _PROJECT_SOURCES = {
         "sha256": "7b8e966affca1daf1906272f4d983631cad85fb6ea60fb6f55dcd1811a730604",
         "filename": "opentelemetry-cpp-1.24.0.tar.gz",
     },
-    # iceoryx — Eclipse's real-time zero-copy inter-process communication
-    # middleware (C++). First-party Bazel; the 8.7 inner. Builds the hoofs utility
-    # library and runs its module tests.
-    "iceoryx_archive": {
-        "url": "https://github.com/eclipse-iceoryx/iceoryx/archive/refs/tags/v2.95.8.tar.gz",
-        "sha256": "00b1bf874e17b3e986f11cd134e2be339f3d12643b58b4544692cc4e820439ff",
-        "filename": "iceoryx-2.95.8.tar.gz",
-    },
     # LCM — Lightweight Communications and Marshalling, a message-passing and
     # data-marshalling library for robotics (C/C++/Java/Python). First-party Bazel;
     # the 8.7 inner. Builds the C++ library and runs a C++ unit test.
@@ -215,6 +207,14 @@ _PROJECT_SOURCES = {
         "url": "https://github.com/lcm-proj/lcm/archive/refs/tags/v1.5.2.tar.gz",
         "sha256": "d443261619080f1c0693237b2019436988e1b2b2ba5fc09a49bf23769e1796de",
         "filename": "lcm-1.5.2.tar.gz",
+    },
+    # PCRE2 — Perl-compatible regular expressions (C), the regex engine behind
+    # countless tools. First-party Bazel; root BUILD loads cc_*, so the 9.1.1 inner.
+    # Build-only (its test harness is the pcre2test CLI, not a Bazel test target).
+    "pcre2_archive": {
+        "url": "https://github.com/PCRE2Project/pcre2/archive/refs/tags/pcre2-10.47.tar.gz",
+        "sha256": "409c443549b13b216da40049850a32f3e6c57d4224ab11553ab5a786878a158e",
+        "filename": "pcre2-pcre2-10.47.tar.gz",
     },
     # GoogleTest — the C++ test framework. First-party Bazel, builds + tests
     # itself with the hermetic LLVM toolchain.

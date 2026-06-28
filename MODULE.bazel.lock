@@ -327,7 +327,7 @@
     },
     "//tools/fetch:extension.bzl%inner_bazel": {
       "general": {
-        "bzlTransitiveDigest": "ax5dGEVzQACjNjESm34rirz1MIFXIm6YA9kFQEK9Dfs=",
+        "bzlTransitiveDigest": "yZ9eYpwHs6QTaXjWwNGNdNgeiNLWGXgcci2oeKVdgh0=",
         "usagesDigest": "h14pbfoGF+xRhbdi2p4ZLtdO3iD9D6LSCzysqtpR8HE=",
         "recordedInputs": [
           "REPO_MAPPING:,bazel_tools bazel_tools"
@@ -426,7 +426,7 @@
     },
     "//tools/fetch:extension.bzl%project_sources": {
       "general": {
-        "bzlTransitiveDigest": "ax5dGEVzQACjNjESm34rirz1MIFXIm6YA9kFQEK9Dfs=",
+        "bzlTransitiveDigest": "yZ9eYpwHs6QTaXjWwNGNdNgeiNLWGXgcci2oeKVdgh0=",
         "usagesDigest": "4RQlvpJYAxX2PZxLc3Y4g/kgSEcAiqEkkFheY2guOrA=",
         "recordedInputs": [
           "REPO_MAPPING:,bazel_tools bazel_tools"
@@ -810,6 +810,26 @@
               ],
               "sha256": "172d27e6f6c1fa69df4be30bc61ea35ed225b74cd3a15500e2d75e981478fb2b",
               "downloaded_file_path": "gperftools-2.18.1.tar.gz"
+            }
+          },
+          "ceres_solver_archive": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_file",
+            "attributes": {
+              "urls": [
+                "https://github.com/ceres-solver/ceres-solver/archive/bac1127f9ef672405bd0d2d9c84e809ae89bd239.tar.gz"
+              ],
+              "sha256": "42e41902ae90b012d0dc8a067e05f1c6d3c8dcf65764ed1cf28384dd54f9f5af",
+              "downloaded_file_path": "ceres-solver-bac1127f.tar.gz"
+            }
+          },
+          "s2geometry_archive": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_file",
+            "attributes": {
+              "urls": [
+                "https://github.com/google/s2geometry/archive/3f5bd2d93feda62a5d6fd0c3d7992f427968a66b.tar.gz"
+              ],
+              "sha256": "9d06c3c6b83873b889ad8a0d766325f58b758d1cef804f2b08aee6612eee09fb",
+              "downloaded_file_path": "s2geometry-3f5bd2d9.tar.gz"
             }
           },
           "opencc_archive": {

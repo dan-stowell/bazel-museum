@@ -358,6 +358,16 @@ _PROJECT_SOURCES = {
         "sha256": "172d27e6f6c1fa69df4be30bc61ea35ed225b74cd3a15500e2d75e981478fb2b",
         "filename": "gperftools-2.18.1.tar.gz",
     },
+    # s2geometry — Google's S2 spherical-geometry library, C++. First-party Bazel
+    # (the module is rooted at the repo's src/ subdir — src/MODULE.bazel — with
+    # loaded cc_* rules), so it runs on the default Bazel 9 inner. Its deps (abseil,
+    # skylib, rules_cc, googletest) all come from the BCR. No tagged release we
+    # want, so the source is pinned to a commit archive.
+    "s2geometry_archive": {
+        "url": "https://github.com/google/s2geometry/archive/3f5bd2d93feda62a5d6fd0c3d7992f427968a66b.tar.gz",
+        "sha256": "9d06c3c6b83873b889ad8a0d766325f58b758d1cef804f2b08aee6612eee09fb",
+        "filename": "s2geometry-3f5bd2d9.tar.gz",
+    },
     # OpenCC — Open Chinese Convert (C++). First-party Bazel; the library pulls
     # several BCR deps (marisa-trie, darts-clone, rapidjson, tclap), some of
     # which call cc_* unloaded, so it runs on the Bazel 8.7 inner.

@@ -1,0 +1,43 @@
+load("//builds:defs.bzl", "build_spec", "museum_project", "test_spec")
+load("//builds:environments.bzl", "LOCAL", "MINIMG", "RBE")
+load("//builds:overlays.bzl", "HERMETIC_LLVM")
+
+# s2geometry — Google's S2, a C++ library for spherical geometry (cells, regions,
+# indexing on the sphere; the math behind geographic systems). Source pinned in
+# //tools/fetch:extension.bzl (@s2geometry_archive, a commit archive), built with
+# the fully-hermetic LLVM toolchain. First-party Bazel, but the Bazel module is
+# rooted at the repo's src/ subdir (src/MODULE.bazel), so strip_prefix descends
+# into src/ to make that the workspace root and targets are //:... It loads cc_*
+# rules and its MODULE declares all deps (abseil, skylib, rules_cc, googletest)
+# including platforms, so it runs on the default Bazel 9 inner with no dep overlay.
+#
+#   bazel run //builds/s2geometry:build_local_linux_amd64
+#   bazel run //builds/s2geometry:test_local_linux_amd64
+museum_project(
+    name = "s2geometry",
+    source_archive = "@s2geometry_archive//file",
+    strip_prefix = "s2geometry-3f5bd2d93feda62a5d6fd0c3d7992f427968a66b/src",
+    toolchains = [HERMETIC_LLVM],
+    environments = [LOCAL, RBE, MINIMG],
+    build = build_spec(targets = ["//:s2"], flags = ["-c", "opt"]),
+    # A core of deterministic primitive unit tests — the angle/interval scalar
+    # types, S2 cell-id addressing, lat/lng + projection coords, the planar
+    # interval/rect helpers, and spherical caps. The full src/ suite (115 tests)
+    # includes randomized/heavy index and builder tests; this subset keeps the
+    # goal fast and deterministic on local, the container, and RBE.
+    test = test_spec(
+        targets = [
+            "//:s1angle_test",
+            "//:s1chord_angle_test",
+            "//:s1interval_test",
+            "//:r1interval_test",
+            "//:r2rect_test",
+            "//:s2cell_id_test",
+            "//:s2coords_test",
+            "//:s2latlng_test",
+            "//:s2point_test",
+            "//:s2cap_test",
+        ],
+        flags = ["-c", "opt"],
+    ),
+)

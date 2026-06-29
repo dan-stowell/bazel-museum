@@ -1,135 +1,201 @@
-# bazel-museum: reproducible real-world Bazel builds
+# bazel-museum
 
-## Quick start
+`bazel-museum` checks whether pinned real-world Bazel projects still build and
+test with pinned Bazel clients.
+
+The current approach is intentionally small:
+
+1. Declare a project source archive as a Bazel dependency.
+2. Extract that archive with the outer Bazel build.
+3. Invoke the pinned inner Bazel inside the extracted source tree.
+4. For `kiss_build`, package the useful inner build outputs into one tarball.
+
+Older container, RBE, and runner experiments are not documented here. Use git
+history if you need to resurrect them.
+
+## Quick Start
+
+Install Bazel or Bazelisk, then run the RE2 build:
 
 ```sh
-# 1. Get bazelisk.
-sudo curl -fsSL -o /usr/local/bin/bazel \
-    https://github.com/bazelbuild/bazelisk/releases/download/v1.25.0/bazelisk-linux-amd64
-sudo chmod +x /usr/local/bin/bazel
-
-# 2. Optionally prebuild the container image artifact:
-bazel build //runner/image:oci_layout
-
-# 3. Build and test a project; this also builds the image artifact if needed:
-bazel run //projects/re2:build      # fetches re2's pinned source, runs its own BUILD
-bazel run //projects/re2:test       # runs re2's upstream test suite in the image
-
-# Optional: run the same upstream build/test directly on the local host:
-bazel run //projects/re2:local_build
-bazel run //projects/re2:local_test
+bazel build //projects/re2:kiss_build
 ```
 
-Each `//projects/<project>:build` / `:test` target fetches the project's pinned
-source, builds the shared image artifact as a Bazel dependency, extracts that
-image rootfs into `~/.cache/runner` by manifest digest, then runs `bazelisk`
-against the upstream `MODULE`/`BUILD` inside it (via
-[crun](https://github.com/containers/crun) in a rootless OCI bundle) with the
-project's known-good Bazel pinned. The first build compiles from scratch; reruns
-hit a warm cache.
+The output is:
 
-The `:local_build` / `:local_test` variants use the same pinned source, Bazel
-version, targets, and cache layout, but run directly on the host with the host's
-toolchain and installed tools.
+```text
+bazel-bin/projects/re2/kiss_build.tar
+```
 
-## Projects that build as they are
+That tarball contains the inner Bazel build event stream, a manifest, and RE2's
+top-level build outputs.
 
-<!-- BEGIN GENERATED TABLE (runner/_readme_table.py) -->
-| Project | Description | Bazel | Build | Test | darwin arm64 |
-|---------|-------------|:-----:|-------|------|:------------:|
-| [abseil-cpp](https://github.com/abseil/abseil-cpp) | Google's C++ standard-library extensions | 9.1.1 | `bazel run //projects/abseil_cpp:build` | `bazel run //projects/abseil_cpp:test` | ✅ |
-| [bazel](https://github.com/bazelbuild/bazel) | The Bazel build system itself (Java/C++) | 9.1.1 | `bazel run //projects/bazel:build` | `bazel run //projects/bazel:test` (14/15 pass) | ⏳ |
-| [BoringSSL](https://github.com/google/boringssl) | Google's fork of OpenSSL | 9.1.1 | `bazel run //projects/boringssl:build` | `bazel run //projects/boringssl:test` | ✅ |
-| [buildtools](https://github.com/bazelbuild/buildtools) | Bazel BUILD formatter/linter, buildifier (Go) | 8.7.0 | `bazel run //projects/buildtools:build` | `bazel run //projects/buildtools:test` | ✅ |
-| [Catch2](https://github.com/catchorg/Catch2) | C++ unit-testing framework | 9.1.1 | `bazel run //projects/catch2:build` | — (test fails as-is) | ✅ |
-| [cctz](https://github.com/google/cctz) | C++ civil-time and time-zone library | 8.7.0 | `bazel run //projects/cctz:build` | `bazel run //projects/cctz:test` | ✅ |
-| [CLI11](https://github.com/CLIUtils/CLI11) | Command-line parser for C++11 | 8.7.0 | `bazel run //projects/cli11:build` | `bazel run //projects/cli11:test` | ✅ |
-| [copybara](https://github.com/google/copybara) | Transforms and moves code between repositories (Java) | 9.1.1 | `bazel run //projects/copybara:build` | `bazel run //projects/copybara:test` (216/220 pass) | ✅ |
-| [cpu_features](https://github.com/google/cpu_features) | Cross-platform CPU feature detection | 8.7.0 | `bazel run //projects/cpu_features:build` | `bazel run //projects/cpu_features:test` | ✅ |
-| [cxx](https://github.com/dtolnay/cxx) | Safe interop between Rust and C++ (Rust) | 9.1.1 | `bazel run //projects/cxx:build` | — (test fails as-is) | ✅ |
-| [fast_float](https://github.com/fastfloat/fast_float) | Fast number parsing from strings | 8.7.0 | `bazel run //projects/fast_float:build` | `bazel run //projects/fast_float:test` | ✅ |
-| [FlatBuffers](https://github.com/google/flatbuffers) | Memory-efficient serialization library | 8.7.0 | `bazel run //projects/flatbuffers:build` | `bazel run //projects/flatbuffers:test` | ✅ |
-| [FTXUI](https://github.com/ArthurSonzogni/FTXUI) | Functional terminal-UI library for C++ | 8.7.0 | `bazel run //projects/ftxui:build` | `bazel run //projects/ftxui:test` | ✅ |
-| [glog](https://github.com/google/glog) | Google application-level logging library | 8.7.0 | `bazel run //projects/glog:build` | `bazel run //projects/glog:test` | ✅ |
-| [google/benchmark](https://github.com/google/benchmark) | Microbenchmark support library | 8.7.0 | `bazel run //projects/benchmark:build` | `bazel run //projects/benchmark:test` | ✅ |
-| [GoogleTest](https://github.com/google/googletest) | Google's C++ test & mocking framework | 8.7.0 | `bazel run //projects/googletest:build` | `bazel run //projects/googletest:test` | ✅ |
-| [gperftools](https://github.com/gperftools/gperftools) | tcmalloc and performance profilers | 8.7.0 | `bazel run //projects/gperftools:build` | `bazel run //projects/gperftools:test` | ✅ |
-| [highway](https://github.com/google/highway) | Portable SIMD/vector intrinsics | 8.7.0 | `bazel run //projects/highway:build` | `bazel run //projects/highway:test` | ✅ |
-| [jsoncpp](https://github.com/open-source-parsers/jsoncpp) | C++ library for reading/writing JSON | 9.1.1 | `bazel run //projects/jsoncpp:build` | `bazel run //projects/jsoncpp:test` | ✅ |
-| [jsonnet](https://github.com/google/jsonnet) | Data-templating language | 8.7.0 | `bazel run //projects/jsonnet:build` | `bazel run //projects/jsonnet:test` | ✅ |
-| [magic_enum](https://github.com/Neargye/magic_enum) | Static reflection for C++ enums | 9.1.1 | `bazel run //projects/magic_enum:build` | — (test fails as-is) | ✅ |
-| [nlohmann/json](https://github.com/nlohmann/json) | JSON for Modern C++ | 9.1.1 | `bazel run //projects/json:build` | — (no upstream test target) | ✅ |
-| [nsync](https://github.com/google/nsync) | C library of synchronization primitives | 8.7.0 | `bazel run //projects/nsync:build` | `bazel run //projects/nsync:test` | ✅ |
-| [oneTBB](https://github.com/uxlfoundation/oneTBB) | Intel's Threading Building Blocks | 8.7.0 | `bazel run //projects/onetbb:build` | `bazel run //projects/onetbb:test` | ❌ |
-| [OpenCC](https://github.com/BYVoid/OpenCC) | Traditional/Simplified Chinese conversion | 8.7.0 | `bazel run //projects/opencc:build` | `bazel run //projects/opencc:test` | ✅ |
-| [OR-Tools](https://github.com/google/or-tools) | Google's optimization suite (CP-SAT) | 8.7.0 | `bazel run //projects/ortools:build` | `bazel run //projects/ortools:test` (88/89 pass) | ✅ |
-| [protobuf](https://github.com/protocolbuffers/protobuf) | Protocol Buffers serialization | 9.1.1 | `bazel run //projects/protobuf:build` | `bazel run //projects/protobuf:test` (100/101 pass) | ✅ |
-| [re2](https://github.com/google/re2) | Fast, safe regular-expression engine | 8.7.0 | `bazel run //projects/re2:build` | `bazel run //projects/re2:test` | ✅ |
-| [snappy](https://github.com/google/snappy) | Fast compression/decompression library | 8.7.0 | `bazel run //projects/snappy:build` | `bazel run //projects/snappy:test` | ✅ |
-| [zlib](https://github.com/madler/zlib) | The zlib compression library | 9.1.1 | `bazel run //projects/zlib:build` | — (no upstream test target) | ✅ |
+Run RE2's upstream tests:
 
-<!-- END GENERATED TABLE -->
+```sh
+bazel test //projects/re2:kiss_test
+```
 
-## Host-local build/test sweep
+List all KISS build targets:
 
-The same upstream builds and tests run directly on the host toolchain via the
-`:local_build` / `:local_test` targets (no container). Swept by
-[`runner/local_sweep.sh`](runner/local_sweep.sh) into `runner/local-results.tsv`
-and rendered by [`runner/_local_table.py`](runner/_local_table.py).
+```sh
+tools/kiss/run_builds.sh --list
+```
 
-<!-- BEGIN GENERATED LOCAL TABLE (runner/_local_table.py) -->
-| Project | Bazel | `:local_build` | `:local_test` |
-|---------|:-----:|:--------------:|:-------------:|
-| [abseil-cpp](https://github.com/abseil/abseil-cpp) | 9.1.1 | ✅ | ✅ |
-| [abseil-py](https://github.com/abseil/abseil-py) | 8.7.0 | ✅ | ✅ |
-| [bazel](https://github.com/bazelbuild/bazel) | 9.1.1 | ❌ | ❌ (1/15) |
-| [BoringSSL](https://github.com/google/boringssl) | 9.1.1 | ✅ | ✅ |
-| [brotli](https://github.com/google/brotli) | 8.7.0 | ❌ | — |
-| [brotli (Go)](https://github.com/google/brotli) | 8.7.0 | — | ❌ |
-| [buildtools](https://github.com/bazelbuild/buildtools) | 8.7.0 | ✅ | ✅ |
-| [Catch2](https://github.com/catchorg/Catch2) | 9.1.1 | ✅ | ❌ |
-| [cctz](https://github.com/google/cctz) | 8.7.0 | ✅ | ✅ |
-| [CLI11](https://github.com/CLIUtils/CLI11) | 8.7.0 | ✅ | ✅ |
-| [copybara](https://github.com/google/copybara) | 9.1.1 | ✅ | ❌ (219/220) |
-| [cpptrace](https://github.com/jeremy-rifkin/cpptrace) | v1.0.4 | ✅ | ✅ |
-| [cpu_features](https://github.com/google/cpu_features) | 8.7.0 | ✅ | ✅ |
-| [Crow](https://github.com/CrowCpp/Crow) | 8.7.0 | ✅ | — |
-| [cxx](https://github.com/dtolnay/cxx) | 9.1.1 | ✅ | ❌ |
-| [doctest](https://github.com/doctest/doctest) | 9.1.1 | ❌ | ❌ |
-| [double-conversion](https://github.com/google/double-conversion) | 8.7.0 | ✅ | ✅ |
-| [fast_float](https://github.com/fastfloat/fast_float) | 8.7.0 | ✅ | ✅ |
-| [FlatBuffers](https://github.com/google/flatbuffers) | 8.7.0 | ✅ | ✅ |
-| [FTXUI](https://github.com/ArthurSonzogni/FTXUI) | 8.7.0 | ✅ | ✅ |
-| [gflags](https://github.com/gflags/gflags) | 8.7.0 | ✅ | — |
-| [glog](https://github.com/google/glog) | 8.7.0 | ✅ | ✅ |
-| [go-jsonnet](https://github.com/google/go-jsonnet) | 8.7.0 | ✅ | ✅ |
-| [google/benchmark](https://github.com/google/benchmark) | 8.7.0 | ✅ | ✅ |
-| [GoogleTest](https://github.com/google/googletest) | 8.7.0 | ✅ | ✅ |
-| [gperftools](https://github.com/gperftools/gperftools) | 8.7.0 | ✅ | ✅ |
-| [gRPC](https://github.com/grpc/grpc) | 8.7.0 | ❌ | ❌ |
-| [grpc-gateway](https://github.com/grpc-ecosystem/grpc-gateway) | 9.1.1 | ✅ | ✅ |
-| [HiGHS](https://github.com/ERGO-Code/HiGHS) | 9.1.1 | ✅ | ✅ |
-| [highway](https://github.com/google/highway) | 8.7.0 | ✅ | ✅ |
-| [iceoryx2](https://github.com/eclipse-iceoryx/iceoryx2) | 8.7.0 | ✅ | ✅ |
-| [jsoncpp](https://github.com/open-source-parsers/jsoncpp) | 9.1.1 | ✅ | ✅ |
-| [jsonnet](https://github.com/google/jsonnet) | 8.7.0 | ✅ | ✅ |
-| [LCM](https://github.com/lcm-proj/lcm) | 8.7.0 | ✅ | ✅ |
-| [magic_enum](https://github.com/Neargye/magic_enum) | 9.1.1 | ✅ | ❌ |
-| [nlohmann/json](https://github.com/nlohmann/json) | 9.1.1 | ✅ | — |
-| [nsync](https://github.com/google/nsync) | 8.7.0 | ✅ | ✅ |
-| [oneTBB](https://github.com/uxlfoundation/oneTBB) | 8.7.0 | ✅ | ✅ |
-| [OpenCC](https://github.com/BYVoid/OpenCC) | 8.7.0 | ✅ | ✅ |
-| [OpenEXR](https://github.com/AcademySoftwareFoundation/openexr) | 9.1.1 | ✅ | ✅ |
-| [opentelemetry-cpp](https://github.com/open-telemetry/opentelemetry-cpp) | 8.7.0 | ✅ | ✅ |
-| [OR-Tools](https://github.com/google/or-tools) | 8.7.0 | ✅ | ❌ |
-| [PCRE2](https://github.com/PCRE2Project/pcre2) | 9.1.1 | ✅ | — |
-| [prometheus-cpp](https://github.com/jupp0r/prometheus-cpp) | 8.7.0 | ✅ | ✅ |
-| [protobuf](https://github.com/protocolbuffers/protobuf) | 9.1.1 | ✅ | ✅ |
-| [quill](https://github.com/odygrd/quill) | 8.7.0 | ✅ | — |
-| [re2](https://github.com/google/re2) | 8.7.0 | ✅ | ✅ |
-| [snappy](https://github.com/google/snappy) | 8.7.0 | ✅ | ✅ |
-| [z3](https://github.com/Z3Prover/z3) | 9.1.1 | ✅ | — |
-| [zlib](https://github.com/madler/zlib) | 9.1.1 | ✅ | — |
+Run all KISS builds sequentially, with a clean outer Bazel output tree before
+each project:
 
-_Host-local sweep of 50 projects: 45 build and 33 run their test suite directly on the host toolchain (✅ success · ❌ failure · ⏱️ timeout · — no such target)._
-<!-- END GENERATED LOCAL TABLE -->
+```sh
+tools/kiss/run_builds.sh 2>&1 | tee kiss-builds.log
+```
+
+Useful variants:
+
+```sh
+BAZEL_BUILD_FLAGS="--verbose_failures" tools/kiss/run_builds.sh 2>&1 | tee kiss-builds.log
+tools/kiss/run_builds.sh --no-clean //projects/re2:kiss_build //projects/snappy:kiss_build
+```
+
+## Target Convention
+
+Archive-backed projects under `//projects/<name>` may expose:
+
+```text
+//projects/<name>:kiss_build
+//projects/<name>:kiss_test
+```
+
+`kiss_build` runs `bazel build` inside the pinned source tree and emits a tarball.
+`kiss_test` runs `bazel test` inside the pinned source tree.
+
+BCR-only project packages still exist under `//projects`, but they do not fit the
+"invoke Bazel inside the upstream source archive" model yet, so they do not emit
+KISS targets today.
+
+## Current KISS Build Sweep
+
+The local `kiss-builds.log` from this workspace reports 46 passing builds out
+of 52 generated `kiss_build` targets.
+
+Passing `kiss_build` targets:
+
+```text
+//projects/abseil_cpp:kiss_build
+//projects/abseil_py:kiss_build
+//projects/benchmark:kiss_build
+//projects/boringssl:kiss_build
+//projects/buildtools:kiss_build
+//projects/catch2:kiss_build
+//projects/cctz:kiss_build
+//projects/cli11:kiss_build
+//projects/copybara:kiss_build
+//projects/cpptrace:kiss_build
+//projects/cpu_features:kiss_build
+//projects/crow:kiss_build
+//projects/cxx:kiss_build
+//projects/double_conversion:kiss_build
+//projects/fast_float:kiss_build
+//projects/flatbuffers:kiss_build
+//projects/ftxui:kiss_build
+//projects/fuzztest:kiss_build
+//projects/gflags:kiss_build
+//projects/glog:kiss_build
+//projects/go_jsonnet:kiss_build
+//projects/googletest:kiss_build
+//projects/gperftools:kiss_build
+//projects/grpc:kiss_build
+//projects/grpc_gateway:kiss_build
+//projects/highs:kiss_build
+//projects/highway:kiss_build
+//projects/json:kiss_build
+//projects/jsoncpp:kiss_build
+//projects/jsonnet:kiss_build
+//projects/lcm:kiss_build
+//projects/nsync:kiss_build
+//projects/onetbb:kiss_build
+//projects/opencc:kiss_build
+//projects/openexr:kiss_build
+//projects/opentelemetry_cpp:kiss_build
+//projects/ortools:kiss_build
+//projects/pcre2:kiss_build
+//projects/prometheus_cpp:kiss_build
+//projects/protobuf:kiss_build
+//projects/quill:kiss_build
+//projects/re2:kiss_build
+//projects/snappy:kiss_build
+//projects/verible:kiss_build
+//projects/z3:kiss_build
+//projects/zlib:kiss_build
+```
+
+Failing `kiss_build` targets from that sweep:
+
+```text
+//projects/bazel:kiss_build
+//projects/brotli:kiss_build
+//projects/doctest:kiss_build
+//projects/iceoryx2:kiss_build
+//projects/magic_enum:kiss_build
+//projects/s2geometry:kiss_build
+```
+
+Projects with `kiss_test` targets:
+
+```text
+//projects/abseil_cpp:kiss_test
+//projects/abseil_py:kiss_test
+//projects/bazel:kiss_test
+//projects/benchmark:kiss_test
+//projects/boringssl:kiss_test
+//projects/brotli_go:kiss_test
+//projects/buildtools:kiss_test
+//projects/catch2:kiss_test
+//projects/cctz:kiss_test
+//projects/cli11:kiss_test
+//projects/copybara:kiss_test
+//projects/cpptrace:kiss_test
+//projects/cpu_features:kiss_test
+//projects/cxx:kiss_test
+//projects/double_conversion:kiss_test
+//projects/fast_float:kiss_test
+//projects/flatbuffers:kiss_test
+//projects/ftxui:kiss_test
+//projects/fuzztest:kiss_test
+//projects/go_jsonnet:kiss_test
+//projects/googletest:kiss_test
+//projects/gperftools:kiss_test
+//projects/grpc:kiss_test
+//projects/grpc_gateway:kiss_test
+//projects/highs:kiss_test
+//projects/highway:kiss_test
+//projects/iceoryx2:kiss_test
+//projects/jsoncpp:kiss_test
+//projects/jsonnet:kiss_test
+//projects/lcm:kiss_test
+//projects/magic_enum:kiss_test
+//projects/nsync:kiss_test
+//projects/onetbb:kiss_test
+//projects/opencc:kiss_test
+//projects/openexr:kiss_test
+//projects/opentelemetry_cpp:kiss_test
+//projects/ortools:kiss_test
+//projects/prometheus_cpp:kiss_test
+//projects/protobuf:kiss_test
+//projects/re2:kiss_test
+//projects/s2geometry:kiss_test
+//projects/snappy:kiss_test
+//projects/verible:kiss_test
+```
+
+## Implementation Notes
+
+The shared KISS helpers live in `//tools/kiss`.
+
+`kiss_build` uses an action-local inner Bazel `--output_user_root` so nested
+Bazel has writable scratch space without using the host user's Bazel output
+tree. The output root is not part of the final artifact; the declared output is
+the `kiss_build.tar` bundle.
+
+`tools/kiss/run_builds.sh` runs `bazel clean` before each project by default.
+Disable that with `--no-clean` when you deliberately want outer Bazel caching
+between projects.

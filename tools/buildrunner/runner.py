@@ -111,6 +111,29 @@ def _extract(archive, dest, strip_prefix):
         return os.path.join(dest, entries[0])
     return dest
 
+def _synthesize_bcr_workspace(dest, module_spec):
+    """Create a minimal root module that bazel_dep()s a BCR module, so its own
+    @NAME//... targets become buildable/testable. The module's source, patches,
+    and MODULE.bazel are resolved by the registry; overlays then append onto the
+    MODULE.bazel we write here (e.g. the hermetic toolchain), exactly as for a
+    source-archive project."""
+    name, _, version = module_spec.partition("=")
+    if not name or not version:
+        sys.exit(f"runner: bad --bcr-module {module_spec!r} (want NAME=VERSION)")
+    os.makedirs(dest, exist_ok=True)
+    # `platforms` is declared so the injected //museum_rbe package (pin_platform
+    # envs) can see @platforms; the dep module pulls its own transitive deps.
+    module_bazel = (
+        'module(name = "museum_bcr_root", version = "0.0.0")\n'
+        'bazel_dep(name = "{name}", version = "{version}")\n'
+        'bazel_dep(name = "platforms", version = "1.1.0")\n'
+    ).format(name=name, version=version)
+    with open(os.path.join(dest, "MODULE.bazel"), "w", encoding="utf-8") as f:
+        f.write(module_bazel)
+    # An empty package at the root so `bazel` is happy resolving the workspace.
+    open(os.path.join(dest, "BUILD.bazel"), "w").close()
+    return dest
+
 
 def _clean_env(home, tmp, path_prepend=None):
     env = {k: os.environ[k] for k in _ENV_ALLOWLIST if k in os.environ}
@@ -314,8 +337,15 @@ def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--name", required=True, help="short project name (for the build root)")
     p.add_argument("--bazel", required=True, help="runfiles path to the inner bazel binary")
-    p.add_argument("--source-archive", required=True, help="runfiles path to the source tarball")
+    p.add_argument("--source-archive", default="", help="runfiles path to the source tarball")
     p.add_argument("--strip-prefix", default="", help="top-level dir to enter after extraction")
+    p.add_argument("--bcr-module", default="", metavar="NAME=VERSION",
+                   help="instead of extracting a source tarball, synthesize a tiny root "
+                        "workspace that bazel_dep()s this Bazel Central Registry module at "
+                        "the given version, and build/test its @NAME//... targets. The BCR "
+                        "resolves the module's source, patches, and MODULE.bazel; overlays "
+                        "(e.g. the hermetic toolchain) still append onto the synthesized "
+                        "MODULE.bazel as usual.")
     p.add_argument("--target", action="append", default=[], dest="targets",
                    help="inner build target (repeatable)")
     p.add_argument("--build-flag", action="append", default=[], dest="build_flags",
@@ -372,7 +402,9 @@ def main(argv=None):
 
     rf = _runfiles()
     bazel = _resolve(rf, args.bazel)
-    archive = _resolve(rf, args.source_archive)
+    if not args.bcr_module and not args.source_archive:
+        sys.exit("runner: need either --source-archive or --bcr-module")
+    archive = _resolve(rf, args.source_archive) if args.source_archive else None
 
     root = _build_root(args.name)
     output_user_root = os.path.join(root, "output_root")
@@ -412,7 +444,10 @@ def main(argv=None):
     # Fresh source tree each run for reproducibility; caches persist for speed.
     if os.path.isdir(work):
         shutil.rmtree(work)
-    workspace = _extract(archive, work, args.strip_prefix)
+    if args.bcr_module:
+        workspace = _synthesize_bcr_workspace(work, args.bcr_module)
+    else:
+        workspace = _extract(archive, work, args.strip_prefix)
 
     # Drop verbatim files into the source tree (e.g. a patch + its BUILD marker
     # into a fresh museum_patches/ package). Unlike --append this overwrites the

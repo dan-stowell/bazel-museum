@@ -127,7 +127,7 @@ def _dedupe(items):
             out.append(it)
     return out
 
-def _emit_goal(project_id, source_archive, strip_prefix, toolchains, env, plat, spec, client, visibility):
+def _emit_goal(project_id, source_archive, strip_prefix, toolchains, env, plat, spec, client, visibility, bcr_module = None):
     goal_name = "{}_{}_{}_{}".format(spec.command, env.name, client.name, plat.name)
     bazel_version = client.bazel_version
 
@@ -164,10 +164,16 @@ def _emit_goal(project_id, source_archive, strip_prefix, toolchains, env, plat, 
     args = [
         "--name={}__{}".format(project_id, goal_name),
         "--command=" + spec.command,
-        "--source-archive=$(rlocationpath {})".format(source_archive),
     ]
-    if strip_prefix:
-        args.append("--strip-prefix=" + strip_prefix)
+    if bcr_module:
+        # No source tarball: synthesize a root module that bazel_dep()s the BCR
+        # module and build/test its @name//... targets (the registry resolves
+        # source + patches + MODULE.bazel; overlays still append as usual).
+        args.append("--bcr-module=" + bcr_module)
+    else:
+        args.append("--source-archive=$(rlocationpath {})".format(source_archive))
+        if strip_prefix:
+            args.append("--strip-prefix=" + strip_prefix)
 
     # Container environments (MINIMG) run the inner bazel inside a minimal image
     # instead of on the host; the runner bind-mounts the build root + inner bazel.
@@ -212,7 +218,7 @@ def _emit_goal(project_id, source_archive, strip_prefix, toolchains, env, plat, 
         patch_labels +
         [label for label, _ in tools],
     )
-    data = [source_archive] + overlay_files + _inner_bazel_data(bazel_version)
+    data = ([source_archive] if source_archive else []) + overlay_files + _inner_bazel_data(bazel_version)
 
     # host_only environments (local) can only run when the host matches the
     # goal's platform; mark the others incompatible so they're skipped, not run.
@@ -296,6 +302,71 @@ def museum_project(
                     # the project's default (first) client. Keeps the historical
                     # `<cmd>_<env>_<platform>` goal names working and gives the
                     # test dispatcher a stable name when `client` is omitted.
+                    if client == default_client:
+                        native.alias(
+                            name = "{}_{}_{}".format(spec.command, env.name, plat.name),
+                            actual = ":" + goal_name,
+                            visibility = visibility,
+                        )
+
+def bcr_project(
+        name,
+        module,
+        version,
+        environments,
+        build = None,
+        test = None,
+        toolchains = [],
+        bazel_version = DEFAULT_INNER_BAZEL_VERSION,
+        clients = None,
+        visibility = ["//visibility:public"]):
+    """Declare a museum project that builds/tests a Bazel Central Registry module
+    *as published* — rather than pinning the upstream source and running its
+    in-repo BUILD.
+
+    The runner synthesizes a tiny root module that `bazel_dep`s `module` at
+    `version`, so the registry resolves the module's source, patches, and
+    MODULE.bazel; the goal then builds/tests the module's own `@<module>//...`
+    targets (e.g. the `test_targets` the BCR's presubmit.yml runs). This captures
+    projects whose Bazel build lives in the BCR (community-"ported" modules) and
+    whose upstream repo ships no/partial in-repo Bazel. Toolchain overlays still
+    apply; emits the same `<cmd>_<env>_<client>_<platform>` goal grid.
+
+    Args:
+      name: project name (informational; the package path also identifies it).
+      module: the BCR module name (e.g. "simdutf").
+      version: the BCR module version to pin (e.g. "7.7.0").
+      environments: environments to target (e.g. [LOCAL, MINIMG, RBE]).
+      build: a build_spec(...) over @<module>//... targets, or None.
+      test: a test_spec(...) over @<module>//... targets, or None.
+      toolchains: overlays applied to every goal (e.g. [HERMETIC_LLVM]).
+      bazel_version: legacy single-client shorthand; ignored when `clients` set.
+      clients: the client axis (see //builds:clients.bzl).
+      visibility: visibility for the generated goal targets.
+    """
+    project_id = (native.package_name().replace("/", "_") or name)
+    specs = [s for s in (build, test) if s]
+    client_structs = clients_for(bazel_version, clients)
+    default_client = client_structs[0]
+    bcr_module = "{}={}".format(module, version)
+
+    for env in environments:
+        for plat_name in env.platforms:
+            plat = PLATFORMS[plat_name]
+            for spec in specs:
+                for client in client_structs:
+                    goal_name = _emit_goal(
+                        project_id,
+                        None,  # no source archive
+                        "",
+                        toolchains,
+                        env,
+                        plat,
+                        spec,
+                        client,
+                        visibility,
+                        bcr_module = bcr_module,
+                    )
                     if client == default_client:
                         native.alias(
                             name = "{}_{}_{}".format(spec.command, env.name, plat.name),

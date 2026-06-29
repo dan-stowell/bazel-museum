@@ -32,7 +32,7 @@ executors for, and `local` goals are gated on the host matching their platform
 (so `*_local_linux_amd64` is inert on this Mac and live on the linux VM).
 """
 
-load("@rules_python//python:defs.bzl", "py_binary")
+load("@rules_python//python:defs.bzl", "py_binary", "py_test")
 load("//tools/fetch:extension.bzl", "DEFAULT_INNER_BAZEL_VERSION")
 load(":clients.bzl", "clients_for")
 load(":overlays.bzl", "HERMETIC_LLVM")
@@ -232,7 +232,15 @@ def _emit_goal(project_id, source_archive, strip_prefix, toolchains, env, plat, 
     elif env.host_cpu_only:
         compatible = [plat.cpu_constraint]
 
-    py_binary(
+    rule = py_test if spec.command == "test" else py_binary
+    kwargs = {}
+    if spec.command == "test":
+        kwargs = {
+            "size": "large",
+            "timeout": "eternal",
+        }
+
+    rule(
         name = goal_name,
         srcs = ["//tools/buildrunner:runner.py"],
         main = "runner.py",
@@ -241,8 +249,91 @@ def _emit_goal(project_id, source_archive, strip_prefix, toolchains, env, plat, 
         args = args + _inner_bazel_arg(bazel_version),
         target_compatible_with = compatible,
         visibility = visibility,
+        **kwargs
     )
     return goal_name
+
+def project_test(
+        name,
+        source_archive,
+        test,
+        strip_prefix = "",
+        toolchains = [],
+        bazel_version = DEFAULT_INNER_BAZEL_VERSION,
+        clients = None,
+        visibility = ["//visibility:public"]):
+    """Declare the default host-local test target for a project package.
+
+    This emits one concrete, platform-neutral py_test. The caller does not name
+    an OS/arch; Bazel selects the matching pinned inner Bazel binary for the
+    host. Environment-specific matrix targets can still be emitted separately
+    with museum_project(...).
+    """
+    client = clients_for(bazel_version, clients)[0]
+    project_id = "{}__{}".format(native.package_name().replace("/", "_") or name, name)
+
+    appends = []
+    writes = []
+    patch_labels = []
+    overlay_flags = []
+    header_envs = []
+    tools = []
+    for ov in toolchains:
+        appends += ov.appends
+        writes += ov.writes
+        patch_labels += ov.patches
+        overlay_flags += ov.build_flags
+        header_envs += ov.remote_header_envs
+        tools += getattr(ov, "tools", [])
+
+    args = [
+        "--name={}__test_local_{}".format(project_id, client.name),
+        "--command=test",
+        "--source-archive=$(rlocationpath {})".format(source_archive),
+    ]
+    if strip_prefix:
+        args.append("--strip-prefix=" + strip_prefix)
+
+    for label, dest in appends:
+        args.append("--append=$(rlocationpath {})={}".format(label, dest))
+    for label, dest in writes:
+        args.append("--write=$(rlocationpath {})={}".format(label, dest))
+    for label in patch_labels:
+        args.append("--patch=$(rlocationpath {})".format(label))
+    for env_spec in header_envs:
+        args.append("--remote-header-env=" + env_spec)
+    for tool_label, tool_name in tools:
+        args.append("--tool=$(rlocationpath {})={}".format(tool_label, tool_name))
+
+    all_flags = (
+        _COMMAND_DEFAULT_FLAGS.get("test", []) +
+        overlay_flags +
+        _COMMON_FLAGS +
+        test.flags
+    )
+    for flag in all_flags:
+        args.append("--build-flag=" + flag)
+    for target in test.targets:
+        args.append("--target=" + target)
+
+    overlay_files = _dedupe(
+        [label for label, _ in appends] +
+        [label for label, _ in writes] +
+        patch_labels +
+        [label for label, _ in tools],
+    )
+
+    py_test(
+        name = name,
+        srcs = ["//tools/buildrunner:runner.py"],
+        main = "runner.py",
+        deps = ["@rules_python//python/runfiles"],
+        data = [source_archive] + overlay_files + _inner_bazel_data(client.bazel_version),
+        args = args + _inner_bazel_arg(client.bazel_version),
+        size = "large",
+        timeout = "eternal",
+        visibility = visibility,
+    )
 
 def museum_project(
         name,
@@ -254,6 +345,7 @@ def museum_project(
         toolchains = [],
         bazel_version = DEFAULT_INNER_BAZEL_VERSION,
         clients = None,
+        emit_client_aliases = True,
         visibility = ["//visibility:public"]):
     """Declare a museum project and emit its environment x platform x command grid.
 
@@ -272,6 +364,8 @@ def museum_project(
       clients: the client axis (see //builds:clients.bzl): a list of client
         names (e.g. ["bazel8", "bazel9"]) this project supports. The first is the
         default. When omitted, a single client is derived from `bazel_version`.
+      emit_client_aliases: whether to emit back-compat aliases without the client
+        segment, e.g. test_local_linux_amd64 -> test_local_bazel8_linux_amd64.
       visibility: visibility for the generated goal targets.
     """
 
@@ -303,7 +397,7 @@ def museum_project(
                     # the project's default (first) client. Keeps the historical
                     # `<cmd>_<env>_<platform>` goal names working and gives the
                     # test dispatcher a stable name when `client` is omitted.
-                    if client == default_client:
+                    if emit_client_aliases and client == default_client:
                         native.alias(
                             name = "{}_{}_{}".format(spec.command, env.name, plat.name),
                             actual = ":" + goal_name,

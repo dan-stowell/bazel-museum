@@ -1,17 +1,4 @@
-# bazel-museum
-
-`bazel-museum` checks whether pinned real-world Bazel projects still build and
-test with pinned Bazel clients.
-
-The current approach is intentionally small:
-
-1. Declare a project source archive as a Bazel dependency.
-2. Extract that archive with the outer Bazel build.
-3. Invoke the pinned inner Bazel inside the extracted source tree.
-4. For `kiss_build`, package the useful inner build outputs into one tarball.
-
-Older container, RBE, and runner experiments are not documented here. Use git
-history if you need to resurrect them.
+# 🏛️ bazel-museum
 
 ## Quick Start
 

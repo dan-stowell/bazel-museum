@@ -14,8 +14,8 @@ load("//builds:overlays.bzl", "HERMETIC_LLVM")
 # Bazel 9 inner fails toolchain resolution even for the C++ targets; the late
 # Bazel 8 inner keeps those legacy APIs and resolves cleanly.
 #
-#   bazel run //builds/fuzztest:build_local_linux_amd64
-#   bazel run //builds/fuzztest:test_local_linux_amd64
+#   bazel run //projects/fuzztest:build_local_linux_amd64
+#   bazel run //projects/fuzztest:test_local_linux_amd64
 museum_project(
     name = "fuzztest",
     source_archive = "@fuzztest_archive//file",

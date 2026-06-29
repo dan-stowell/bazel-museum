@@ -13,9 +13,9 @@ load("//builds:environments.bzl", "CIIMG", "LOCAL", "RBE")
 # host / CI-image gcc (no hermetic overlay); RBE uses hermetic LLVM (the host
 # toolchain can't match the remote executor's compiler).
 #
-#   bazel run //builds/simdutf:test_local_linux_amd64
-#   bazel run //builds/simdutf:test_ciimg_linux_amd64
-#   bazel run //builds/simdutf:test_rbe_linux_amd64
+#   bazel run //projects/simdutf:test_local_linux_amd64
+#   bazel run //projects/simdutf:test_ciimg_linux_amd64
+#   bazel run //projects/simdutf:test_rbe_linux_amd64
 bcr_project(
     name = "simdutf",
     module = "simdutf",

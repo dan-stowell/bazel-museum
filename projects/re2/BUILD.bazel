@@ -1,4 +1,4 @@
-load("//builds:defs.bzl", "build_spec", "museum_project", "project_test", "test_spec")
+load("//builds:defs.bzl", "build_spec", "museum_project", "test_spec")
 load("//builds:environments.bzl", "LOCAL", "MINIMG", "RBE")
 load("//builds:overlays.bzl", "HERMETIC_LLVM")
 
@@ -13,22 +13,6 @@ _RE2_TEST = test_spec(
     flags = ["-c", "opt"],
 )
 
-# Default local smoke-test shape:
-#
-#   bazel test //projects/re2
-project_test(
-    name = "re2",
-    source_archive = "@re2_archive//file",
-    strip_prefix = "re2-2025-11-05",
-    toolchains = [HERMETIC_LLVM],
-    bazel_version = "8.7.0",
-    test = _RE2_TEST,
-)
-
-# Environment-specific targets live with the project too, for example:
-#
-#   bazel test //projects/re2:test_minimg_linux_amd64
-#   bazel test //projects/re2:test_rbe_linux_amd64
 museum_project(
     name = "re2",
     source_archive = "@re2_archive//file",
@@ -38,5 +22,4 @@ museum_project(
     environments = [LOCAL, RBE, MINIMG],
     build = build_spec(targets = ["//:re2"], flags = ["-c", "opt"]),
     test = _RE2_TEST,
-    emit_client_aliases = False,
 )

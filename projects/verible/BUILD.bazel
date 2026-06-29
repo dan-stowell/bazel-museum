@@ -10,8 +10,8 @@ load("//builds:overlays.bzl", "HERMETIC_LLVM")
 # platforms), so it runs on the default Bazel 9 inner with only the hermetic-LLVM
 # overlay (no dep overlay needed).
 #
-#   bazel run //builds/verible:build_local_linux_amd64
-#   bazel run //builds/verible:test_local_linux_amd64
+#   bazel run //projects/verible:build_local_linux_amd64
+#   bazel run //projects/verible:test_local_linux_amd64
 museum_project(
     name = "verible",
     source_archive = "@verible_archive//file",

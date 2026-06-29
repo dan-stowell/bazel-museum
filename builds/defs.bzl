@@ -3,8 +3,8 @@ matrix of environments x platforms x commands.
 
 A *project* pins a source tarball and a set of toolchain overlays, then names the
 environments it targets (see //builds:environments.bzl) and its `build`/`test`
-specs. museum_project crosses those, emitting one `bazel run`-nable goal per
-runnable cell, named `<command>_<env>_<os>_<arch>`:
+specs. museum_project crosses those, emitting concrete per-cell goals plus small
+test suites for the common entry points:
 
     load("//builds:defs.bzl", "build_spec", "museum_project", "test_spec")
     load("//builds:environments.bzl", "LOCAL", "RBE")
@@ -20,16 +20,15 @@ runnable cell, named `<command>_<env>_<os>_<arch>`:
         test = test_spec(targets = ["//..."]),
     )
 
-    # then, on this macOS host:
-    #   bazel run //builds/cxx:build_local_darwin_arm64
-    #   bazel run //builds/cxx:test_local_darwin_arm64
-    #   bazel run //builds/cxx:build_rbe_linux_amd64
-    #   bazel run //builds/cxx:test_rbe_linux_amd64
-    #   bazel run //builds/cxx:build_local_darwin_arm64 -- //:cxx   (override targets)
+    # then:
+    #   bazel test //projects/cxx
+    #   bazel test //projects/cxx:local_test
+    #   bazel test //projects/cxx:minimg_test
+    #   bazel test //projects/cxx:buildbuddy_test
 
 Only *runnable* cells are emitted: `rbe` only lists the platforms it has
 executors for, and `local` goals are gated on the host matching their platform
-(so `*_local_linux_amd64` is inert on this Mac and live on the linux VM).
+(so `local_linux_amd64_test` is inert on this Mac and live on the linux VM).
 """
 
 load("@rules_python//python:defs.bzl", "py_binary", "py_test")
@@ -128,8 +127,24 @@ def _dedupe(items):
             out.append(it)
     return out
 
-def _emit_goal(project_id, source_archive, strip_prefix, toolchains, env, plat, spec, client, visibility, bcr_module = None):
-    goal_name = "{}_{}_{}_{}".format(spec.command, env.name, client.name, plat.name)
+def _env_target_name(env):
+    return "buildbuddy" if env.name == "rbe" else env.name
+
+def _goal_name(env, client, default_client, plat, spec):
+    env_name = _env_target_name(env)
+    if client == default_client:
+        return "{}_{}_{}".format(env_name, plat.name, spec.command)
+    return "{}_{}_{}_{}".format(env_name, client.name, plat.name, spec.command)
+
+def _suite_name(env, spec):
+    return "{}_{}".format(_env_target_name(env), spec.command)
+
+def _default_suite_platforms(env):
+    if env.name == "rbe":
+        return ["linux_amd64"]
+    return env.platforms
+
+def _emit_goal(project_id, goal_name, source_archive, strip_prefix, toolchains, env, plat, spec, client, visibility, bcr_module = None):
     bazel_version = client.bazel_version
 
     overlays = toolchains + env.overlays
@@ -253,6 +268,23 @@ def _emit_goal(project_id, source_archive, strip_prefix, toolchains, env, plat, 
     )
     return goal_name
 
+def _emit_test_suites(name, environments, specs, emitted, default_client, visibility):
+    for env in environments:
+        for spec in specs:
+            if spec.command != "test":
+                continue
+            suite_tests = []
+            for plat_name in _default_suite_platforms(env):
+                key = (env.name, default_client.name, plat_name, "test")
+                if key in emitted:
+                    suite_tests.append(":" + emitted[key])
+            if suite_tests:
+                native.test_suite(
+                    name = _suite_name(env, spec),
+                    tests = suite_tests,
+                    visibility = visibility,
+                )
+
 def project_test(
         name,
         source_archive,
@@ -262,13 +294,7 @@ def project_test(
         bazel_version = DEFAULT_INNER_BAZEL_VERSION,
         clients = None,
         visibility = ["//visibility:public"]):
-    """Declare the default host-local test target for a project package.
-
-    This emits one concrete, platform-neutral py_test. The caller does not name
-    an OS/arch; Bazel selects the matching pinned inner Bazel binary for the
-    host. Environment-specific matrix targets can still be emitted separately
-    with museum_project(...).
-    """
+    """Deprecated compatibility helper. Prefer museum_project(...)."""
     client = clients_for(bazel_version, clients)[0]
     project_id = "{}__{}".format(native.package_name().replace("/", "_") or name, name)
 
@@ -345,7 +371,6 @@ def museum_project(
         toolchains = [],
         bazel_version = DEFAULT_INNER_BAZEL_VERSION,
         clients = None,
-        emit_client_aliases = True,
         visibility = ["//visibility:public"]):
     """Declare a museum project and emit its environment x platform x command grid.
 
@@ -364,8 +389,6 @@ def museum_project(
       clients: the client axis (see //builds:clients.bzl): a list of client
         names (e.g. ["bazel8", "bazel9"]) this project supports. The first is the
         default. When omitted, a single client is derived from `bazel_version`.
-      emit_client_aliases: whether to emit back-compat aliases without the client
-        segment, e.g. test_local_linux_amd64 -> test_local_bazel8_linux_amd64.
       visibility: visibility for the generated goal targets.
     """
 
@@ -376,13 +399,16 @@ def museum_project(
     client_structs = clients_for(bazel_version, clients)
     default_client = client_structs[0]
 
+    emitted = {}
     for env in environments:
         for plat_name in env.platforms:
             plat = PLATFORMS[plat_name]
             for spec in specs:
                 for client in client_structs:
+                    goal_name = _goal_name(env, client, default_client, plat, spec)
                     goal_name = _emit_goal(
                         project_id,
+                        goal_name,
                         source_archive,
                         strip_prefix,
                         toolchains,
@@ -392,17 +418,9 @@ def museum_project(
                         client,
                         visibility,
                     )
+                    emitted[(env.name, client.name, plat.name, spec.command)] = goal_name
 
-                    # Back-compat alias without the client segment, pointing at
-                    # the project's default (first) client. Keeps the historical
-                    # `<cmd>_<env>_<platform>` goal names working and gives the
-                    # test dispatcher a stable name when `client` is omitted.
-                    if emit_client_aliases and client == default_client:
-                        native.alias(
-                            name = "{}_{}_{}".format(spec.command, env.name, plat.name),
-                            actual = ":" + goal_name,
-                            visibility = visibility,
-                        )
+    _emit_test_suites(name, environments, specs, emitted, default_client, visibility)
 
 def bcr_project(
         name,
@@ -458,6 +476,7 @@ def bcr_project(
     client_structs = clients_for(bazel_version, clients)
     default_client = client_structs[0]
     bcr_module = "{}={}".format(module, version)
+    emitted = {}
 
     for env in environments:
         env_toolchains = pin_toolchains if env.pin_platform else host_toolchains
@@ -465,8 +484,10 @@ def bcr_project(
             plat = PLATFORMS[plat_name]
             for spec in specs:
                 for client in client_structs:
+                    goal_name = _goal_name(env, client, default_client, plat, spec)
                     goal_name = _emit_goal(
                         project_id,
+                        goal_name,
                         None,  # no source archive
                         "",
                         env_toolchains,
@@ -477,9 +498,6 @@ def bcr_project(
                         visibility,
                         bcr_module = bcr_module,
                     )
-                    if client == default_client:
-                        native.alias(
-                            name = "{}_{}_{}".format(spec.command, env.name, plat.name),
-                            actual = ":" + goal_name,
-                            visibility = visibility,
-                        )
+                    emitted[(env.name, client.name, plat.name, spec.command)] = goal_name
+
+    _emit_test_suites(name, environments, specs, emitted, default_client, visibility)

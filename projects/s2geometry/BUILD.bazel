@@ -11,8 +11,8 @@ load("//builds:overlays.bzl", "HERMETIC_LLVM")
 # rules and its MODULE declares all deps (abseil, skylib, rules_cc, googletest)
 # including platforms, so it runs on the default Bazel 9 inner with no dep overlay.
 #
-#   bazel run //builds/s2geometry:build_local_linux_amd64
-#   bazel run //builds/s2geometry:test_local_linux_amd64
+#   bazel run //projects/s2geometry:build_local_linux_amd64
+#   bazel run //projects/s2geometry:test_local_linux_amd64
 museum_project(
     name = "s2geometry",
     source_archive = "@s2geometry_archive//file",

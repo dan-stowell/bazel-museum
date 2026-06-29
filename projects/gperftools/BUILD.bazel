@@ -3,7 +3,7 @@ load("//builds:environments.bzl", "LOCAL", "MINIMG", "RBE")
 load("//builds:overlays.bzl", "HERMETIC_LLVM")
 
 # gperftools — Google performance tools: the tcmalloc allocator + profilers (C++).
-# Source pinned in //tools/fetch:extension.bzl (@gperftools_archive, release
+# Source pinned in //kiss:extension.bzl (@gperftools_archive, release
 # 2.18.1), built with the fully-hermetic LLVM toolchain. First-party Bazel, but
 # its tests pull in googletest (cc_* unloaded), so it runs on the Bazel 8.7
 # inner. (gperftools declares a direct platforms dep, so no PLATFORMS_DEP.)

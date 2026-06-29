@@ -1,9 +1,4 @@
-"""Bazel Museum: a collection of reproducible Bazel builds of public projects.
-
-This module hosts (1) a data pipeline that discovers public projects building
-with Bazel, (2) tooling to run Bazel builds in isolation, and (3) the build
-collection itself. See docs/ for the design.
-"""
+"""Bazel Museum: KISS Bazel builds of public projects."""
 
 module(
     name = "bazel_museum",
@@ -15,168 +10,84 @@ module(
 bazel_dep(name = "rules_python", version = "2.0.3")
 bazel_dep(name = "platforms", version = "1.1.0")
 
-# The "build it as it is" container (//runner/image): a pinned, ordinary CI
-# machine assembled entirely with Bazel. rules_img stacks the layers; the host
-# toolchain comes in as hermetic .deb layers resolved by rules_distroless (see
-# //runner/image/toolchain.yaml). This is the reproducibility boundary for the
-# "builds with bazelisk alone (plus the host tools real projects assume)" goal.
-bazel_dep(name = "rules_img", version = "0.3.13")
-bazel_dep(name = "rules_distroless", version = "0.8.0")
-bazel_dep(name = "tar.bzl", version = "0.10.4")
-bazel_dep(name = "rules_shell", version = "0.4.1")  # sh_binary for //projects/<p> targets
-
-# For building the hermetic `zip` tool (//tools/zip) from Info-ZIP source. We
-# build it with the same hermetic LLVM toolchain the inner builds use, so the
-# museum needs no host C compiler and no host `zip` — registered here, it's the
-# default C++ toolchain for the (only) C target in this module, the zip CLI.
-# Lazy: @llvm is only fetched/built when a C++ target is actually built.
-bazel_dep(name = "rules_cc", version = "0.2.19")
-bazel_dep(name = "llvm", version = "0.8.9")
-register_toolchains("@llvm//toolchain:all")
-
-infozip = use_extension("//tools/zip:extension.bzl", "infozip")
-use_repo(infozip, "infozip")
-
-# Hermetic Python toolchain so the pipeline runs the same everywhere.
+# Hermetic Python toolchain so the KISS tests run the same everywhere.
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
 python.toolchain(
     is_default = True,
     python_version = "3.12",
 )
 
-# Hermetic `gh` CLI, downloaded and pinned (see //tools/gh:extension.bzl).
-# Used by the pipeline to enrich project metadata (stars, archived, etc.).
-gh = use_extension("//tools/gh:extension.bzl", "gh_extension")
-use_repo(
-    gh,
-    "gh_cli_linux_amd64",
-    "gh_cli_linux_arm64",
-    "gh_cli_darwin_amd64",
-    "gh_cli_darwin_arm64",
-)
-
 # Hermetic Bazel binary used to run the *inner* project builds in isolation,
-# and pinned source archives of the museum's projects (see //tools/fetch).
-inner_bazel = use_extension("//tools/fetch:extension.bzl", "inner_bazel")
+# and pinned source archives of the museum's projects.
+inner_bazel = use_extension("//kiss:extension.bzl", "inner_bazel")
 use_repo(
     inner_bazel,
     # Bazel 9.1.1 (default inner).
-    "inner_bazel_9_1_1_linux_amd64",
-    "inner_bazel_9_1_1_linux_arm64",
     "inner_bazel_9_1_1_darwin_amd64",
     "inner_bazel_9_1_1_darwin_arm64",
+    "inner_bazel_9_1_1_linux_amd64",
+    "inner_bazel_9_1_1_linux_arm64",
     # Bazel 8.7.0 (for projects that target Bazel 8, e.g. grpc; late enough to
     # have repo_metadata so hermetic-llvm runs).
-    "inner_bazel_8_7_0_linux_amd64",
-    "inner_bazel_8_7_0_linux_arm64",
     "inner_bazel_8_7_0_darwin_amd64",
     "inner_bazel_8_7_0_darwin_arm64",
+    "inner_bazel_8_7_0_linux_amd64",
+    "inner_bazel_8_7_0_linux_arm64",
 )
 
-project_sources = use_extension("//tools/fetch:extension.bzl", "project_sources")
+project_sources = use_extension("//kiss:extension.bzl", "project_sources")
 use_repo(
     project_sources,
-    "absl_archive",
-    "copybara_archive",
-    "cxx_archive",
-    "protobuf_archive",
-    "grpc_archive",
-    "grpc_gateway_archive",
-    "cpptrace_archive",
-    "iceoryx2_archive",
-    "pcre2_archive",
-    "lcm_archive",
-    "opentelemetry_cpp_archive",
-    "highs_archive",
-    "openexr_archive",
-    "prometheus_cpp_archive",
-    "double_conversion_archive",
-    "quill_archive",
-    "z3_archive",
-    "gflags_archive",
-    "crow_archive",
     "abseil_py_archive",
+    "absl_archive",
+    "bazel_archive",
+    "benchmark_archive",
+    "boringssl_archive",
+    "brotli_archive",
+    "buildtools_archive",
+    "catch2_archive",
+    "cctz_archive",
+    "cli11_archive",
+    "copybara_archive",
+    "cpptrace_archive",
+    "cpu_features_archive",
+    "crow_archive",
+    "cxx_archive",
+    "doctest_archive",
+    "double_conversion_archive",
+    "fast_float_archive",
+    "flatbuffers_archive",
+    "ftxui_archive",
+    "fuzztest_archive",
+    "gflags_archive",
+    "glog_archive",
     "go_jsonnet_archive",
     "googletest_archive",
-    "json_archive",
-    "flatbuffers_archive",
-    "catch2_archive",
-    "ortools_archive",
-    "brotli_archive",
-    "bazel_archive",
-    "re2_archive",
-    "snappy_archive",
-    "benchmark_archive",
-    "zlib_archive",
-    "highway_archive",
-    "jsoncpp_archive",
-    "magic_enum_archive",
-    "ftxui_archive",
-    "jsonnet_archive",
     "gperftools_archive",
-    "opencc_archive",
-    "cpu_features_archive",
-    "fast_float_archive",
-    "cli11_archive",
-    "glog_archive",
-    "onetbb_archive",
-    "doctest_archive",
-    "cctz_archive",
-    "buildtools_archive",
-    "boringssl_archive",
+    "grpc_archive",
+    "grpc_gateway_archive",
+    "highs_archive",
+    "highway_archive",
+    "iceoryx2_archive",
+    "json_archive",
+    "jsoncpp_archive",
+    "jsonnet_archive",
+    "lcm_archive",
+    "magic_enum_archive",
     "nsync_archive",
+    "onetbb_archive",
+    "opencc_archive",
+    "openexr_archive",
+    "opentelemetry_cpp_archive",
+    "ortools_archive",
+    "pcre2_archive",
+    "prometheus_cpp_archive",
+    "protobuf_archive",
+    "quill_archive",
+    "re2_archive",
     "s2geometry_archive",
+    "snappy_archive",
     "verible_archive",
-    "fuzztest_archive",
-)
-
-# Hermetic `actiond` worker binary (see //tools/actiond:extension.bzl). actiond
-# is the local Linux RE worker behind the ACTIOND environment: it runs the
-# museum's projects for linux/arm64 inside a VM on this host. `bazel run
-# //tools/actiond:serve` boots it.
-actiond = use_extension("//tools/actiond:extension.bzl", "actiond")
-use_repo(
-    actiond,
-    "actiond_darwin_arm64",
-    "actiond_linux_arm64",
-    "actiond_linux_amd64",
-)
-
-# --- The "build it as it is" container image (//runner/image) ----------------
-
-# Base userland: debian:bookworm-slim, pinned by digest. layer_handling=eager
-# so the base layers are available to assemble a loadable image (not just for
-# push). The toolchain rides on top as rules_distroless apt layers.
-pull = use_repo_rule("@rules_img//img:pull.bzl", "pull")
-pull(
-    name = "debian_bookworm_slim",
-    digest = "sha256:60eac759739651111db372c07be67863818726f754804b8707c90979bda511df",
-    registry = "index.docker.io",
-    repository = "library/debian",
-    tag = "bookworm-slim",
-    layer_handling = "eager",
-)
-
-# Host toolchain (gcc/g++, JDK, python, git, curl, zip) resolved from a pinned
-# Debian snapshot into hermetic .deb layers. See //runner/image/toolchain.yaml.
-apt = use_extension("@rules_distroless//apt:extensions.bzl", "apt")
-apt.install(
-    name = "toolchain_apt",
-    manifest = "//runner/image:toolchain.yaml",
-    lock = "//runner/image:toolchain.lock.json",
-)
-use_repo(apt, "toolchain_apt")
-
-# Hermetic `crun` (static OCI runtime) for running the image daemonlessly and
-# rootlessly — no dockerd. See //tools/crun:extension.bzl and projects/run.sh.
-crun = use_extension("//tools/crun:extension.bzl", "crun")
-use_repo(crun, "crun_linux_amd64", "crun_linux_arm64")
-
-# bazelisk binary, baked into the image so the only entrypoint is "run bazel".
-http_file = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
-http_file(
-    name = "bazelisk_linux_amd64",
-    executable = True,
-    sha256 = "fd8fdff418a1758887520fa42da7e6ae39aefc788cf5e7f7bb8db6934d279fc4",
-    urls = ["https://github.com/bazelbuild/bazelisk/releases/download/v1.25.0/bazelisk-linux-amd64"],
+    "z3_archive",
+    "zlib_archive",
 )

@@ -3,7 +3,7 @@ load("//builds:environments.bzl", "LOCAL", "MINIMG", "RBE")
 load("//builds:overlays.bzl", "HERMETIC_LLVM", "overlay")
 
 # jsoncpp — the classic C++ JSON parser/serializer.
-# Source pinned in //tools/fetch:extension.bzl (@jsoncpp_archive, release
+# Source pinned in //kiss:extension.bzl (@jsoncpp_archive, release
 # 1.9.8), built with the fully-hermetic LLVM toolchain. jsoncpp ships
 # first-party Bazel files that load rules_cc and its unit test uses its own
 # harness (not googletest), so the default 9.1.1 inner builds it as-authored.

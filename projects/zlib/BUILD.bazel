@@ -3,7 +3,7 @@ load("//builds:environments.bzl", "LOCAL", "MINIMG", "RBE")
 load("//builds:overlays.bzl", "HERMETIC_LLVM")
 
 # zlib — the ubiquitous DEFLATE compression library (C).
-# Source pinned in //tools/fetch:extension.bzl (@zlib_archive, release v1.3.2),
+# Source pinned in //kiss:extension.bzl (@zlib_archive, release v1.3.2),
 # built with the fully-hermetic LLVM toolchain (zlib is C, so this exercises the
 # toolchain's C path). zlib ships first-party Bazel files (MODULE.bazel + a
 # BUILD that loads rules_cc), so the default 9.1.1 inner builds it as-authored.

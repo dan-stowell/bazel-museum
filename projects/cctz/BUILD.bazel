@@ -3,7 +3,7 @@ load("//builds:environments.bzl", "LOCAL", "MINIMG", "RBE")
 load("//builds:overlays.bzl", "HERMETIC_LLVM")
 
 # cctz — Google's C++ library for civil-time and time-zone calculations (the
-# basis of absl::time). Source pinned in //tools/fetch:extension.bzl
+# basis of absl::time). Source pinned in //kiss:extension.bzl
 # (@cctz_archive, master commit f353c12), built with the fully-hermetic LLVM
 # toolchain. cctz declares the platforms dep directly (no PLATFORMS_DEP) and
 # googletest comes from its own MODULE dep (BCR). Although its own BUILD loads

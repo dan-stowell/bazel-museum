@@ -4,7 +4,7 @@ load("//builds:overlays.bzl", "HERMETIC_LLVM", "PLATFORMS_DEP")
 
 # abseil-py — Google's Python common libraries (application/flags/logging/testing),
 # the Python sibling of the C++ //projects/abseil_cpp. Source pinned in
-# //tools/fetch:extension.bzl (@abseil_py_archive, release v2.4.0). First-party
+# //kiss:extension.bzl (@abseil_py_archive, release v2.4.0). First-party
 # Bazel: built and tested with rules_python on a hermetic interpreter. It's pure
 # Python (no C code), so HERMETIC_LLVM is only a no-op registration; PLATFORMS_DEP
 # supplies @platforms visibility for the injected RBE platform (abseil-py's MODULE

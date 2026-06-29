@@ -3,28 +3,28 @@ load("@rules_python//python:defs.bzl", "py_test")
 def inner_bazel(version):
     vtag = version.replace(".", "_")
     return select({
-        "//builds:linux_amd64": "@inner_bazel_{}_linux_amd64//file".format(vtag),
-        "//builds:linux_arm64": "@inner_bazel_{}_linux_arm64//file".format(vtag),
-        "//builds:darwin_amd64": "@inner_bazel_{}_darwin_amd64//file".format(vtag),
-        "//builds:darwin_arm64": "@inner_bazel_{}_darwin_arm64//file".format(vtag),
+        "//kiss:linux_amd64": "@inner_bazel_{}_linux_amd64//file".format(vtag),
+        "//kiss:linux_arm64": "@inner_bazel_{}_linux_arm64//file".format(vtag),
+        "//kiss:darwin_amd64": "@inner_bazel_{}_darwin_amd64//file".format(vtag),
+        "//kiss:darwin_arm64": "@inner_bazel_{}_darwin_arm64//file".format(vtag),
     })
 
 def inner_bazel_data(version):
     vtag = version.replace(".", "_")
     return select({
-        "//builds:linux_amd64": ["@inner_bazel_{}_linux_amd64//file".format(vtag)],
-        "//builds:linux_arm64": ["@inner_bazel_{}_linux_arm64//file".format(vtag)],
-        "//builds:darwin_amd64": ["@inner_bazel_{}_darwin_amd64//file".format(vtag)],
-        "//builds:darwin_arm64": ["@inner_bazel_{}_darwin_arm64//file".format(vtag)],
+        "//kiss:linux_amd64": ["@inner_bazel_{}_linux_amd64//file".format(vtag)],
+        "//kiss:linux_arm64": ["@inner_bazel_{}_linux_arm64//file".format(vtag)],
+        "//kiss:darwin_amd64": ["@inner_bazel_{}_darwin_amd64//file".format(vtag)],
+        "//kiss:darwin_arm64": ["@inner_bazel_{}_darwin_arm64//file".format(vtag)],
     })
 
 def inner_bazel_arg(version):
     vtag = version.replace(".", "_")
     return select({
-        "//builds:linux_amd64": ["--bazel=$(rlocationpath @inner_bazel_{}_linux_amd64//file)".format(vtag)],
-        "//builds:linux_arm64": ["--bazel=$(rlocationpath @inner_bazel_{}_linux_arm64//file)".format(vtag)],
-        "//builds:darwin_amd64": ["--bazel=$(rlocationpath @inner_bazel_{}_darwin_amd64//file)".format(vtag)],
-        "//builds:darwin_arm64": ["--bazel=$(rlocationpath @inner_bazel_{}_darwin_arm64//file)".format(vtag)],
+        "//kiss:linux_amd64": ["--bazel=$(rlocationpath @inner_bazel_{}_linux_amd64//file)".format(vtag)],
+        "//kiss:linux_arm64": ["--bazel=$(rlocationpath @inner_bazel_{}_linux_arm64//file)".format(vtag)],
+        "//kiss:darwin_amd64": ["--bazel=$(rlocationpath @inner_bazel_{}_darwin_amd64//file)".format(vtag)],
+        "//kiss:darwin_arm64": ["--bazel=$(rlocationpath @inner_bazel_{}_darwin_arm64//file)".format(vtag)],
     })
 
 def _extract_source_impl(ctx):
@@ -96,7 +96,7 @@ _kiss_build = rule(
         "source": attr.label(mandatory = True),
         "targets": attr.string_list(mandatory = True),
         "_runner": attr.label(
-            default = Label("//tools/kiss:kiss_runner"),
+            default = Label("//kiss:kiss_runner"),
             executable = True,
             cfg = "exec",
         ),
@@ -121,7 +121,7 @@ def kiss_test(name, source, targets, bazel = None, bazel_data = None, bazel_arg 
 
     py_test(
         name = name,
-        srcs = ["//tools/kiss:kiss_runner.py"],
+        srcs = ["//kiss:kiss_runner.py"],
         main = "kiss_runner.py",
         args = [
             "--mode=test",

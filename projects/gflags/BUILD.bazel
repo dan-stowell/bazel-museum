@@ -3,7 +3,7 @@ load("//builds:environments.bzl", "LOCAL", "MINIMG", "RBE")
 load("//builds:overlays.bzl", "HERMETIC_LLVM", "PLATFORMS_DEP")
 
 # gflags — Google's C++ command-line flags library. Source pinned in
-# //tools/fetch:extension.bzl (@gflags_archive, release v2.3.0). Its root BUILD
+# //kiss:extension.bzl (@gflags_archive, release v2.3.0). Its root BUILD
 # builds the library through a gflags_library macro that loads cc_library from
 # rules_cc, so it runs on the Bazel 9 inner with the hermetic LLVM toolchain.
 # gflags' tests are CMake-only (test/ uses CMakeLists.txt), so there is no

@@ -1,8 +1,0 @@
-# Root package. The interesting targets live under //pipeline and //tools.
-
-# Convenience alias so `bazel run //:gather` works from the repo root.
-alias(
-    name = "gather",
-    actual = "//pipeline:gather",
-    visibility = ["//visibility:public"],
-)

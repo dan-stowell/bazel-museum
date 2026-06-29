@@ -4,7 +4,7 @@ load("//builds:overlays.bzl", "HERMETIC_LLVM")
 
 # nsync — Google's small C library of synchronization primitives (mutexes,
 # condition variables, notes, once), with a C++ wrapper. Source pinned in
-# //tools/fetch:extension.bzl (@nsync_archive, release 1.30.0), built with the
+# //kiss:extension.bzl (@nsync_archive, release 1.30.0), built with the
 # fully-hermetic LLVM toolchain. Its BUILD uses the unloaded cc_* rules, so it
 # runs on the Bazel 8.7 inner. (nsync declares the platforms dep directly, so no
 # PLATFORMS_DEP.)

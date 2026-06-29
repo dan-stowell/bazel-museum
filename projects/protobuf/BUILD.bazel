@@ -3,7 +3,7 @@ load("//builds:environments.bzl", "ACTIOND", "LOCAL", "MINIMG", "RBE")
 load("//builds:overlays.bzl", "HERMETIC_LLVM")
 
 # Protocol Buffers — the museum's marquee first-party Bazel C++ project.
-# Source pinned in //tools/fetch:extension.bzl (@protobuf_archive, the v35.1
+# Source pinned in //kiss:extension.bzl (@protobuf_archive, the v35.1
 # Bazel source dist). Built with the fully-hermetic LLVM toolchain (no host
 # gcc); pulls abseil-cpp / rules_cc / zlib from the BCR via the inner Bazel.
 #

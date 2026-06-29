@@ -3,7 +3,7 @@ load("//builds:environments.bzl", "LOCAL", "MINIMG", "RBE")
 load("//builds:overlays.bzl", "HERMETIC_LLVM")
 
 # quill — an asynchronous, low-latency C++ logging library. Source pinned in
-# //tools/fetch:extension.bzl (@quill_archive, release v12.0.0). First-party
+# //kiss:extension.bzl (@quill_archive, release v12.0.0). First-party
 # Bazel (bzlmod): its root BUILD calls cc_library unloaded, so it runs on the
 # Bazel 8.7 inner with the hermetic LLVM toolchain. No upstream Bazel test
 # target, so this is a build-only project. quill's MODULE declares a direct

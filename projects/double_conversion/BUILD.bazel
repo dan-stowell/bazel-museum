@@ -4,7 +4,7 @@ load("//builds:overlays.bzl", "HERMETIC_LLVM", "PLATFORMS_DEP")
 
 # double-conversion — Google's library for binary-decimal conversion of IEEE-754
 # doubles (the workhorse behind many printf/strtod implementations). Source
-# pinned in //tools/fetch:extension.bzl (@double_conversion_archive, v3.4.0).
+# pinned in //kiss:extension.bzl (@double_conversion_archive, v3.4.0).
 # First-party Bazel: its root BUILD calls cc_* unloaded, so the 8.7 inner with
 # the hermetic LLVM toolchain. PLATFORMS_DEP supplies @platforms for the injected
 # RBE platform (its MODULE declares no direct platforms dep).

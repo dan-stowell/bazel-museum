@@ -4,7 +4,7 @@ load("//builds:overlays.bzl", "HERMETIC_LLVM")
 
 # fuzztest — Google's C++ testing/fuzzing framework (the FUZZ_TEST macro,
 # property-based "domains", and the Centipede engine). Source pinned in
-# //tools/fetch:extension.bzl (@fuzztest_archive, a commit archive), built with
+# //kiss:extension.bzl (@fuzztest_archive, a commit archive), built with
 # the fully-hermetic LLVM toolchain. First-party Bazel (MODULE.bazel + loaded cc_*
 # rules; it names its own repo @com_google_fuzztest, which resolves when fuzztest
 # is the root module). Its MODULE declares all deps (abseil, re2, googletest, ... +

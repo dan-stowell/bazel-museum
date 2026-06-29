@@ -3,7 +3,7 @@ set -uo pipefail
 
 usage() {
   cat <<'EOF'
-Usage: tools/kiss/run_builds.sh [--list] [--clean|--no-clean] [--] [TARGET...]
+Usage: kiss/run_builds.sh [--list] [--clean|--no-clean] [--] [TARGET...]
 
 Runs KISS build targets sequentially. With no TARGET arguments, discovers all
 //projects/...:kiss_build targets.
@@ -13,7 +13,7 @@ outer build outputs. Set --no-clean or KISS_CLEAN_BETWEEN=0 to disable that.
 
 Extra Bazel flags can be supplied through BAZEL_BUILD_FLAGS, for example:
 
-  BAZEL_BUILD_FLAGS="--verbose_failures" tools/kiss/run_builds.sh 2>&1 | tee kiss-builds.log
+  BAZEL_BUILD_FLAGS="--verbose_failures" kiss/run_builds.sh 2>&1 | tee kiss-builds.log
 
 Set BAZEL=/path/to/bazel to use a different Bazel client.
 Set BAZEL_CLEAN_FLAGS to pass flags to `bazel clean`.

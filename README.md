@@ -26,21 +26,21 @@ bazel test //projects/re2:kiss_test
 List all KISS build targets:
 
 ```sh
-tools/kiss/run_builds.sh --list
+kiss/run_builds.sh --list
 ```
 
 Run all KISS builds sequentially, with a clean outer Bazel output tree before
 each project:
 
 ```sh
-tools/kiss/run_builds.sh 2>&1 | tee kiss-builds.log
+kiss/run_builds.sh 2>&1 | tee kiss-builds.log
 ```
 
 Useful variants:
 
 ```sh
-BAZEL_BUILD_FLAGS="--verbose_failures" tools/kiss/run_builds.sh 2>&1 | tee kiss-builds.log
-tools/kiss/run_builds.sh --no-clean //projects/re2:kiss_build //projects/snappy:kiss_build
+BAZEL_BUILD_FLAGS="--verbose_failures" kiss/run_builds.sh 2>&1 | tee kiss-builds.log
+kiss/run_builds.sh --no-clean //projects/re2:kiss_build //projects/snappy:kiss_build
 ```
 
 ## Target Convention
@@ -176,13 +176,13 @@ Projects with `kiss_test` targets:
 
 ## Implementation Notes
 
-The shared KISS helpers live in `//tools/kiss`.
+The shared KISS helpers live in `//kiss`.
 
 `kiss_build` uses an action-local inner Bazel `--output_user_root` so nested
 Bazel has writable scratch space without using the host user's Bazel output
 tree. The output root is not part of the final artifact; the declared output is
 the `kiss_build.tar` bundle.
 
-`tools/kiss/run_builds.sh` runs `bazel clean` before each project by default.
+`kiss/run_builds.sh` runs `bazel clean` before each project by default.
 Disable that with `--no-clean` when you deliberately want outer Bazel caching
 between projects.

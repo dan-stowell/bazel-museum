@@ -16,8 +16,7 @@ load("//builds:overlays.bzl", "HERMETIC_LLVM")
 # Note on host tooling: copybara's tests shell out to version-control binaries.
 # The Mercurial (`hg`) tests are excluded because `hg` isn't a hermetic input
 # (and isn't installed); the Git tests currently use the host `git`. Making git
-# hermetic (a pinned-binary overlay, like we did for bazel/gh/llvm) is a natural
-# follow-up. See docs/DESIGN.md.
+# hermetic (a pinned-binary overlay) is a natural follow-up.
 museum_project(
     name = "copybara",
     source_archive = "@copybara_archive//file",

@@ -3,7 +3,7 @@ load("//builds:environments.bzl", "LOCAL", "MINIMG", "RBE")
 load("//builds:overlays.bzl", "HERMETIC_LLVM", "PLATFORMS_DEP")
 
 # CLI11 — a command-line parser for C++11 (header-only, optionally compiled).
-# Source pinned in //tools/fetch:extension.bzl (@cli11_archive, release v2.4.2),
+# Source pinned in //kiss:extension.bzl (@cli11_archive, release v2.4.2),
 # built with the fully-hermetic LLVM toolchain. Its Catch2-based tests use the
 # unloaded cc_* rules, so it runs on the Bazel 8.7 inner. PLATFORMS_DEP supplies
 # the @platforms visibility the injected RBE platform package needs (CLI11's

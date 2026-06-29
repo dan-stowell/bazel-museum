@@ -3,7 +3,7 @@ load("//builds:environments.bzl", "LOCAL", "MINIMG", "RBE")
 load("//builds:overlays.bzl", "HERMETIC_LLVM", "PLATFORMS_DEP")
 
 # Crow — a header-only C++ microframework for building web services and APIs.
-# Source pinned in //tools/fetch:extension.bzl (@crow_archive, release v1.3.2).
+# Source pinned in //kiss:extension.bzl (@crow_archive, release v1.3.2).
 # First-party Bazel: pulls asio, zlib and catch2 from the BCR. Its root BUILD
 # calls cc_library unloaded, so it runs on the Bazel 8.7 inner with the hermetic
 # LLVM toolchain. Crow's only Bazel cc_test is SSL-gated (empty without the

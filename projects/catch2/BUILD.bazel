@@ -3,7 +3,7 @@ load("//builds:environments.bzl", "ACTIOND", "LOCAL", "MINIMG", "RBE")
 load("//builds:overlays.bzl", "HERMETIC_LLVM", "PLATFORMS_DEP")
 
 # Catch2 — C++ test framework.
-# Source pinned in //tools/fetch:extension.bzl (@catch2_archive, v3.15.1), built
+# Source pinned in //kiss:extension.bzl (@catch2_archive, v3.15.1), built
 # with the fully-hermetic LLVM toolchain. Iconic artifact: the catch2_main
 # library (and the full framework underneath it).
 #

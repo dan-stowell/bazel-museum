@@ -3,7 +3,7 @@ load("//builds:environments.bzl", "LOCAL", "MINIMG", "RBE")
 load("//builds:overlays.bzl", "HERMETIC_LLVM")
 
 # z3 — Microsoft Research's Z3 SMT theorem prover (C++). Source pinned in
-# //tools/fetch:extension.bzl (@z3_archive, release z3-4.16.0). First-party
+# //kiss:extension.bzl (@z3_archive, release z3-4.16.0). First-party
 # Bazel: its //:z3 target is a rules_foreign_cc cmake() build, so the host-local
 # path drives the project's own CMake build with the host cmake/make/gcc. No
 # upstream Bazel test target, so this is a build-only project. z3's MODULE

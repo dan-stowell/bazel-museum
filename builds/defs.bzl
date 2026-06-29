@@ -1,104 +1,14 @@
-"""`museum_project`: declare isolated, daemonless inner Bazel builds across a
-matrix of environments x platforms x commands.
+"""KISS-only project macros.
 
-A *project* pins a source tarball and a set of toolchain overlays, then names the
-environments it targets (see //builds:environments.bzl) and its `build`/`test`
-specs. museum_project crosses those, emitting concrete per-cell goals plus small
-test suites for the common entry points:
-
-    load("//builds:defs.bzl", "build_spec", "museum_project", "test_spec")
-    load("//builds:environments.bzl", "LOCAL", "RBE")
-    load("//builds:overlays.bzl", "HERMETIC_LLVM")
-
-    museum_project(
-        name = "cxx",
-        source_archive = "@cxx_archive//file",
-        strip_prefix = "cxx-1.0.194",
-        toolchains = [HERMETIC_LLVM],          # applied to every goal
-        environments = [LOCAL, RBE],
-        build = build_spec(targets = ["//:cxx", "//:core"]),
-        test = test_spec(targets = ["//..."]),
-    )
-
-    # then:
-    #   bazel test //projects/cxx
-    #   bazel test //projects/cxx:local_test
-    #   bazel test //projects/cxx:minimg_test
-    #   bazel test //projects/cxx:buildbuddy_test
-
-Only *runnable* cells are emitted: `rbe` only lists the platforms it has
-executors for, and `local` goals are gated on the host matching their platform
-(so `local_linux_amd64_test` is inert on this Mac and live on the linux VM).
+The project BUILD files still describe build/test target patterns with
+`museum_project(...)`, but this trimmed repo only emits `:kiss_source`,
+`:kiss_build`, and `:kiss_test` for source-archive projects.
 """
 
-load("@rules_python//python:defs.bzl", "py_binary", "py_test")
-load("//tools/fetch:extension.bzl", "DEFAULT_INNER_BAZEL_VERSION")
-load("//tools/kiss:defs.bzl", "extract_source", "inner_bazel", "inner_bazel_arg", "inner_bazel_data", "kiss_build", "kiss_test")
-load(":clients.bzl", "clients_for")
-load(":overlays.bzl", "HERMETIC_LLVM")
-load(":platforms.bzl", "PLATFORMS")
-
-# Per-OS+CPU selection of the pinned inner Bazel binary (data dep + runfiles
-# path), for a given inner Bazel version. We key on os *and* cpu because the
-# official release binaries differ per platform: a cpu-only select would, e.g.,
-# match the linux arm64 binary on a macOS arm64 host. The config settings are
-# defined in //builds:BUILD.bazel; the repos come from //tools/fetch.
-def _inner_bazel_data(version):
-    vtag = version.replace(".", "_")
-    return select({
-        "//builds:linux_amd64": ["@inner_bazel_{}_linux_amd64//file".format(vtag)],
-        "//builds:linux_arm64": ["@inner_bazel_{}_linux_arm64//file".format(vtag)],
-        "//builds:darwin_amd64": ["@inner_bazel_{}_darwin_amd64//file".format(vtag)],
-        "//builds:darwin_arm64": ["@inner_bazel_{}_darwin_arm64//file".format(vtag)],
-    })
-
-def _inner_bazel_arg(version):
-    vtag = version.replace(".", "_")
-    return select({
-        "//builds:linux_amd64": ["--bazel=$(rlocationpath @inner_bazel_{}_linux_amd64//file)".format(vtag)],
-        "//builds:linux_arm64": ["--bazel=$(rlocationpath @inner_bazel_{}_linux_arm64//file)".format(vtag)],
-        "//builds:darwin_amd64": ["--bazel=$(rlocationpath @inner_bazel_{}_darwin_amd64//file)".format(vtag)],
-        "//builds:darwin_arm64": ["--bazel=$(rlocationpath @inner_bazel_{}_darwin_arm64//file)".format(vtag)],
-    })
-
-# The injected RBE platform package (one platform() per os/arch). pin_platform
-# environments append this and point the platform flags at //museum_rbe:<plat>.
-_RBE_PLATFORMS_FILE = "//tools/buildrunner/overlays:rbe_platforms.BUILD.bazel"
-_RBE_PLATFORMS_DEST = "museum_rbe/BUILD.bazel"
-
-# Flags applied to every goal regardless of command/env: make the output tree
-# self-describing by naming directories after the actual target platform (rather
-# than the legacy --cpu mnemonic, which otherwise leaks the host's identity).
-_COMMON_FLAGS = ["--experimental_platform_in_output_dir"]
-
-# Sensible defaults per command so `bazel test` shows failures and keeps going
-# (so we see how many targets pass). Specs/overlays can override via later flags.
-_COMMAND_DEFAULT_FLAGS = {
-    "test": [
-        "--test_output=errors",
-        "--keep_going",
-        # Pin a UTF-8 locale for test actions: hermetic and reproducible, and it
-        # fixes JVM sun.jnu.encoding so tests touching Unicode file paths pass
-        # regardless of the host's locale.
-        "--test_env=LC_ALL=C.UTF-8",
-        "--test_env=LANG=C.UTF-8",
-    ],
-}
+load("//kiss:defs.bzl", "extract_source", "inner_bazel", "inner_bazel_arg", "inner_bazel_data", "kiss_build", "kiss_test")
+load("//kiss:extension.bzl", "DEFAULT_INNER_BAZEL_VERSION")
 
 def build_spec(targets, flags = [], exclude_on = {}, emit_artifacts = True):
-    """The `build` command for a project: what to build, plus extra flags.
-
-    Args:
-      targets: default build target patterns.
-      flags: extra flags for the inner `bazel build`.
-      exclude_on: dict env-name -> target patterns to *additionally* exclude in
-        that environment (e.g. a target that only builds with a host toolchain a
-        given environment lacks).
-      emit_artifacts: default True — after a successful build, copy each target's
-        outputs into `<build_root>/artifacts/` and write an `artifacts.json`
-        manifest (target -> files with sha256). Read from the build's event
-        stream, so it never forces a rebuild. Set False to opt a project out.
-    """
     return struct(
         command = "build",
         targets = targets,
@@ -108,192 +18,21 @@ def build_spec(targets, flags = [], exclude_on = {}, emit_artifacts = True):
     )
 
 def test_spec(targets, flags = [], exclude_on = {}):
-    """The `test` command for a project.
-
-    Args:
-      targets: default test target patterns (may include negative patterns).
-      flags: extra flags for the inner `bazel test`.
-      exclude_on: dict env-name -> list of target patterns to *additionally*
-        exclude in that environment (e.g. tests that only fail under RBE because
-        the executor runs as root or lacks the host timezone database).
-    """
-    return struct(command = "test", targets = targets, flags = flags, exclude_on = exclude_on)
-
-def _dedupe(items):
-    seen = {}
-    out = []
-    for it in items:
-        if it not in seen:
-            seen[it] = True
-            out.append(it)
-    return out
-
-def _env_target_name(env):
-    return "buildbuddy" if env.name == "rbe" else env.name
-
-def _goal_name(env, client, default_client, plat, spec):
-    env_name = _env_target_name(env)
-    if client == default_client:
-        return "{}_{}_{}".format(env_name, plat.name, spec.command)
-    return "{}_{}_{}_{}".format(env_name, client.name, plat.name, spec.command)
-
-def _suite_name(env, spec):
-    return "{}_{}".format(_env_target_name(env), spec.command)
-
-def _default_suite_platforms(env):
-    if env.name == "rbe":
-        return ["linux_amd64"]
-    return env.platforms
-
-def _emit_goal(project_id, goal_name, source_archive, strip_prefix, toolchains, env, plat, spec, client, visibility, bcr_module = None):
-    bazel_version = client.bazel_version
-
-    overlays = toolchains + env.overlays
-    appends = []  # (label, dest)
-    writes = []  # (label, dest)
-    patch_labels = []
-    overlay_flags = []
-    header_envs = []
-    tools = []  # (binary_label, name)
-    for ov in overlays:
-        appends += ov.appends
-        writes += ov.writes
-        patch_labels += ov.patches
-        overlay_flags += ov.build_flags
-        header_envs += ov.remote_header_envs
-        tools += getattr(ov, "tools", [])
-
-    # Pin the explicit execution+target platform for remote environments.
-    platform_flags = []
-    if env.pin_platform:
-        appends = appends + [(_RBE_PLATFORMS_FILE, _RBE_PLATFORMS_DEST)]
-        plat_label = "//museum_rbe:" + plat.name
-        platform_flags = [
-            "--platforms=" + plat_label,
-            "--extra_execution_platforms=" + plat_label,
-            # Pin the host platform too, so host/exec tool resolution (and the
-            # legacy --host_cpu) follows the executor rather than the orchestrator
-            # — otherwise a host tool built for the orchestrator (e.g. a darwin
-            # buildifier) gets shipped to a linux executor and fails to run.
-            "--host_platform=" + plat_label,
-        ]
-
-    args = [
-        "--name={}__{}".format(project_id, goal_name),
-        "--command=" + spec.command,
-    ]
-    if bcr_module:
-        # No source tarball: synthesize a root module that bazel_dep()s the BCR
-        # module and build/test its @name//... targets (the registry resolves
-        # source + patches + MODULE.bazel; overlays still append as usual).
-        args.append("--bcr-module=" + bcr_module)
-    else:
-        args.append("--source-archive=$(rlocationpath {})".format(source_archive))
-        if strip_prefix:
-            args.append("--strip-prefix=" + strip_prefix)
-
-    # Container environments (MINIMG) run the inner bazel inside a minimal image
-    # instead of on the host; the runner bind-mounts the build root + inner bazel.
-    if getattr(env, "container_image", None):
-        args.append("--container-image=" + env.container_image)
-
-    # Opt-in: copy this build's outputs out + write an artifacts.json manifest.
-    if getattr(spec, "emit_artifacts", False):
-        args.append("--emit-artifacts")
-
-    for label, dest in appends:
-        args.append("--append=$(rlocationpath {})={}".format(label, dest))
-    for label, dest in writes:
-        args.append("--write=$(rlocationpath {})={}".format(label, dest))
-    for label in patch_labels:
-        args.append("--patch=$(rlocationpath {})".format(label))
-    for env_spec in header_envs:
-        args.append("--remote-header-env=" + env_spec)
-    for tool_label, tool_name in tools:
-        args.append("--tool=$(rlocationpath {})={}".format(tool_label, tool_name))
-
-    all_flags = (
-        _COMMAND_DEFAULT_FLAGS.get(spec.command, []) +
-        overlay_flags +
-        platform_flags +
-        env.platform_flags.get(plat.name, []) +
-        _COMMON_FLAGS +
-        spec.flags
+    return struct(
+        command = "test",
+        targets = targets,
+        flags = flags,
+        exclude_on = exclude_on,
     )
-    for flag in all_flags:
-        args.append("--build-flag=" + flag)
 
-    targets = list(spec.targets)
-    for excluded in spec.exclude_on.get(env.name, []):
-        targets.append("-" + excluded if not excluded.startswith("-") else excluded)
-    for target in targets:
-        args.append("--target=" + target)
-
-    overlay_files = _dedupe(
-        [label for label, _ in appends] +
-        [label for label, _ in writes] +
-        patch_labels +
-        [label for label, _ in tools],
-    )
-    data = ([source_archive] if source_archive else []) + overlay_files + _inner_bazel_data(bazel_version)
-
-    # host_only environments (local) can only run when the host matches the
-    # goal's platform; mark the others incompatible so they're skipped, not run.
-    # host_cpu_only gates on CPU arch alone (any host OS): used by actiond, whose
-    # local worker runs a Linux guest of the *host's* arch — so e.g. only the
-    # linux_amd64 actiond goal is live on an x86_64 host (Linux or macOS).
-    compatible = None
-    if env.host_only:
-        compatible = [plat.os_constraint, plat.cpu_constraint]
-    elif env.host_cpu_only:
-        compatible = [plat.cpu_constraint]
-
-    rule = py_test if spec.command == "test" else py_binary
-    kwargs = {}
-    if spec.command == "test":
-        kwargs = {
-            "size": "large",
-            "timeout": "eternal",
-        }
-
-    rule(
-        name = goal_name,
-        srcs = ["//tools/buildrunner:runner.py"],
-        main = "runner.py",
-        deps = ["@rules_python//python/runfiles"],
-        data = data,
-        args = args + _inner_bazel_arg(bazel_version),
-        target_compatible_with = compatible,
-        visibility = visibility,
-        **kwargs
-    )
-    return goal_name
-
-def _emit_test_suites(name, environments, specs, emitted, default_client, visibility):
-    for env in environments:
-        for spec in specs:
-            if spec.command != "test":
-                continue
-            suite_tests = []
-            for plat_name in _default_suite_platforms(env):
-                key = (env.name, default_client.name, plat_name, "test")
-                if key in emitted:
-                    suite_tests.append(":" + emitted[key])
-            if suite_tests:
-                native.test_suite(
-                    name = _suite_name(env, spec),
-                    tests = suite_tests,
-                    visibility = visibility,
-                )
-
-def _emit_kiss_targets(source_archive, strip_prefix, build, test, default_client, visibility):
+def _emit_kiss_targets(source_archive, strip_prefix, build, test, bazel_version, visibility):
     extract_source(
         name = "kiss_source",
         archive = source_archive,
         strip_prefix = strip_prefix,
     )
 
-    bazel = inner_bazel(default_client.bazel_version)
+    bazel = inner_bazel(bazel_version)
     if build:
         kiss_build(
             name = "kiss_build",
@@ -307,86 +46,10 @@ def _emit_kiss_targets(source_archive, strip_prefix, build, test, default_client
             name = "kiss_test",
             source = ":kiss_source",
             targets = test.targets,
-            bazel_data = inner_bazel_data(default_client.bazel_version),
-            bazel_arg = inner_bazel_arg(default_client.bazel_version),
+            bazel_data = inner_bazel_data(bazel_version),
+            bazel_arg = inner_bazel_arg(bazel_version),
             visibility = visibility,
         )
-
-def project_test(
-        name,
-        source_archive,
-        test,
-        strip_prefix = "",
-        toolchains = [],
-        bazel_version = DEFAULT_INNER_BAZEL_VERSION,
-        clients = None,
-        visibility = ["//visibility:public"]):
-    """Deprecated compatibility helper. Prefer museum_project(...)."""
-    client = clients_for(bazel_version, clients)[0]
-    project_id = "{}__{}".format(native.package_name().replace("/", "_") or name, name)
-
-    appends = []
-    writes = []
-    patch_labels = []
-    overlay_flags = []
-    header_envs = []
-    tools = []
-    for ov in toolchains:
-        appends += ov.appends
-        writes += ov.writes
-        patch_labels += ov.patches
-        overlay_flags += ov.build_flags
-        header_envs += ov.remote_header_envs
-        tools += getattr(ov, "tools", [])
-
-    args = [
-        "--name={}__test_local_{}".format(project_id, client.name),
-        "--command=test",
-        "--source-archive=$(rlocationpath {})".format(source_archive),
-    ]
-    if strip_prefix:
-        args.append("--strip-prefix=" + strip_prefix)
-
-    for label, dest in appends:
-        args.append("--append=$(rlocationpath {})={}".format(label, dest))
-    for label, dest in writes:
-        args.append("--write=$(rlocationpath {})={}".format(label, dest))
-    for label in patch_labels:
-        args.append("--patch=$(rlocationpath {})".format(label))
-    for env_spec in header_envs:
-        args.append("--remote-header-env=" + env_spec)
-    for tool_label, tool_name in tools:
-        args.append("--tool=$(rlocationpath {})={}".format(tool_label, tool_name))
-
-    all_flags = (
-        _COMMAND_DEFAULT_FLAGS.get("test", []) +
-        overlay_flags +
-        _COMMON_FLAGS +
-        test.flags
-    )
-    for flag in all_flags:
-        args.append("--build-flag=" + flag)
-    for target in test.targets:
-        args.append("--target=" + target)
-
-    overlay_files = _dedupe(
-        [label for label, _ in appends] +
-        [label for label, _ in writes] +
-        patch_labels +
-        [label for label, _ in tools],
-    )
-
-    py_test(
-        name = name,
-        srcs = ["//tools/buildrunner:runner.py"],
-        main = "runner.py",
-        deps = ["@rules_python//python/runfiles"],
-        data = [source_archive] + overlay_files + _inner_bazel_data(client.bazel_version),
-        args = args + _inner_bazel_arg(client.bazel_version),
-        size = "large",
-        timeout = "eternal",
-        visibility = visibility,
-    )
 
 def museum_project(
         name,
@@ -399,56 +62,22 @@ def museum_project(
         bazel_version = DEFAULT_INNER_BAZEL_VERSION,
         clients = None,
         visibility = ["//visibility:public"]):
-    """Declare a museum project and emit its environment x platform x command grid.
+    """Declare a source-backed project's KISS targets."""
+    if clients:
+        fail("KISS-only museum_project does not support clients=; use bazel_version=")
+    _emit_kiss_targets(source_archive, strip_prefix, build, test, bazel_version, visibility)
 
-    Args:
-      name: project name (informational; the package path also identifies it).
-      source_archive: label of the pinned source tarball (e.g. "@cxx_archive//file").
-      environments: environments to target (e.g. [LOCAL, RBE]).
-      build: a build_spec(...) (or None to emit no build goals).
-      test: a test_spec(...) (or None to emit no test goals).
-      strip_prefix: top-level directory inside the tarball = workspace root.
-      toolchains: overlays applied to every goal (e.g. [HERMETIC_LLVM]).
-      bazel_version: legacy single-client shorthand — which pinned inner Bazel to
-        run the build with. Defaults to the museum default; set it to match a
-        project's .bazelversion when the project targets an older Bazel (must be
-        a version in //tools/fetch). Ignored when `clients` is set.
-      clients: the client axis (see //builds:clients.bzl): a list of client
-        names (e.g. ["bazel8", "bazel9"]) this project supports. The first is the
-        default. When omitted, a single client is derived from `bazel_version`.
-      visibility: visibility for the generated goal targets.
-    """
-
-    # Unique per-project id, derived from the package path so two projects'
-    # goals (e.g. both `build_local_darwin_arm64`) don't collide on the build root.
-    project_id = (native.package_name().replace("/", "_") or name)
-    specs = [s for s in (build, test) if s]
-    client_structs = clients_for(bazel_version, clients)
-    default_client = client_structs[0]
-
-    emitted = {}
-    for env in environments:
-        for plat_name in env.platforms:
-            plat = PLATFORMS[plat_name]
-            for spec in specs:
-                for client in client_structs:
-                    goal_name = _goal_name(env, client, default_client, plat, spec)
-                    goal_name = _emit_goal(
-                        project_id,
-                        goal_name,
-                        source_archive,
-                        strip_prefix,
-                        toolchains,
-                        env,
-                        plat,
-                        spec,
-                        client,
-                        visibility,
-                    )
-                    emitted[(env.name, client.name, plat.name, spec.command)] = goal_name
-
-    _emit_test_suites(name, environments, specs, emitted, default_client, visibility)
-    _emit_kiss_targets(source_archive, strip_prefix, build, test, default_client, visibility)
+def project_test(
+        name,
+        source_archive,
+        test,
+        strip_prefix = "",
+        toolchains = [],
+        bazel_version = DEFAULT_INNER_BAZEL_VERSION,
+        clients = None,
+        visibility = ["//visibility:public"]):
+    """Deprecated compatibility helper; emits only a KISS test target."""
+    _emit_kiss_targets(source_archive, strip_prefix, None, test, bazel_version, visibility)
 
 def bcr_project(
         name,
@@ -462,70 +91,9 @@ def bcr_project(
         bazel_version = DEFAULT_INNER_BAZEL_VERSION,
         clients = None,
         visibility = ["//visibility:public"]):
-    """Declare a museum project that builds/tests a Bazel Central Registry module
-    *as published* — rather than pinning the upstream source and running its
-    in-repo BUILD.
+    """Compatibility no-op.
 
-    The runner synthesizes a tiny root module that `bazel_dep`s `module` at
-    `version`, so the registry resolves the module's source, patches, and
-    MODULE.bazel; the goal then builds/tests the module's own `@<module>//...`
-    targets (e.g. the `test_targets` the BCR's presubmit.yml runs). This captures
-    projects whose Bazel build lives in the BCR (community-"ported" modules) and
-    whose upstream repo ships no/partial in-repo Bazel. Emits the same
-    `<cmd>_<env>_<client>_<platform>` goal grid.
-
-    Toolchain by environment: by default this reaches for hermetic LLVM only
-    where it's actually needed. Autodetect-capable environments (LOCAL, CIIMG —
-    the host or a CI image that ships a compiler) build with the *ambient* host
-    toolchain, no overlay. The pin-platform RBE environment, where a host-
-    autodetected toolchain can't match the remote executor's compiler, gets
-    HERMETIC_LLVM. (MINIMG — the toolchain-free minimal image — has no compiler to
-    autodetect, so if you target it, pass it via `toolchains` with HERMETIC_LLVM.)
-
-    Args:
-      name: project name (informational; the package path also identifies it).
-      module: the BCR module name (e.g. "simdutf").
-      version: the BCR module version to pin (e.g. "7.7.0").
-      environments: environments to target (e.g. [LOCAL, CIIMG, RBE]).
-      build: a build_spec(...) over @<module>//... targets, or None.
-      test: a test_spec(...) over @<module>//... targets, or None.
-      toolchains: overlays for the autodetect-capable (non-pin_platform)
-        environments. Defaults to [] (the ambient host/CI-image toolchain).
-      rbe_toolchains: overlays for pin_platform environments (RBE). Defaults to
-        [HERMETIC_LLVM] — the reproducible cross-machine toolchain.
-      bazel_version: legacy single-client shorthand; ignored when `clients` set.
-      clients: the client axis (see //builds:clients.bzl).
-      visibility: visibility for the generated goal targets.
+    BCR projects do not have pinned source archives in this repo, so there is no
+    `kiss_source`/`kiss_build`/`kiss_test` target to emit for them.
     """
-    host_toolchains = toolchains if toolchains != None else []
-    pin_toolchains = rbe_toolchains if rbe_toolchains != None else [HERMETIC_LLVM]
-    project_id = (native.package_name().replace("/", "_") or name)
-    specs = [s for s in (build, test) if s]
-    client_structs = clients_for(bazel_version, clients)
-    default_client = client_structs[0]
-    bcr_module = "{}={}".format(module, version)
-    emitted = {}
-
-    for env in environments:
-        env_toolchains = pin_toolchains if env.pin_platform else host_toolchains
-        for plat_name in env.platforms:
-            plat = PLATFORMS[plat_name]
-            for spec in specs:
-                for client in client_structs:
-                    goal_name = _goal_name(env, client, default_client, plat, spec)
-                    goal_name = _emit_goal(
-                        project_id,
-                        goal_name,
-                        None,  # no source archive
-                        "",
-                        env_toolchains,
-                        env,
-                        plat,
-                        spec,
-                        client,
-                        visibility,
-                        bcr_module = bcr_module,
-                    )
-                    emitted[(env.name, client.name, plat.name, spec.command)] = goal_name
-
-    _emit_test_suites(name, environments, specs, emitted, default_client, visibility)
+    pass

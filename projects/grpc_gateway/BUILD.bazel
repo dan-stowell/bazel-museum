@@ -3,7 +3,7 @@ load("//builds:environments.bzl", "LOCAL", "MINIMG", "RBE")
 load("//builds:overlays.bzl", "HERMETIC_LLVM", "PLATFORMS_DEP")
 
 # grpc-gateway — a gRPC-to-JSON reverse proxy and the protoc plugins that
-# generate it, written in Go. Source pinned in //tools/fetch:extension.bzl
+# generate it, written in Go. Source pinned in //kiss:extension.bzl
 # (@grpc_gateway_archive, release v2.29.0). First-party Bazel (modern bzlmod):
 # built with rules_go (hermetic Go SDK) and a C toolchain (HERMETIC_LLVM) for the
 # rules_go stdlib even though the plugins are pure Go. grpc-gateway pins Bazel

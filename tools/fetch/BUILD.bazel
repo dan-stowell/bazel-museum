@@ -1,2 +1,0 @@
-# Exists so //tools/fetch:extension.bzl can be loaded from MODULE.bazel.
-exports_files(["extension.bzl"])

@@ -3,7 +3,7 @@ load("//builds:environments.bzl", "LOCAL", "MINIMG", "RBE")
 load("//builds:overlays.bzl", "HERMETIC_LLVM", "PLATFORMS_DEP")
 
 # magic_enum — static reflection (to-string, iteration, …) for C++ enums.
-# Source pinned in //tools/fetch:extension.bzl (@magic_enum_archive, v0.9.8),
+# Source pinned in //kiss:extension.bzl (@magic_enum_archive, v0.9.8),
 # built with the fully-hermetic LLVM toolchain.
 #
 # magic_enum is header-only, so its parity is the test suite. Those tests live in

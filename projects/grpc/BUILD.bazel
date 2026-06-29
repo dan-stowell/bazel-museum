@@ -3,7 +3,7 @@ load("//builds:environments.bzl", "ACTIOND", "LOCAL", "MINIMG", "RBE")
 load("//builds:overlays.bzl", "HERMETIC_LLVM")
 
 # gRPC — first-party Bazel, the natural companion to protobuf.
-# Source pinned in //tools/fetch:extension.bzl (@grpc_archive, v1.81.1).
+# Source pinned in //kiss:extension.bzl (@grpc_archive, v1.81.1).
 #
 # grpc 1.81.1 ships .bazelversion = 8.0.1: its transitive dep graph predates
 # Bazel 9 (opentelemetry-cpp / aspect_* / rules_go use rules/kwargs Bazel 9

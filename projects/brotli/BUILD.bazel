@@ -3,7 +3,7 @@ load("//builds:environments.bzl", "ACTIOND", "LOCAL", "MINIMG", "RBE")
 load("//builds:overlays.bzl", "HERMETIC_LLVM", "overlay")
 
 # Brotli — Google's compression library + CLI.
-# Source pinned in //tools/fetch:extension.bzl (@brotli_archive, v1.2.0). The
+# Source pinned in //kiss:extension.bzl (@brotli_archive, v1.2.0). The
 # release tarball ships BUILD files but no MODULE.bazel (its in-tree build is
 # WORKSPACE-based), so we inject the canonical module() declaration. Built on
 # the Bazel 8.7 inner: brotli's BUILD calls cc_library unloaded, which Bazel 8.7

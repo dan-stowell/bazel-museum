@@ -3,7 +3,7 @@ load("//builds:environments.bzl", "LOCAL", "MINIMG", "RBE")
 load("//builds:overlays.bzl", "HERMETIC_LLVM")
 
 # snappy — Google's fast compression/decompression library (C++).
-# Source pinned in //tools/fetch:extension.bzl (@snappy_archive, release 1.2.2),
+# Source pinned in //kiss:extension.bzl (@snappy_archive, release 1.2.2),
 # built with the fully-hermetic LLVM toolchain. snappy's BUILD calls cc_*
 # unloaded (and its unit test pulls in googletest), so it runs on the Bazel 8.7
 # inner — recent enough for hermetic-llvm, old enough to autoload the cc_* rules.

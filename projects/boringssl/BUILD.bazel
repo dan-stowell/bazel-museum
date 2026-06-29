@@ -3,7 +3,7 @@ load("//builds:environments.bzl", "LOCAL", "MINIMG", "RBE")
 load("//builds:overlays.bzl", "HERMETIC_LLVM")
 
 # BoringSSL — Google's fork of OpenSSL (the crypto/TLS library behind Chrome,
-# Android and gRPC). Source pinned in //tools/fetch:extension.bzl
+# Android and gRPC). Source pinned in //kiss:extension.bzl
 # (@boringssl_archive, release 0.20260616.0), built with the fully-hermetic LLVM
 # toolchain (which compiles its C and per-arch assembly). Its BUILD wraps the
 # cc_* rules via util/util.bzl (loaded from @rules_cc), and its deps are current

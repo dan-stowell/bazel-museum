@@ -1,0 +1,24 @@
+load("@rules_python//python:defs.bzl", "py_binary")
+
+exports_files(["kiss_runner.py"])
+
+py_binary(
+    name = "kiss_runner",
+    srcs = ["kiss_runner.py"],
+    main = "kiss_runner.py",
+)
+
+# OS+CPU config settings used by KISS rules to pick the matching pinned inner
+# Bazel binary.
+[
+    config_setting(
+        name = name,
+        constraint_values = constraints,
+    )
+    for name, constraints in {
+        "linux_amd64": ["@platforms//os:linux", "@platforms//cpu:x86_64"],
+        "linux_arm64": ["@platforms//os:linux", "@platforms//cpu:arm64"],
+        "darwin_amd64": ["@platforms//os:osx", "@platforms//cpu:x86_64"],
+        "darwin_arm64": ["@platforms//os:osx", "@platforms//cpu:arm64"],
+    }.items()
+]

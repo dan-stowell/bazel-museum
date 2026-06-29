@@ -3,7 +3,7 @@ load("//builds:environments.bzl", "LOCAL", "MINIMG", "RBE")
 load("//builds:overlays.bzl", "HERMETIC_LLVM")
 
 # OpenEXR — the Academy Software Foundation's high-dynamic-range image format and
-# library (C++). Source pinned in //tools/fetch:extension.bzl (@openexr_archive,
+# library (C++). Source pinned in //kiss:extension.bzl (@openexr_archive,
 # v3.4.13-rc3). First-party Bazel: its BUILD loads cc_* from rules_cc, so the
 # 9.1.1 inner with the hermetic LLVM toolchain. OpenEXR's MODULE declares a
 # direct platforms dep (no PLATFORMS_DEP).

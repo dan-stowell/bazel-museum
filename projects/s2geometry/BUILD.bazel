@@ -4,7 +4,7 @@ load("//builds:overlays.bzl", "HERMETIC_LLVM")
 
 # s2geometry — Google's S2, a C++ library for spherical geometry (cells, regions,
 # indexing on the sphere; the math behind geographic systems). Source pinned in
-# //tools/fetch:extension.bzl (@s2geometry_archive, a commit archive), built with
+# //kiss:extension.bzl (@s2geometry_archive, a commit archive), built with
 # the fully-hermetic LLVM toolchain. First-party Bazel, but the Bazel module is
 # rooted at the repo's src/ subdir (src/MODULE.bazel), so strip_prefix descends
 # into src/ to make that the workspace root and targets are //:... It loads cc_*

@@ -3,7 +3,7 @@ load("//builds:environments.bzl", "LOCAL", "MINIMG", "RBE")
 load("//builds:overlays.bzl", "HERMETIC_LLVM")
 
 # prometheus-cpp — the Prometheus metrics client library for C++. Source pinned
-# in //tools/fetch:extension.bzl (@prometheus_cpp_archive, v1.3.0). First-party
+# in //kiss:extension.bzl (@prometheus_cpp_archive, v1.3.0). First-party
 # Bazel; its BUILD files call cc_* unloaded, so the 8.7 inner with the hermetic
 # LLVM toolchain. We build the core library and run its unit tests; the //pull
 # exposer's integration tests stand up a live HTTP server, so they're left out.

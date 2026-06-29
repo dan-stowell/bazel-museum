@@ -3,7 +3,7 @@ load("//builds:environments.bzl", "ACTIOND", "LOCAL", "MINIMG", "RBE")
 load("//builds:overlays.bzl", "HERMETIC_LLVM")
 
 # nlohmann/json — JSON for Modern C++ (header-only).
-# Source pinned in //tools/fetch:extension.bzl (@json_archive, v3.12.0), built
+# Source pinned in //kiss:extension.bzl (@json_archive, v3.12.0), built
 # with the fully-hermetic LLVM toolchain.
 #
 # Build-only — and unlike grpc (Bazel-first) or brotli (Bazel go_test), there's

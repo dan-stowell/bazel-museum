@@ -1,4 +1,0 @@
-# This package exists so //tools/gh:extension.bzl can be loaded from MODULE.bazel.
-# The actual gh binaries are provided by the @gh_cli_* repos the extension creates.
-
-exports_files(["extension.bzl"])

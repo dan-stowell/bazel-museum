@@ -1,22 +1,2 @@
-# The //builds package hosts the museum's collection of project builds.
-# Each project lives in a subpackage (e.g. //builds/abseil_cpp) and uses the
-# museum_project macro from :defs.bzl.
-
+# Compatibility package for existing project BUILD files.
 exports_files(["defs.bzl"])
-
-# OS+CPU config settings used by museum_project to pick the matching pinned inner
-# Bazel binary. We key on os *and* cpu because the release binaries differ per
-# platform: on macOS arm64 a cpu-only select would wrongly match the linux
-# arm64 binary.
-[
-    config_setting(
-        name = name,
-        constraint_values = constraints,
-    )
-    for name, constraints in {
-        "linux_amd64": ["@platforms//os:linux", "@platforms//cpu:x86_64"],
-        "linux_arm64": ["@platforms//os:linux", "@platforms//cpu:arm64"],
-        "darwin_amd64": ["@platforms//os:osx", "@platforms//cpu:x86_64"],
-        "darwin_arm64": ["@platforms//os:osx", "@platforms//cpu:arm64"],
-    }.items()
-]

@@ -10,7 +10,7 @@ _CCTZ_TIME_TESTS = [
 ]
 
 # Abseil's C++ common libraries — the museum's first build.
-# Source pinned in //tools/fetch:extension.bzl (@absl_archive, release
+# Source pinned in //kiss:extension.bzl (@absl_archive, release
 # 20260526.0). Built with the fully-hermetic LLVM toolchain (no host gcc).
 #
 #   bazel run //projects/abseil_cpp:build_local_darwin_arm64

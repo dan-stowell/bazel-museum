@@ -4,7 +4,7 @@ load("//builds:overlays.bzl", "HERMETIC_LLVM")
 
 # LCM (Lightweight Communications and Marshalling) — a low-latency message-passing
 # and data-marshalling system widely used in robotics. Source pinned in
-# //tools/fetch:extension.bzl (@lcm_archive, v1.5.2). First-party Bazel, run on
+# //kiss:extension.bzl (@lcm_archive, v1.5.2). First-party Bazel, run on
 # the 8.7 inner with the hermetic LLVM toolchain. We build the static C++ library
 # and run a C++ unit test. LCM's MODULE declares a direct platforms dep (no
 # PLATFORMS_DEP).

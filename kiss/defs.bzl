@@ -39,6 +39,10 @@ def overlay(name, appends = [], writes = [], patches = [], build_flags = [], rem
     )
 
 HERMETIC_LLVM = overlay(name = "hermetic_llvm")
+_RBE_HERMETIC_LLVM = overlay(
+    name = "rbe_hermetic_llvm",
+    appends = [("//kiss:hermetic_llvm.MODULE.bazel", "MODULE.bazel")],
+)
 CC_NODETECT = overlay(name = "cc_nodetect")
 HERMETIC_ZIP = overlay(
     name = "hermetic_zip",
@@ -48,7 +52,17 @@ HERMETIC_ZIP = overlay(
 RULES_RUST_SYSROOT_FIX = overlay(name = "rules_rust_sysroot_fix")
 RULES_CC_DEP = overlay(name = "rules_cc_dep")
 PLATFORMS_DEP = overlay(name = "platforms_dep")
-BUILDBUDDY_RBE = overlay(name = "buildbuddy_rbe")
+BUILDBUDDY_RBE = overlay(
+    name = "buildbuddy_rbe",
+    build_flags = [
+        "--bes_results_url=https://buildbuddy.buildbuddy.io/invocation/",
+        "--bes_backend=grpcs://buildbuddy.buildbuddy.io",
+        "--remote_cache=grpcs://buildbuddy.buildbuddy.io",
+        "--remote_timeout=10m",
+        "--remote_executor=grpcs://buildbuddy.buildbuddy.io",
+        "--remote_header=x-buildbuddy-api-key=$BUILDBUDDY_API_KEY",
+    ],
+)
 ACTIOND_WORKER = overlay(name = "actiond_worker")
 
 def inner_bazel(version):
@@ -145,24 +159,54 @@ extract_source = rule(
 
 def _bcr_source_impl(ctx):
     out = ctx.actions.declare_directory(ctx.attr.name)
+    args = ctx.actions.args()
+    args.add(out.path)
+    args.add(ctx.attr.module)
+    args.add(ctx.attr.version)
+    for src, dest in ctx.attr.appends.items():
+        args.add("--append")
+        args.add(_single_file(src[DefaultInfo].files, "appends"))
+        args.add(dest)
+    for src, dest in ctx.attr.writes.items():
+        args.add("--write")
+        args.add(_single_file(src[DefaultInfo].files, "writes"))
+        args.add(dest)
     ctx.actions.run_shell(
+        inputs = ctx.files.appends + ctx.files.writes,
         outputs = [out],
-        arguments = [
-            out.path,
-            ctx.attr.module,
-            ctx.attr.version,
-        ],
+        arguments = [args],
         command = """
 set -euo pipefail
 out="$1"
 module="$2"
 version="$3"
+shift 3
 mkdir -p "$out"
 cat > "$out/MODULE.bazel" <<EOF
 module(name = "kiss_bcr_${module}")
 bazel_dep(name = "${module}", version = "${version}")
 EOF
 touch "$out/BUILD.bazel"
+while (($#)); do
+  op="$1"
+  src="$2"
+  dest="$3"
+  shift 3
+  mkdir -p "$(dirname "$out/$dest")"
+  case "$op" in
+    --append)
+      cat "$src" >> "$out/$dest"
+      ;;
+    --write)
+      cp "$src" "$out/$dest"
+      chmod +x "$out/$dest"
+      ;;
+    *)
+      echo "unknown overlay op: $op" >&2
+      exit 2
+      ;;
+  esac
+done
 """,
     )
     return [DefaultInfo(files = depset([out]))]
@@ -170,8 +214,10 @@ touch "$out/BUILD.bazel"
 bcr_source = rule(
     implementation = _bcr_source_impl,
     attrs = {
+        "appends": attr.label_keyed_string_dict(allow_files = True),
         "module": attr.string(mandatory = True),
         "version": attr.string(mandatory = True),
+        "writes": attr.label_keyed_string_dict(allow_files = True),
     },
 )
 
@@ -202,6 +248,7 @@ def _kiss_build_impl(ctx):
         arguments = [args],
         mnemonic = "KissBuild",
         progress_message = "KISS building %{label}",
+        use_default_shell_env = ctx.attr.use_default_shell_env,
     )
     return [DefaultInfo(files = depset([out]))]
 
@@ -213,6 +260,7 @@ _kiss_build = rule(
         "source": attr.label(mandatory = True),
         "source_subdir": attr.string(),
         "targets": attr.string_list(mandatory = True),
+        "use_default_shell_env": attr.bool(),
         "_runner": attr.label(
             default = Label("//kiss:kiss_runner"),
             executable = True,
@@ -221,7 +269,7 @@ _kiss_build = rule(
     },
 )
 
-def kiss_build(name, source, bazel, targets, flags = [], source_subdir = "", visibility = None):
+def kiss_build(name, source, bazel, targets, flags = [], source_subdir = "", visibility = None, use_default_shell_env = False):
     _kiss_build(
         name = name,
         source = source,
@@ -230,6 +278,7 @@ def kiss_build(name, source, bazel, targets, flags = [], source_subdir = "", vis
         targets = targets,
         flags = flags,
         visibility = visibility,
+        use_default_shell_env = use_default_shell_env,
     )
 
 def kiss_test(name, source, targets, bazel = None, bazel_data = None, bazel_arg = None, flags = [], source_subdir = "", visibility = None):
@@ -276,7 +325,10 @@ def _overlay_build_flags(toolchains):
         result.extend(toolchain.build_flags)
     return result
 
-def _emit_kiss_targets(source_archive, strip_prefix, source_subdir, toolchains, build, test, bazel_version, visibility):
+def _rbe_toolchains(toolchains, rbe_toolchains):
+    return (rbe_toolchains if rbe_toolchains != None else toolchains) + [_RBE_HERMETIC_LLVM]
+
+def _emit_kiss_targets(source_archive, strip_prefix, source_subdir, toolchains, rbe_toolchains, build, test, bazel_version, visibility):
     extract_source(
         name = "kiss_source",
         archive = source_archive,
@@ -284,9 +336,19 @@ def _emit_kiss_targets(source_archive, strip_prefix, source_subdir, toolchains, 
         appends = _overlay_files(toolchains, "appends"),
         writes = _overlay_files(toolchains, "writes"),
     )
+    rbe_toolchains = _rbe_toolchains(toolchains, rbe_toolchains)
+    if build:
+        extract_source(
+            name = "kiss_rbe_source",
+            archive = source_archive,
+            strip_prefix = strip_prefix,
+            appends = _overlay_files(rbe_toolchains, "appends"),
+            writes = _overlay_files(rbe_toolchains, "writes"),
+        )
 
     bazel = inner_bazel(bazel_version)
     build_flags = _overlay_build_flags(toolchains)
+    rbe_build_flags = _overlay_build_flags(rbe_toolchains) + _overlay_build_flags([BUILDBUDDY_RBE])
     if build:
         kiss_build(
             name = "kiss_build",
@@ -296,6 +358,16 @@ def _emit_kiss_targets(source_archive, strip_prefix, source_subdir, toolchains, 
             flags = build_flags + build.flags,
             source_subdir = source_subdir,
             visibility = visibility,
+        )
+        kiss_build(
+            name = "kiss_rbe_build",
+            source = ":kiss_rbe_source",
+            bazel = bazel,
+            targets = build.targets,
+            flags = rbe_build_flags + build.flags,
+            source_subdir = source_subdir,
+            visibility = visibility,
+            use_default_shell_env = True,
         )
     if test:
         kiss_test(
@@ -309,9 +381,11 @@ def _emit_kiss_targets(source_archive, strip_prefix, source_subdir, toolchains, 
             visibility = visibility,
         )
 
-def _emit_kiss_targets_for_source(source, source_subdir, toolchains, build, test, bazel_version, visibility):
+def _emit_kiss_targets_for_source(source, rbe_source, source_subdir, toolchains, rbe_toolchains, build, test, bazel_version, visibility):
     bazel = inner_bazel(bazel_version)
     build_flags = _overlay_build_flags(toolchains)
+    rbe_toolchains = _rbe_toolchains(toolchains, rbe_toolchains)
+    rbe_build_flags = _overlay_build_flags(rbe_toolchains) + _overlay_build_flags([BUILDBUDDY_RBE])
     if build:
         kiss_build(
             name = "kiss_build",
@@ -321,6 +395,16 @@ def _emit_kiss_targets_for_source(source, source_subdir, toolchains, build, test
             flags = build_flags + build.flags,
             source_subdir = source_subdir,
             visibility = visibility,
+        )
+        kiss_build(
+            name = "kiss_rbe_build",
+            source = rbe_source,
+            bazel = bazel,
+            targets = build.targets,
+            flags = rbe_build_flags + build.flags,
+            source_subdir = source_subdir,
+            visibility = visibility,
+            use_default_shell_env = True,
         )
     if test:
         kiss_test(
@@ -348,7 +432,7 @@ def museum_project(
         visibility = ["//visibility:public"]):
     if clients:
         fail("KISS-only museum_project does not support clients=; use bazel_version=")
-    _emit_kiss_targets(source_archive, strip_prefix, source_subdir, toolchains, build, test, bazel_version, visibility)
+    _emit_kiss_targets(source_archive, strip_prefix, source_subdir, toolchains, toolchains, build, test, bazel_version, visibility)
 
 def project_test(
         name,
@@ -357,10 +441,11 @@ def project_test(
         strip_prefix = "",
         source_subdir = "",
         toolchains = [],
+        rbe_toolchains = None,
         bazel_version = DEFAULT_INNER_BAZEL_VERSION,
         clients = None,
         visibility = ["//visibility:public"]):
-    _emit_kiss_targets(source_archive, strip_prefix, source_subdir, toolchains, None, test, bazel_version, visibility)
+    _emit_kiss_targets(source_archive, strip_prefix, source_subdir, toolchains, rbe_toolchains or toolchains, None, test, bazel_version, visibility)
 
 def bcr_project(
         name,
@@ -382,11 +467,26 @@ def bcr_project(
         name = "kiss_source",
         module = module,
         version = version,
+        appends = _overlay_files(toolchains or [], "appends"),
+        writes = _overlay_files(toolchains or [], "writes"),
     )
+    if build:
+        computed_rbe_toolchains = _rbe_toolchains(toolchains or [], rbe_toolchains)
+        bcr_source(
+            name = "kiss_rbe_source",
+            module = module,
+            version = version,
+            appends = _overlay_files(computed_rbe_toolchains, "appends"),
+            writes = _overlay_files(computed_rbe_toolchains, "writes"),
+        )
+    else:
+        computed_rbe_toolchains = rbe_toolchains
     _emit_kiss_targets_for_source(
         source = ":kiss_source",
+        rbe_source = ":kiss_rbe_source",
         source_subdir = "",
         toolchains = toolchains or [],
+        rbe_toolchains = computed_rbe_toolchains,
         build = build,
         test = test,
         bazel_version = bazel_version,

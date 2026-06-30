@@ -119,6 +119,33 @@ def _dedupe(items):
     return result
 
 
+_ENV_REF_RE = re.compile(r"\$(\w+)|\$\{([^}]+)\}")
+
+
+def _expand_env_refs(value, env):
+    def replace(match):
+        name = match.group(1) or match.group(2)
+        if name not in env:
+            raise RuntimeError("environment variable {} is required by flag {!r}".format(name, value))
+        return env[name]
+
+    return _ENV_REF_RE.sub(replace, value)
+
+
+def _redact_arg(arg):
+    if arg.startswith("--remote_header="):
+        key, _, value = arg.partition("=")
+        header, sep, _ = value.partition("=")
+        if sep:
+            return "{}={}{}{}".format(key, header, sep, "<redacted>")
+        return "{}=<redacted>".format(key)
+    return arg
+
+
+def _redacted_command(cmd):
+    return " ".join(_redact_arg(arg) for arg in cmd)
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode", choices = ["build", "test"], required=True)
@@ -159,13 +186,19 @@ def main(argv=None):
         startup_flags.append("--output_user_root=" + output_user_root)
 
     bep = os.path.join(os.environ.get("TEST_TMPDIR", os.getcwd()), "kiss.bep.json")
+    try:
+        expanded_flags = [_expand_env_refs(flag, env) for flag in args.flag]
+    except RuntimeError as e:
+        print("kiss:", e, file=sys.stderr)
+        return 2
+
     command_flags = [
         "--color=no",
         "--curses=no",
         "--show_progress",
         "--show_progress_rate_limit=0.0",
         "--progress_report_interval=10",
-    ] + list(args.flag)
+    ] + expanded_flags
     if os.path.isdir(os.path.join(source, ".kiss-tools")):
         command_flags = [
             "--action_env=PATH=" + env["PATH"],
@@ -189,7 +222,7 @@ def main(argv=None):
         args.mode,
     ] + command_flags + ["--"] + args.target
 
-    print("kiss: command =", " ".join(cmd), file=sys.stderr)
+    print("kiss: command =", _redacted_command(cmd), file=sys.stderr)
     proc = subprocess.run(cmd, cwd=source, env=env)
     if proc.returncode != 0:
         return proc.returncode

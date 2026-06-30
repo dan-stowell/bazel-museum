@@ -1,10 +1,9 @@
-load("//kiss:defs.bzl", "build_spec", "museum_project", "test_spec")
+load("//kiss:defs.bzl", "build_spec", "hermetic_llvm_project_modification", "test_spec")
 load("//kiss:defs.bzl", "LOCAL", "RBE")
 
 # GoogleTest — the C++ test framework.
 # Source pinned in //kiss:extension.bzl (@googletest_archive, v1.17.0),
-# built from the upstream source/module as-is. The hermetic LLVM modification
-# lives in //projects/googletest/hermetic_llvm. The iconic artifacts: the gtest
+# built with the fully-hermetic LLVM toolchain. The iconic artifacts: the gtest
 # + gtest_main libraries (//:gtest bundles gmock).
 #
 # googletest 1.17.0's BUILD files (root + the test packages) call cc_library/
@@ -13,7 +12,7 @@ load("//kiss:defs.bzl", "LOCAL", "RBE")
 # enough to carry the zero-sysroot hermetic-llvm toolchain (needs repo_metadata,
 # added in 8.3), and old enough to still autoload the cc_* rules as authored.
 #
-museum_project(
+hermetic_llvm_project_modification(
     name = "googletest",
     source_archive = "@googletest_archive//file",
     strip_prefix = "googletest-1.17.0",

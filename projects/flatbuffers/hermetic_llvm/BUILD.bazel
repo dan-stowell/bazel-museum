@@ -1,14 +1,13 @@
-load("//kiss:defs.bzl", "build_spec", "museum_project", "test_spec")
+load("//kiss:defs.bzl", "build_spec", "hermetic_llvm_project_modification", "test_spec")
 load("//kiss:defs.bzl", "LOCAL", "RBE")
 
 # FlatBuffers — serialization library + the flatc schema compiler.
 # Source pinned in //kiss:extension.bzl (@flatbuffers_archive, v25.12.19).
-# Built from the upstream source/module as-is. The hermetic LLVM modification
-# lives in //projects/flatbuffers/hermetic_llvm. flatbuffers
+# Built on the Bazel 8.7 inner with zero-sysroot hermetic LLVM: flatbuffers
 # pulls old aspect_bazel_lib / rules_foreign_cc / rules_go transitively, whose
 # toolchains use APIs Bazel 9 removed — Bazel 8.7 resolves them as authored.
 #
-museum_project(
+hermetic_llvm_project_modification(
     name = "flatbuffers",
     source_archive = "@flatbuffers_archive//file",
     strip_prefix = "flatbuffers-25.12.19-2026-02-06-03fffb2",

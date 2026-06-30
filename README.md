@@ -96,7 +96,7 @@ Legend: `✅` = KISS target exists and the latest local build sweep passed where
 | `go_jsonnet` | ✅ | ✅ | ✅ |
 | `googletest` | ✅ | ✅ | ✅ |
 | `gperftools` | ✅ | ✅ | ✅ |
-| `grpc` | ✅ | ✅ | 💤 |
+| `grpc` | ✅ | ✅ | ✅ |
 | `grpc_gateway` | ✅ | ✅ | 💤 |
 | `gsl-lite` | ✅ | ✅ | 💤 |
 | `hfsm2` | ✅ | ✅ | 💤 |

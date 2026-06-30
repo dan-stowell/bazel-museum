@@ -59,6 +59,7 @@ BUILDBUDDY_RBE = overlay(
         "--bes_backend=grpcs://buildbuddy.buildbuddy.io",
         "--remote_cache=grpcs://buildbuddy.buildbuddy.io",
         "--remote_timeout=10m",
+        "--jobs=32",
         "--remote_executor=grpcs://buildbuddy.buildbuddy.io",
         "--remote_header=x-buildbuddy-api-key=$BUILDBUDDY_API_KEY",
     ],

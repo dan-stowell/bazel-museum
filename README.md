@@ -122,7 +122,7 @@ Legend: `✅` = KISS target exists and the latest local build sweep passed where
 | `libgit2` | ✅ | ✅ | ✅ |
 | `libheif` | ✅ | ✅ | ❌ |
 | `libpcap` | ✅ | ✅ | ❌ |
-| `libwebsockets` | ✅ | ✅ | 💤 |
+| `libwebsockets` | ✅ | ✅ | ❌ |
 | `llvm-project` | ✅ | ✅ | 💤 |
 | `magic_enum` | ✅ | ✅ | 💤 |
 | `marisa-trie` | ✅ | ✅ | 💤 |

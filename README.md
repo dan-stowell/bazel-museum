@@ -70,7 +70,7 @@ Legend: `✅` = KISS target exists and the latest local build sweep passed where
 | `cjson` | 💤 | 💤 |
 | `cli11` | ✅ | ✅ |
 | `copybara` | ✅ | ✅ |
-| `cpp-httplib` | 💤 | 💤 |
+| `cpp-httplib` | 💤 | ✅ |
 | `cpptrace` | ✅ | ✅ |
 | `cpu_features` | ✅ | ✅ |
 | `crow` | ✅ | ✅ |
@@ -91,7 +91,7 @@ Legend: `✅` = KISS target exists and the latest local build sweep passed where
 | `fuzztest` | ✅ | ✅ |
 | `fzf` | 💤 | 💤 |
 | `gflags` | ✅ | 🔍 |
-| `glm` | 💤 | 💤 |
+| `glm` | ✅ | ✅ |
 | `glog` | ✅ | ✅ |
 | `go_jsonnet` | ✅ | ✅ |
 | `googletest` | ✅ | ✅ |
@@ -147,12 +147,12 @@ Legend: `✅` = KISS target exists and the latest local build sweep passed where
 | `s2geometry` | ✅ | ✅ |
 | `sdl2` | 💤 | 💤 |
 | `sdl2_mixer` | 💤 | 💤 |
-| `simdutf` | 💤 | 💤 |
+| `simdutf` | ✅ | ✅ |
 | `snappy` | ✅ | ✅ |
 | `squashfs-tools` | 💤 | 💤 |
 | `systemc` | 💤 | 💤 |
 | `tinyformat` | 💤 | 💤 |
-| `tinyxml2` | 💤 | 💤 |
+| `tinyxml2` | ✅ | ✅ |
 | `tomlplusplus` | 💤 | 💤 |
 | `trlc` | 💤 | 💤 |
 | `universal-robots-client-library` | 💤 | 💤 |

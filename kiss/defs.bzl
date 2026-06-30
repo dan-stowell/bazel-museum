@@ -143,6 +143,38 @@ extract_source = rule(
     },
 )
 
+def _bcr_source_impl(ctx):
+    out = ctx.actions.declare_directory(ctx.attr.name)
+    ctx.actions.run_shell(
+        outputs = [out],
+        arguments = [
+            out.path,
+            ctx.attr.module,
+            ctx.attr.version,
+        ],
+        command = """
+set -euo pipefail
+out="$1"
+module="$2"
+version="$3"
+mkdir -p "$out"
+cat > "$out/MODULE.bazel" <<EOF
+module(name = "kiss_bcr_${module}")
+bazel_dep(name = "${module}", version = "${version}")
+EOF
+touch "$out/BUILD.bazel"
+""",
+    )
+    return [DefaultInfo(files = depset([out]))]
+
+bcr_source = rule(
+    implementation = _bcr_source_impl,
+    attrs = {
+        "module": attr.string(mandatory = True),
+        "version": attr.string(mandatory = True),
+    },
+)
+
 def _single_file(files, attr_name):
     files = files.to_list()
     if len(files) != 1:
@@ -277,6 +309,31 @@ def _emit_kiss_targets(source_archive, strip_prefix, source_subdir, toolchains, 
             visibility = visibility,
         )
 
+def _emit_kiss_targets_for_source(source, source_subdir, toolchains, build, test, bazel_version, visibility):
+    bazel = inner_bazel(bazel_version)
+    build_flags = _overlay_build_flags(toolchains)
+    if build:
+        kiss_build(
+            name = "kiss_build",
+            source = source,
+            bazel = bazel,
+            targets = build.targets,
+            flags = build_flags + build.flags,
+            source_subdir = source_subdir,
+            visibility = visibility,
+        )
+    if test:
+        kiss_test(
+            name = "kiss_test",
+            source = source,
+            targets = test.targets,
+            bazel_data = inner_bazel_data(bazel_version),
+            bazel_arg = inner_bazel_arg(bazel_version),
+            flags = build_flags + test.flags,
+            source_subdir = source_subdir,
+            visibility = visibility,
+        )
+
 def museum_project(
         name,
         source_archive,
@@ -317,6 +374,19 @@ def bcr_project(
         bazel_version = DEFAULT_INNER_BAZEL_VERSION,
         clients = None,
         visibility = ["//visibility:public"]):
-    # BCR projects do not have pinned source archives in this repo, so there is
-    # no KISS source/build/test target to emit for them.
-    pass
+    if clients:
+        fail("KISS-only bcr_project does not support clients=; use bazel_version=")
+    bcr_source(
+        name = "kiss_source",
+        module = module,
+        version = version,
+    )
+    _emit_kiss_targets_for_source(
+        source = ":kiss_source",
+        source_subdir = "",
+        toolchains = toolchains or [],
+        build = build,
+        test = test,
+        bazel_version = bazel_version,
+        visibility = visibility,
+    )

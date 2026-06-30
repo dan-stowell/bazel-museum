@@ -290,7 +290,7 @@ def kiss_build(name, source, bazel, targets, flags = [], source_subdir = "", vis
         use_default_shell_env = use_default_shell_env,
     )
 
-def kiss_test(name, source, targets, bazel = None, bazel_data = None, bazel_arg = None, flags = [], source_subdir = "", visibility = None):
+def kiss_test(name, source, targets, bazel = None, bazel_data = None, bazel_arg = None, flags = [], source_subdir = "", env_inherit = [], visibility = None):
     if bazel_data == None:
         bazel_data = [bazel]
     if bazel_arg == None:
@@ -306,7 +306,7 @@ def kiss_test(name, source, targets, bazel = None, bazel_data = None, bazel_arg 
         ] + ([
             "--source_subdir=%s" % source_subdir,
         ] if source_subdir else []) + bazel_arg + [
-            "--flag=%s" % flag
+            "--flag=%s" % flag.replace("$", "$$")
             for flag in flags
         ] + [
             "--target=%s" % target
@@ -316,6 +316,7 @@ def kiss_test(name, source, targets, bazel = None, bazel_data = None, bazel_arg 
             source,
         ] + bazel_data,
         deps = ["@rules_python//python/runfiles"],
+        env_inherit = env_inherit,
         size = "large",
         timeout = "eternal",
         visibility = visibility,
@@ -346,7 +347,7 @@ def _emit_kiss_targets(source_archive, strip_prefix, source_subdir, toolchains, 
         writes = _overlay_files(toolchains, "writes"),
     )
     rbe_toolchains = _rbe_toolchains(toolchains, rbe_toolchains)
-    if build:
+    if build or test:
         extract_source(
             name = "kiss_rbe_source",
             archive = source_archive,
@@ -389,6 +390,17 @@ def _emit_kiss_targets(source_archive, strip_prefix, source_subdir, toolchains, 
             source_subdir = source_subdir,
             visibility = visibility,
         )
+        kiss_test(
+            name = "kiss_rbe_test",
+            source = ":kiss_rbe_source",
+            targets = test.targets,
+            bazel_data = inner_bazel_data(bazel_version),
+            bazel_arg = inner_bazel_arg(bazel_version),
+            flags = rbe_build_flags + test.flags,
+            source_subdir = source_subdir,
+            env_inherit = ["BUILDBUDDY_API_KEY"],
+            visibility = visibility,
+        )
 
 def _emit_kiss_targets_for_source(source, rbe_source, source_subdir, toolchains, rbe_toolchains, build, test, bazel_version, visibility):
     bazel = inner_bazel(bazel_version)
@@ -424,6 +436,17 @@ def _emit_kiss_targets_for_source(source, rbe_source, source_subdir, toolchains,
             bazel_arg = inner_bazel_arg(bazel_version),
             flags = build_flags + test.flags,
             source_subdir = source_subdir,
+            visibility = visibility,
+        )
+        kiss_test(
+            name = "kiss_rbe_test",
+            source = rbe_source,
+            targets = test.targets,
+            bazel_data = inner_bazel_data(bazel_version),
+            bazel_arg = inner_bazel_arg(bazel_version),
+            flags = rbe_build_flags + test.flags,
+            source_subdir = source_subdir,
+            env_inherit = ["BUILDBUDDY_API_KEY"],
             visibility = visibility,
         )
 
@@ -535,7 +558,7 @@ def bcr_project(
         appends = _overlay_files(toolchains or [], "appends"),
         writes = _overlay_files(toolchains or [], "writes"),
     )
-    if build:
+    if build or test:
         computed_rbe_toolchains = _rbe_toolchains(toolchains or [], rbe_toolchains)
         bcr_source(
             name = "kiss_rbe_source",

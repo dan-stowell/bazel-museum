@@ -1,15 +1,14 @@
-load("//kiss:defs.bzl", "build_spec", "museum_project", "test_spec")
+load("//kiss:defs.bzl", "build_spec", "hermetic_llvm_project_modification", "test_spec")
 load("//kiss:defs.bzl", "LOCAL", "RBE")
 
 # prometheus-cpp — the Prometheus metrics client library for C++. Source pinned
 # in //kiss:extension.bzl (@prometheus_cpp_archive, v1.3.0). First-party
-# Bazel; its BUILD files call cc_* unloaded, so it runs on the 8.7 inner.
-# The hermetic LLVM modification lives in //projects/prometheus_cpp/hermetic_llvm.
-# We build the core library and run its unit tests; the //pull
+# Bazel; its BUILD files call cc_* unloaded, so the 8.7 inner with the hermetic
+# LLVM toolchain. We build the core library and run its unit tests; the //pull
 # exposer's integration tests stand up a live HTTP server, so they're left out.
 # prometheus-cpp's MODULE declares a direct platforms dep (no PLATFORMS_DEP).
 #
-museum_project(
+hermetic_llvm_project_modification(
     name = "prometheus_cpp",
     source_archive = "@prometheus_cpp_archive//file",
     strip_prefix = "prometheus-cpp-1.3.0",

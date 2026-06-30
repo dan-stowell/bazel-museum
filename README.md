@@ -23,6 +23,12 @@ Run RE2's upstream tests:
 bazel test //projects/re2:kiss_test
 ```
 
+Run upstream tests through BuildBuddy RBE when a project has a test target:
+
+```sh
+bazel test --test_env=BUILDBUDDY_API_KEY //projects/re2:kiss_rbe_test
+```
+
 List all KISS build targets:
 
 ```sh

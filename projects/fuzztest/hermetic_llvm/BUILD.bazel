@@ -1,11 +1,10 @@
-load("//kiss:defs.bzl", "build_spec", "museum_project", "test_spec")
+load("//kiss:defs.bzl", "build_spec", "hermetic_llvm_project_modification", "test_spec")
 load("//kiss:defs.bzl", "LOCAL", "RBE")
 
 # fuzztest — Google's C++ testing/fuzzing framework (the FUZZ_TEST macro,
 # property-based "domains", and the Centipede engine). Source pinned in
-# //kiss:extension.bzl (@fuzztest_archive, a commit archive), built from the
-# upstream source/module as-is. The hermetic LLVM modification lives in
-# //projects/fuzztest/hermetic_llvm. First-party Bazel (MODULE.bazel + loaded cc_*
+# //kiss:extension.bzl (@fuzztest_archive, a commit archive), built with
+# the fully-hermetic LLVM toolchain. First-party Bazel (MODULE.bazel + loaded cc_*
 # rules; it names its own repo @com_google_fuzztest, which resolves when fuzztest
 # is the root module). Its MODULE declares all deps (abseil, re2, googletest, ... +
 # platforms/skylib), so only the hermetic-LLVM overlay is needed — no dep overlay.
@@ -14,7 +13,7 @@ load("//kiss:defs.bzl", "LOCAL", "RBE")
 # Bazel 9 inner fails toolchain resolution even for the C++ targets; the late
 # Bazel 8 inner keeps those legacy APIs and resolves cleanly.
 #
-museum_project(
+hermetic_llvm_project_modification(
     name = "fuzztest",
     source_archive = "@fuzztest_archive//file",
     strip_prefix = "fuzztest-1a18c86d947c25ff2b73562a90d41a2207e8cba9",

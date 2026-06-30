@@ -43,6 +43,10 @@ _RBE_HERMETIC_LLVM = overlay(
     name = "rbe_hermetic_llvm",
     appends = [("//kiss:hermetic_llvm.MODULE.bazel", "MODULE.bazel")],
 )
+_HERMETIC_LLVM_MODIFICATION = overlay(
+    name = "hermetic_llvm",
+    appends = [("//kiss:hermetic_llvm.MODULE.bazel", "MODULE.bazel")],
+)
 CC_NODETECT = overlay(name = "cc_nodetect")
 HERMETIC_ZIP = overlay(
     name = "hermetic_zip",
@@ -465,6 +469,34 @@ def project_modification(
         test,
         bazel_version,
         visibility,
+    )
+
+def hermetic_llvm_project_modification(
+        name,
+        source_archive,
+        environments,
+        build = None,
+        test = None,
+        strip_prefix = "",
+        source_subdir = "",
+        toolchains = [],
+        rbe_toolchains = None,
+        bazel_version = DEFAULT_INNER_BAZEL_VERSION,
+        clients = None,
+        visibility = ["//visibility:public"]):
+    project_modification(
+        name = name,
+        source_archive = source_archive,
+        environments = environments,
+        build = build,
+        test = test,
+        strip_prefix = strip_prefix,
+        source_subdir = source_subdir,
+        toolchains = [_HERMETIC_LLVM_MODIFICATION] + toolchains,
+        rbe_toolchains = None if rbe_toolchains == None else [_HERMETIC_LLVM_MODIFICATION] + rbe_toolchains,
+        bazel_version = bazel_version,
+        clients = clients,
+        visibility = visibility,
     )
 
 def project_test(

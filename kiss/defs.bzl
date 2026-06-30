@@ -131,7 +131,9 @@ while (($#)); do
   mkdir -p "$(dirname "$out/$dest")"
   case "$op" in
     --append)
+      printf '\\n' >> "$out/$dest"
       cat "$src" >> "$out/$dest"
+      printf '\\n' >> "$out/$dest"
       ;;
     --write)
       cp "$src" "$out/$dest"
@@ -195,7 +197,9 @@ while (($#)); do
   mkdir -p "$(dirname "$out/$dest")"
   case "$op" in
     --append)
+      printf '\\n' >> "$out/$dest"
       cat "$src" >> "$out/$dest"
+      printf '\\n' >> "$out/$dest"
       ;;
     --write)
       cp "$src" "$out/$dest"

@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "build_spec", "museum_project")
+load("//kiss:defs.bzl", "build_spec", "museum_project", "test_spec")
 load("//kiss:defs.bzl", "LOCAL", "MINIMG", "RBE")
 load("//kiss:defs.bzl", "HERMETIC_LLVM")
 
@@ -6,9 +6,8 @@ load("//kiss:defs.bzl", "HERMETIC_LLVM")
 # by Git, PHP, Apache, nginx and many others. Source pinned in
 # //kiss:extension.bzl (@pcre2_archive, pcre2-10.47). First-party Bazel:
 # root BUILD loads cc_* from rules_cc, so the 9.1.1 inner with the hermetic LLVM
-# toolchain. Upstream's tests run through the pcre2test CLI rather than a Bazel
-# test target, so this is a build-only project. pcre2's MODULE declares a direct
-# platforms dep (no PLATFORMS_DEP).
+# toolchain. Upstream's Bazel file wraps the pcre2test CLI test harness as
+# //:pcre2_test. pcre2's MODULE declares a direct platforms dep (no PLATFORMS_DEP).
 #
 #   bazel run //projects/pcre2:build_local_linux_amd64
 museum_project(
@@ -19,4 +18,5 @@ museum_project(
     bazel_version = "9.1.1",
     environments = [LOCAL, RBE, MINIMG],
     build = build_spec(targets = ["//:pcre2"], flags = ["-c", "opt"]),
+    test = test_spec(targets = ["//:pcre2_test"], flags = ["-c", "opt"]),
 )

@@ -73,13 +73,13 @@ Legend: `✅` = KISS target exists and the latest local build sweep passed where
 | `cpp-httplib` | 💤 | 💤 |
 | `cpptrace` | ✅ | ✅ |
 | `cpu_features` | ✅ | ✅ |
-| `crow` | ✅ | 💤 |
+| `crow` | ✅ | ✅ |
 | `cucumber-cpp` | 💤 | 💤 |
 | `curl` | 💤 | 💤 |
 | `cxx` | ✅ | ✅ |
 | `cxxurl` | 💤 | 💤 |
 | `directxmath` | 💤 | 💤 |
-| `doctest` | ✅ | 💤 |
+| `doctest` | ✅ | ✅ |
 | `double_conversion` | ✅ | ✅ |
 | `effcee` | 💤 | 💤 |
 | `exprtk` | 💤 | 💤 |
@@ -92,7 +92,7 @@ Legend: `✅` = KISS target exists and the latest local build sweep passed where
 | `fzf` | 💤 | 💤 |
 | `gflags` | ✅ | 💤 |
 | `glm` | 💤 | 💤 |
-| `glog` | ✅ | 💤 |
+| `glog` | ✅ | ✅ |
 | `go_jsonnet` | ✅ | ✅ |
 | `googletest` | ✅ | ✅ |
 | `gperftools` | ✅ | ✅ |
@@ -135,7 +135,7 @@ Legend: `✅` = KISS target exists and the latest local build sweep passed where
 | `openssl` | 💤 | 💤 |
 | `opentelemetry_cpp` | ✅ | ✅ |
 | `ortools` | ✅ | ✅ |
-| `pcre2` | ✅ | 💤 |
+| `pcre2` | ✅ | ✅ |
 | `prometheus_cpp` | ✅ | ✅ |
 | `protobuf` | ✅ | ✅ |
 | `quill` | ✅ | 💤 |

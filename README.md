@@ -152,10 +152,10 @@ Legend: `✅` = KISS target exists and the latest local build sweep passed where
 | `squashfs-tools` | ✅ | ✅ | ✅ |
 | `systemc` | ✅ | ✅ | ✅ |
 | `tinyformat` | ✅ | ✅ | ✅ |
-| `tinyxml2` | ✅ | ✅ | 💤 |
-| `tomlplusplus` | 💤 | ✅ | 💤 |
-| `trlc` | ✅ | ✅ | 💤 |
-| `universal-robots-client-library` | ✅ | ✅ | 💤 |
+| `tinyxml2` | ✅ | ✅ | ✅ |
+| `tomlplusplus` | 💤 | ✅ | ✅ |
+| `trlc` | ✅ | ✅ | ✅ |
+| `universal-robots-client-library` | ✅ | ✅ | ✅ |
 | `verible` | ✅ | ✅ | 💤 |
 | `verilator` | ✅ | ✅ | 💤 |
 | `xkbcommon` | ✅ | ✅ | 💤 |

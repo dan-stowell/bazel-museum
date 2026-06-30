@@ -148,10 +148,10 @@ Legend: `✅` = KISS target exists and the latest local build sweep passed where
 | `sdl2` | ✅ | ✅ | ❌ |
 | `sdl2_mixer` | ✅ | ✅ | ❌ |
 | `simdutf` | ✅ | ✅ | ✅ |
-| `snappy` | ✅ | ✅ | 💤 |
-| `squashfs-tools` | ✅ | ✅ | 💤 |
-| `systemc` | ✅ | ✅ | 💤 |
-| `tinyformat` | ✅ | ✅ | 💤 |
+| `snappy` | ✅ | ✅ | ✅ |
+| `squashfs-tools` | ✅ | ✅ | ✅ |
+| `systemc` | ✅ | ✅ | ✅ |
+| `tinyformat` | ✅ | ✅ | ✅ |
 | `tinyxml2` | ✅ | ✅ | 💤 |
 | `tomlplusplus` | 💤 | ✅ | 💤 |
 | `trlc` | ✅ | ✅ | 💤 |

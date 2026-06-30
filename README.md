@@ -45,7 +45,7 @@ kiss/run_builds.sh --no-clean //projects/re2:kiss_build //projects/snappy:kiss_b
 
 ## Project Status
 
-Legend: `✅` = KISS target exists and the latest local build sweep passed where applicable; `❌` = latest local build sweep failed; `💤` = no KISS target is expected for this project/command.
+Legend: `✅` = KISS target exists and the latest local build sweep passed where applicable; `❌` = latest local build sweep failed; `🔍` = inspected, but no real upstream Bazel test target exists; `💤` = no KISS target is expected for this project/command.
 
 | project_name | build | test |
 | --- | --- | --- |
@@ -59,7 +59,7 @@ Legend: `✅` = KISS target exists and the latest local build sweep passed where
 | `benchmark` | ✅ | ✅ |
 | `boringssl` | ✅ | ✅ |
 | `briansmith_ring` | 💤 | 💤 |
-| `brotli` | ✅ | 💤 |
+| `brotli` | ✅ | 🔍 |
 | `brotli_go` | 💤 | ✅ |
 | `buildtools` | ✅ | ✅ |
 | `c-blosc2` | 💤 | 💤 |
@@ -90,7 +90,7 @@ Legend: `✅` = KISS target exists and the latest local build sweep passed where
 | `ftxui` | ✅ | ✅ |
 | `fuzztest` | ✅ | ✅ |
 | `fzf` | 💤 | 💤 |
-| `gflags` | ✅ | 💤 |
+| `gflags` | ✅ | 🔍 |
 | `glm` | 💤 | 💤 |
 | `glog` | ✅ | ✅ |
 | `go_jsonnet` | ✅ | ✅ |
@@ -106,7 +106,7 @@ Legend: `✅` = KISS target exists and the latest local build sweep passed where
 | `icu` | 💤 | 💤 |
 | `iperf` | 💤 | 💤 |
 | `iverilog` | 💤 | 💤 |
-| `json` | ✅ | 💤 |
+| `json` | ✅ | 🔍 |
 | `jsoncpp` | ✅ | ✅ |
 | `jsonnet` | ✅ | ✅ |
 | `lcm` | ✅ | ✅ |
@@ -138,7 +138,7 @@ Legend: `✅` = KISS target exists and the latest local build sweep passed where
 | `pcre2` | ✅ | ✅ |
 | `prometheus_cpp` | ✅ | ✅ |
 | `protobuf` | ✅ | ✅ |
-| `quill` | ✅ | 💤 |
+| `quill` | ✅ | 🔍 |
 | `re2` | ✅ | ✅ |
 | `reflexxes-rmltype2` | 💤 | 💤 |
 | `rocksdb` | 💤 | 💤 |
@@ -159,7 +159,7 @@ Legend: `✅` = KISS target exists and the latest local build sweep passed where
 | `verible` | ✅ | ✅ |
 | `verilator` | 💤 | 💤 |
 | `xkbcommon` | 💤 | 💤 |
-| `z3` | ✅ | 💤 |
-| `zlib` | ✅ | 💤 |
+| `z3` | ✅ | 🔍 |
+| `zlib` | ✅ | 🔍 |
 | `zstd` | 💤 | 💤 |
 | `zziplib` | 💤 | 💤 |

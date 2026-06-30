@@ -132,10 +132,10 @@ Legend: `✅` = KISS target exists and the latest local build sweep passed where
 | `opencc` | ✅ | ✅ | ✅ |
 | `opencl-sdk` | ✅ | ✅ | ❌ |
 | `openexr` | ✅ | ✅ | ✅ |
-| `openssl` | ✅ | ✅ | 💤 |
-| `opentelemetry_cpp` | ✅ | ✅ | 💤 |
-| `ortools` | ✅ | ✅ | 💤 |
-| `pcre2` | ✅ | ✅ | 💤 |
+| `openssl` | ✅ | ✅ | ❌ |
+| `opentelemetry_cpp` | ✅ | ✅ | ✅ |
+| `ortools` | ✅ | ✅ | ✅ |
+| `pcre2` | ✅ | ✅ | ✅ |
 | `prometheus_cpp` | ✅ | ✅ | 💤 |
 | `protobuf` | ✅ | ✅ | 💤 |
 | `quill` | ✅ | 🔍 | 💤 |

@@ -136,10 +136,10 @@ Legend: `✅` = KISS target exists and the latest local build sweep passed where
 | `opentelemetry_cpp` | ✅ | ✅ | ✅ |
 | `ortools` | ✅ | ✅ | ✅ |
 | `pcre2` | ✅ | ✅ | ✅ |
-| `prometheus_cpp` | ✅ | ✅ | 💤 |
-| `protobuf` | ✅ | ✅ | 💤 |
-| `quill` | ✅ | 🔍 | 💤 |
-| `re2` | ✅ | ✅ | 💤 |
+| `prometheus_cpp` | ✅ | ✅ | ✅ |
+| `protobuf` | ✅ | ✅ | ✅ |
+| `quill` | ✅ | 🔍 | ✅ |
+| `re2` | ✅ | ✅ | ✅ |
 | `reflexxes-rmltype2` | ✅ | ✅ | 💤 |
 | `rocksdb` | 💤 | ✅ | 💤 |
 | `rsyslog` | ✅ | ✅ | 💤 |

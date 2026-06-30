@@ -97,11 +97,11 @@ Legend: `✅` = KISS target exists and the latest local build sweep passed where
 | `googletest` | ✅ | ✅ | ✅ |
 | `gperftools` | ✅ | ✅ | ✅ |
 | `grpc` | ✅ | ✅ | ✅ |
-| `grpc_gateway` | ✅ | ✅ | 💤 |
-| `gsl-lite` | ✅ | ✅ | 💤 |
-| `hfsm2` | ✅ | ✅ | 💤 |
-| `highs` | ✅ | ✅ | 💤 |
-| `highway` | ✅ | ✅ | 💤 |
+| `grpc_gateway` | ✅ | ✅ | ✅ |
+| `gsl-lite` | ✅ | ✅ | ✅ |
+| `hfsm2` | ✅ | ✅ | ✅ |
+| `highs` | ✅ | ✅ | ✅ |
+| `highway` | ✅ | ✅ | ✅ |
 | `iceoryx2` | ✅ | ✅ | 💤 |
 | `icu` | ✅ | ✅ | 💤 |
 | `iperf` | ✅ | ✅ | 💤 |

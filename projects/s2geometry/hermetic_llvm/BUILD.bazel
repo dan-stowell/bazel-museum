@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "build_spec", "museum_project", "test_spec")
+load("//kiss:defs.bzl", "build_spec", "hermetic_llvm_project_modification", "test_spec")
 load("//kiss:defs.bzl", "LOCAL", "RBE")
 
 S2_TEST_TARGETS = [
@@ -16,15 +16,13 @@ S2_TEST_TARGETS = [
 
 # s2geometry — Google's S2, a C++ library for spherical geometry (cells, regions,
 # indexing on the sphere; the math behind geographic systems). Source pinned in
-# //kiss:extension.bzl (@s2geometry_archive, a commit archive), built from the
-# upstream source/module as-is. The hermetic LLVM modification lives in
-# //projects/s2geometry/hermetic_llvm. First-party Bazel, but the Bazel module
-# is rooted at the repo's src/ subdir (src/MODULE.bazel), so strip_prefix
-# descends into src/ to make that the workspace root and targets are //:...
-# It loads cc_* rules and its MODULE declares all deps (abseil, skylib,
-# rules_cc, googletest) including platforms, so it runs on the default Bazel 9
-# inner with no dep overlay.
-museum_project(
+# //kiss:extension.bzl (@s2geometry_archive, a commit archive), built with the
+# fully-hermetic LLVM toolchain. First-party Bazel, but the Bazel module is
+# rooted at the repo's src/ subdir (src/MODULE.bazel), so strip_prefix descends
+# into src/ to make that the workspace root and targets are //:... It loads cc_*
+# rules and its MODULE declares all deps (abseil, skylib, rules_cc, googletest)
+# including platforms, so it runs on the default Bazel 9 inner with no dep overlay.
+hermetic_llvm_project_modification(
     name = "s2geometry",
     source_archive = "@s2geometry_archive//file",
     strip_prefix = "s2geometry-3f5bd2d93feda62a5d6fd0c3d7992f427968a66b/src",

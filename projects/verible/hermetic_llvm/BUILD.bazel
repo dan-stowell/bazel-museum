@@ -1,15 +1,14 @@
-load("//kiss:defs.bzl", "build_spec", "museum_project", "test_spec")
+load("//kiss:defs.bzl", "build_spec", "hermetic_llvm_project_modification", "test_spec")
 load("//kiss:defs.bzl", "LOCAL", "RBE")
 
 # verible — CHIPS Alliance's SystemVerilog developer suite (parser, style linter,
 # formatter, language server), C++. Source pinned in //kiss:extension.bzl
-# (@verible_archive, the v0.0-4080-ga0a8d8eb commit), built from the upstream
-# source/module as-is. The hermetic LLVM modification lives in
-# //projects/verible/hermetic_llvm. First-party Bazel (MODULE.bazel + loaded
-# cc_* rules) declaring all of its deps in-module (abseil, skylib,
-# nlohmann_json, protobuf, re2, rules_*, platforms), so it runs on the default
-# Bazel 9 inner with no dep overlay.
-museum_project(
+# (@verible_archive, the v0.0-4080-ga0a8d8eb commit), built with the
+# fully-hermetic LLVM toolchain. First-party Bazel (MODULE.bazel + loaded cc_*
+# rules) declaring all of its deps in-module (abseil, skylib, nlohmann_json,
+# protobuf, re2, rules_*, platforms), so it runs on the default Bazel 9 inner
+# with no dep overlay.
+hermetic_llvm_project_modification(
     name = "verible",
     source_archive = "@verible_archive//file",
     strip_prefix = "verible-a0a8d8eb8cfa9fd8969c9d646454d363b48aa449",

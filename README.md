@@ -156,10 +156,10 @@ Legend: `✅` = KISS target exists and the latest local build sweep passed where
 | `tomlplusplus` | 💤 | ✅ | ✅ |
 | `trlc` | ✅ | ✅ | ✅ |
 | `universal-robots-client-library` | ✅ | ✅ | ✅ |
-| `verible` | ✅ | ✅ | 💤 |
-| `verilator` | ✅ | ✅ | 💤 |
-| `xkbcommon` | ✅ | ✅ | 💤 |
-| `z3` | ✅ | 🔍 | 💤 |
+| `verible` | ✅ | ✅ | ✅ |
+| `verilator` | ✅ | ✅ | ❌ |
+| `xkbcommon` | ✅ | ✅ | ✅ |
+| `z3` | ✅ | 🔍 | ❌ |
 | `zlib` | ✅ | 🔍 | 💤 |
 | `zstd` | ✅ | ✅ | 💤 |
 | `zziplib` | ✅ | ✅ | 💤 |

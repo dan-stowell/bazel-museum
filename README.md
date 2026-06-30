@@ -124,10 +124,10 @@ Legend: `✅` = KISS target exists and the latest local build sweep passed where
 | `libpcap` | ✅ | ✅ | ❌ |
 | `libwebsockets` | ✅ | ✅ | ❌ |
 | `llvm-project` | ✅ | ✅ | 💤 |
-| `magic_enum` | ✅ | ✅ | 💤 |
-| `marisa-trie` | ✅ | ✅ | 💤 |
-| `nsync` | ✅ | ✅ | 💤 |
-| `ogg` | ✅ | ✅ | 💤 |
+| `magic_enum` | ✅ | ✅ | ✅ |
+| `marisa-trie` | ✅ | ✅ | ✅ |
+| `nsync` | ✅ | ✅ | ✅ |
+| `ogg` | ✅ | ✅ | ✅ |
 | `onetbb` | ✅ | ✅ | 💤 |
 | `opencc` | ✅ | ✅ | 💤 |
 | `opencl-sdk` | ✅ | ✅ | 💤 |

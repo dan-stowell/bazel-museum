@@ -66,6 +66,7 @@ BUILDBUDDY_RBE = overlay(
     name = "buildbuddy_rbe",
     build_flags = [
         "--remote_cache=grpcs://remote.buildbuddy.io",
+        "--remote_header=x-buildbuddy-api-key=$BUILDBUDDY_API_KEY",
         "--remote_timeout=10m",
         "--jobs=32",
         "--remote_executor=grpcs://remote.buildbuddy.io",
@@ -485,6 +486,7 @@ def _emit_bazel_runner_targets(source_archive, strip_prefix, source_subdir, tool
             bazel_arg = inner_bazel_arg(bazel_version),
             flags = rbe_build_flags + test.flags,
             source_subdir = source_subdir,
+            env_inherit = ["BUILDBUDDY_API_KEY"],
             visibility = visibility,
         )
 
@@ -531,6 +533,7 @@ def _emit_bazel_runner_targets_for_source(source, source_subdir, toolchains, bui
             bazel_arg = inner_bazel_arg(bazel_version),
             flags = rbe_build_flags + test.flags,
             source_subdir = source_subdir,
+            env_inherit = ["BUILDBUDDY_API_KEY"],
             visibility = visibility,
         )
 

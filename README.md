@@ -29,6 +29,15 @@ Run upstream tests through BuildBuddy RBE when a project has a test target:
 bazel test //projects/re2/as_is:kiss_rbe_test
 ```
 
+Kick the tires without running a full sweep:
+
+```sh
+bazel build //:smoke_as_is_local_builds
+bazel test //:smoke_as_is_local_tests
+bazel build //:smoke_as_is_rbe_builds
+bazel test //:smoke_as_is_rbe_tests
+```
+
 Outer and inner Bazel invocations publish anonymous, public BuildBuddy invocation
 links by default.
 

@@ -288,6 +288,14 @@ HERMETIC_LLVM_BUILD_PACKAGES = [package for package in BUILD_PACKAGES if package
 AS_IS_TEST_PACKAGES = [package for package in TEST_PACKAGES if package.endswith("/as_is")]
 HERMETIC_LLVM_TEST_PACKAGES = [package for package in TEST_PACKAGES if package.endswith("/hermetic_llvm")]
 
+SMOKE_AS_IS_PACKAGES = [
+    "abseil_py/as_is",
+    "glm/as_is",
+    "re2/as_is",
+    "simdutf/as_is",
+    "tinyxml2/as_is",
+]
+
 REGULAR_AS_IS_BUILD_PACKAGES = [package for package in AS_IS_BUILD_PACKAGES if package.split("/")[0] not in LARGE_PROJECTS]
 LARGE_AS_IS_BUILD_PACKAGES = [package for package in AS_IS_BUILD_PACKAGES if package.split("/")[0] in LARGE_PROJECTS]
 REGULAR_HERMETIC_LLVM_BUILD_PACKAGES = [package for package in HERMETIC_LLVM_BUILD_PACKAGES if package.split("/")[0] not in LARGE_PROJECTS]
@@ -313,6 +321,30 @@ AS_IS_RBE_TESTS = ["//projects/%s:kiss_rbe_test" % package for package in REGULA
 LARGE_AS_IS_RBE_TESTS = ["//projects/%s:kiss_rbe_test" % package for package in LARGE_AS_IS_TEST_PACKAGES]
 HERMETIC_LLVM_RBE_TESTS = ["//projects/%s:kiss_rbe_test" % package for package in REGULAR_HERMETIC_LLVM_TEST_PACKAGES]
 LARGE_HERMETIC_LLVM_RBE_TESTS = ["//projects/%s:kiss_rbe_test" % package for package in LARGE_HERMETIC_LLVM_TEST_PACKAGES]
+SMOKE_AS_IS_LOCAL_BUILDS = ["//projects/%s:kiss_build" % package for package in SMOKE_AS_IS_PACKAGES]
+SMOKE_AS_IS_RBE_BUILDS = ["//projects/%s:kiss_rbe_build" % package for package in SMOKE_AS_IS_PACKAGES]
+SMOKE_AS_IS_LOCAL_TESTS = ["//projects/%s:kiss_test" % package for package in SMOKE_AS_IS_PACKAGES]
+SMOKE_AS_IS_RBE_TESTS = ["//projects/%s:kiss_rbe_test" % package for package in SMOKE_AS_IS_PACKAGES]
+
+filegroup(
+    name = "smoke_as_is_local_builds",
+    srcs = SMOKE_AS_IS_LOCAL_BUILDS,
+)
+
+filegroup(
+    name = "smoke_as_is_rbe_builds",
+    srcs = SMOKE_AS_IS_RBE_BUILDS,
+)
+
+test_suite(
+    name = "smoke_as_is_local_tests",
+    tests = SMOKE_AS_IS_LOCAL_TESTS,
+)
+
+test_suite(
+    name = "smoke_as_is_rbe_tests",
+    tests = SMOKE_AS_IS_RBE_TESTS,
+)
 
 filegroup(
     name = "as_is_local_builds",

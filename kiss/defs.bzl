@@ -286,13 +286,13 @@ def _job_label(package, target_name):
     return "{}/{}/{}/{}".format(project, variant, environment, command)
 
 def _local_build_name(project_name):
-    return project_name + "_build"
+    return project_name + "_local_build"
 
 def _rbe_build_name(project_name):
     return project_name + "_rbe_build"
 
 def _local_test_name(project_name):
-    return project_name + "_test"
+    return project_name + "_local_test"
 
 def _rbe_test_name(project_name):
     return project_name + "_rbe_test"

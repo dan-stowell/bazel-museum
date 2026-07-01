@@ -6,7 +6,7 @@ usage() {
 Usage: kiss/run_builds.sh [--list] [--clean|--no-clean] [--] [TARGET...]
 
 Runs matrix build targets sequentially. With no TARGET arguments, discovers all
-//projects/<name>/as_is:<name>_build and other variant build targets.
+//projects/<name>/as_is:<name>_local_build and other variant local build targets.
 
 By default, runs `bazel clean` before each target so projects do not accumulate
 outer build outputs. Set --no-clean or KISS_CLEAN_BETWEEN=0 to disable that.
@@ -62,7 +62,7 @@ main() {
   done
 
   if ((${#targets[@]} == 0)); then
-    mapfile -t targets < <("$bazel_bin" query 'attr(name, ".*_build", //projects/...) except attr(name, ".*_rbe_build", //projects/...)' | sort)
+    mapfile -t targets < <("$bazel_bin" query 'attr(name, ".*_local_build", //projects/...)' | sort)
   fi
 
   if ((list_only)); then

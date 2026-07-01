@@ -5,13 +5,13 @@
 Install Bazel or Bazelisk, then run the RE2 build:
 
 ```sh
-bazel build //projects/re2/as_is:re2_build
+bazel build //projects/re2/as_is:re2_local_build
 ```
 
 The output is:
 
 ```text
-bazel-bin/projects/re2/as_is/re2_build.tar
+bazel-bin/projects/re2/as_is/re2_local_build.tar
 ```
 
 That tarball contains the inner Bazel build event stream, a manifest, and RE2's
@@ -20,7 +20,7 @@ top-level build outputs.
 Run RE2's upstream tests:
 
 ```sh
-bazel test //projects/re2/as_is:re2_test
+bazel test //projects/re2/as_is:re2_local_test
 ```
 
 Run upstream tests through BuildBuddy RBE when a project has a test target:

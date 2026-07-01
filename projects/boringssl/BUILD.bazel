@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "build_spec", "museum_project", "test_spec")
+load("//kiss:defs.bzl", "build_spec", "matrix_project", "test_spec")
 load("//kiss:defs.bzl", "LOCAL", "MINIMG", "RBE")
 load("//kiss:defs.bzl", "HERMETIC_LLVM")
 
@@ -13,7 +13,7 @@ load("//kiss:defs.bzl", "HERMETIC_LLVM")
 #
 #   bazel run //projects/boringssl:build_local_linux_amd64
 #   bazel run //projects/boringssl:test_local_linux_amd64
-museum_project(
+matrix_project(
     name = "boringssl",
     source_archive = "@boringssl_archive//file",
     strip_prefix = "boringssl-0.20260616.0",

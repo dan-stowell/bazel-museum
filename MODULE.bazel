@@ -1,7 +1,7 @@
-"""Bazel Museum: KISS Bazel builds of public projects."""
+"""Bazel Matrix: KISS Bazel builds of public projects."""
 
 module(
-    name = "bazel_museum",
+    name = "bazel_matrix",
     version = "0.0.0",
 )
 
@@ -18,7 +18,7 @@ python.toolchain(
 )
 
 # Hermetic Bazel binary used to run the *inner* project builds in isolation,
-# and pinned source archives of the museum's projects.
+# and pinned source archives of the matrix's projects.
 inner_bazel = use_extension("//kiss:extension.bzl", "inner_bazel")
 use_repo(
     inner_bazel,

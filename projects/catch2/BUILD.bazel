@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "build_spec", "museum_project", "test_spec")
+load("//kiss:defs.bzl", "build_spec", "matrix_project", "test_spec")
 load("//kiss:defs.bzl", "ACTIOND", "LOCAL", "MINIMG", "RBE")
 load("//kiss:defs.bzl", "HERMETIC_LLVM", "PLATFORMS_DEP")
 
@@ -22,12 +22,12 @@ load("//kiss:defs.bzl", "HERMETIC_LLVM", "PLATFORMS_DEP")
 #     separately via tests/TestScripts/*.py.)
 #   * --rng-seed: Catch2 otherwise seeds its randomized self-tests from the
 #     clock, so the bare cc_test is non-deterministic; a fixed seed makes the
-#     goal reproducible (the museum's whole point).
+#     goal reproducible (the matrix's whole point).
 # Result: 500 passed / 6 skipped, 84543 assertions.
 #
 #   bazel run //projects/catch2:build_local_linux_amd64
 #   bazel run //projects/catch2:test_local_linux_amd64
-museum_project(
+matrix_project(
     name = "catch2",
     source_archive = "@catch2_archive//file",
     strip_prefix = "Catch2-3.15.1",

@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "build_spec", "museum_project", "test_spec")
+load("//kiss:defs.bzl", "build_spec", "matrix_project", "test_spec")
 load("//kiss:defs.bzl", "LOCAL", "MINIMG", "RBE")
 load("//kiss:defs.bzl", "HERMETIC_LLVM", "PLATFORMS_DEP")
 
@@ -13,7 +13,7 @@ load("//kiss:defs.bzl", "HERMETIC_LLVM", "PLATFORMS_DEP")
 #
 #   bazel run //projects/go_jsonnet:build_local_linux_amd64
 #   bazel run //projects/go_jsonnet:test_local_linux_amd64
-museum_project(
+matrix_project(
     name = "go_jsonnet",
     source_archive = "@go_jsonnet_archive//file",
     strip_prefix = "go-jsonnet-0.22.0",

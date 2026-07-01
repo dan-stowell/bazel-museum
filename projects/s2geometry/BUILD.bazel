@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "build_spec", "museum_project", "test_spec")
+load("//kiss:defs.bzl", "build_spec", "matrix_project", "test_spec")
 load("//kiss:defs.bzl", "LOCAL", "RBE")
 
 S2_TEST_TARGETS = [
@@ -24,7 +24,7 @@ S2_TEST_TARGETS = [
 # It loads cc_* rules and its MODULE declares all deps (abseil, skylib,
 # rules_cc, googletest) including platforms, so it runs on the default Bazel 9
 # inner with no dep overlay.
-museum_project(
+matrix_project(
     name = "s2geometry",
     source_archive = "@s2geometry_archive//file",
     strip_prefix = "s2geometry-3f5bd2d93feda62a5d6fd0c3d7992f427968a66b/src",

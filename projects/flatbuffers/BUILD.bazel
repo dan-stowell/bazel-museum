@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "build_spec", "museum_project", "test_spec")
+load("//kiss:defs.bzl", "build_spec", "matrix_project", "test_spec")
 load("//kiss:defs.bzl", "LOCAL", "RBE")
 
 # FlatBuffers — serialization library + the flatc schema compiler.
@@ -8,7 +8,7 @@ load("//kiss:defs.bzl", "LOCAL", "RBE")
 # pulls old aspect_bazel_lib / rules_foreign_cc / rules_go transitively, whose
 # toolchains use APIs Bazel 9 removed — Bazel 8.7 resolves them as authored.
 #
-museum_project(
+matrix_project(
     name = "flatbuffers",
     source_archive = "@flatbuffers_archive//file",
     strip_prefix = "flatbuffers-25.12.19-2026-02-06-03fffb2",

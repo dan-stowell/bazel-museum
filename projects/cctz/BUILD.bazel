@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "build_spec", "museum_project", "test_spec")
+load("//kiss:defs.bzl", "build_spec", "matrix_project", "test_spec")
 load("//kiss:defs.bzl", "LOCAL", "RBE")
 
 # cctz — Google's C++ library for civil-time and time-zone calculations (the
@@ -11,7 +11,7 @@ load("//kiss:defs.bzl", "LOCAL", "RBE")
 # registers toolchains that use Bazel-9-removed APIs (CcInfo), so it runs on the
 # Bazel 8.7 inner.
 #
-museum_project(
+matrix_project(
     name = "cctz",
     source_archive = "@cctz_archive//file",
     strip_prefix = "cctz-f353c121a9e4fb55a9c623899e87197eaee0392d",

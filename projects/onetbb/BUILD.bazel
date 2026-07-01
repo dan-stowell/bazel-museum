@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "build_spec", "museum_project", "test_spec")
+load("//kiss:defs.bzl", "build_spec", "matrix_project", "test_spec")
 load("//kiss:defs.bzl", "LOCAL", "RBE")
 
 # oneTBB — Intel's oneAPI Threading Building Blocks, a C++ parallelism library.
@@ -8,7 +8,7 @@ load("//kiss:defs.bzl", "LOCAL", "RBE")
 # the unloaded cc_* rules, so it runs on the Bazel 8.7 inner. (oneTBB declares
 # the platforms dep directly, so no PLATFORMS_DEP.)
 #
-museum_project(
+matrix_project(
     name = "onetbb",
     source_archive = "@onetbb_archive//file",
     strip_prefix = "oneTBB-2022.0.0",

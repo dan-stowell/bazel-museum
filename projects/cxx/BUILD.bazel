@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "build_spec", "museum_project", "test_spec")
+load("//kiss:defs.bzl", "build_spec", "matrix_project", "test_spec")
 load("//kiss:defs.bzl", "ACTIOND", "LOCAL", "MINIMG", "RBE")
 load("//kiss:defs.bzl", "HERMETIC_LLVM", "RULES_RUST_SYSROOT_FIX")
 
@@ -8,7 +8,7 @@ load("//kiss:defs.bzl", "HERMETIC_LLVM", "RULES_RUST_SYSROOT_FIX")
 #
 #   bazel run //projects/cxx:build_local_darwin_arm64
 #   bazel run //projects/cxx:test_rbe_linux_amd64
-museum_project(
+matrix_project(
     name = "cxx",
     source_archive = "@cxx_archive//file",
     strip_prefix = "cxx-1.0.194",

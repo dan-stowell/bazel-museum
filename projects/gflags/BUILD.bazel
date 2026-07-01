@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "build_spec", "museum_project")
+load("//kiss:defs.bzl", "build_spec", "matrix_project")
 load("//kiss:defs.bzl", "LOCAL", "MINIMG", "RBE")
 load("//kiss:defs.bzl", "HERMETIC_LLVM", "PLATFORMS_DEP")
 
@@ -15,7 +15,7 @@ load("//kiss:defs.bzl", "HERMETIC_LLVM", "PLATFORMS_DEP")
 # direct platforms dep).
 #
 #   bazel run //projects/gflags:build_local_linux_amd64
-museum_project(
+matrix_project(
     name = "gflags",
     source_archive = "@gflags_archive//file",
     strip_prefix = "gflags-2.3.0",

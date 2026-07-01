@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "build_spec", "museum_project", "test_spec")
+load("//kiss:defs.bzl", "build_spec", "matrix_project", "test_spec")
 load("//kiss:defs.bzl", "LOCAL", "RBE")
 
 # nsync — Google's small C library of synchronization primitives (mutexes,
@@ -9,7 +9,7 @@ load("//kiss:defs.bzl", "LOCAL", "RBE")
 # runs on the Bazel 8.7 inner. (nsync declares the platforms dep directly, so no
 # PLATFORMS_DEP.)
 #
-museum_project(
+matrix_project(
     name = "nsync",
     source_archive = "@nsync_archive//file",
     strip_prefix = "nsync-1.30.0",

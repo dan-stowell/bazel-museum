@@ -450,7 +450,7 @@ def _emit_kiss_targets_for_source(source, rbe_source, source_subdir, toolchains,
             visibility = visibility,
         )
 
-def museum_project(
+def matrix_project(
         name,
         source_archive,
         environments,
@@ -464,7 +464,7 @@ def museum_project(
         clients = None,
         visibility = ["//visibility:public"]):
     if clients:
-        fail("KISS-only museum_project does not support clients=; use bazel_version=")
+        fail("KISS-only matrix_project does not support clients=; use bazel_version=")
     _emit_kiss_targets(source_archive, strip_prefix, source_subdir, toolchains, rbe_toolchains, build, test, bazel_version, visibility)
 
 def project_modification(

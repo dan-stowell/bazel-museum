@@ -7,7 +7,7 @@ Two extensions:
   rather than depending on a host-installed bazel/bazelisk. linux + darwin,
   amd64 + arm64.
 
-* `project_sources` — source tarballs of the museum's projects, pinned by
+* `project_sources` — source tarballs of the matrix's projects, pinned by
   sha256. This is the kickoff's "project source code as a dep in MODULE.bazel":
   each project's source is an immutable, content-addressed input. We fetch the
   tarball as an opaque file (http_file) so the *outer* Bazel never parses the
@@ -21,7 +21,7 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
 
 # The default inner Bazel. Most projects build with this; a project that targets
 # an older Bazel (see its .bazelversion / bazel_compatibility) can ask for a
-# different version via museum_project(bazel_version = ...).
+# different version via matrix_project(bazel_version = ...).
 DEFAULT_INNER_BAZEL_VERSION = "9.1.1"
 
 # version -> {repo suffix: (release arch tag, sha256 of the binary)}. The repos
@@ -373,7 +373,7 @@ _PROJECT_SOURCES = {
     # runs on the default Bazel 9 inner. Deps (abseil, skylib, nlohmann_json,
     # protobuf, re2, rules_bison/flex/m4, rules_cc, ...) all come from the BCR;
     # the bison/flex toolchains are only pulled by the parser, not the common/
-    # util tests the museum builds. Pinned to the v0.0-4080-ga0a8d8eb commit.
+    # util tests the matrix builds. Pinned to the v0.0-4080-ga0a8d8eb commit.
     "verible_archive": {
         "url": "https://github.com/chipsalliance/verible/archive/a0a8d8eb8cfa9fd8969c9d646454d363b48aa449.tar.gz",
         "sha256": "2d8052ce2b3fac00b5164303cb2479f1fb4d0819f14f2434023cf4a56d3eeacf",

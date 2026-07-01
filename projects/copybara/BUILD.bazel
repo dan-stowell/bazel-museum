@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "build_spec", "museum_project", "test_spec")
+load("//kiss:defs.bzl", "build_spec", "matrix_project", "test_spec")
 load("//kiss:defs.bzl", "LOCAL", "MINIMG", "RBE")
 load("//kiss:defs.bzl", "HERMETIC_LLVM")
 
@@ -17,7 +17,7 @@ load("//kiss:defs.bzl", "HERMETIC_LLVM")
 # The Mercurial (`hg`) tests are excluded because `hg` isn't a hermetic input
 # (and isn't installed); the Git tests currently use the host `git`. Making git
 # hermetic (a pinned-binary overlay) is a natural follow-up.
-museum_project(
+matrix_project(
     name = "copybara",
     source_archive = "@copybara_archive//file",
     strip_prefix = "copybara-20260622",

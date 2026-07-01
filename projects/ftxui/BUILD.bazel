@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "build_spec", "museum_project", "test_spec")
+load("//kiss:defs.bzl", "build_spec", "matrix_project", "test_spec")
 load("//kiss:defs.bzl", "LOCAL", "RBE")
 
 # FTXUI — a functional C++ terminal-UI library (screen / dom / component).
@@ -9,7 +9,7 @@ load("//kiss:defs.bzl", "LOCAL", "RBE")
 # the Bazel 8.7 inner like the other googletest-consuming C++ projects. (It
 # declares a direct `platforms` dep, so no PLATFORMS_DEP overlay is needed.)
 #
-museum_project(
+matrix_project(
     name = "ftxui",
     source_archive = "@ftxui_archive//file",
     strip_prefix = "FTXUI-7.0.0",

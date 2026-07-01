@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "build_spec", "museum_project", "test_spec")
+load("//kiss:defs.bzl", "build_spec", "matrix_project", "test_spec")
 load("//kiss:defs.bzl", "LOCAL", "RBE")
 
 # LCM (Lightweight Communications and Marshalling) — a low-latency message-passing
@@ -9,7 +9,7 @@ load("//kiss:defs.bzl", "LOCAL", "RBE")
 # and run a C++ unit test. LCM's MODULE declares a direct platforms dep (no
 # PLATFORMS_DEP).
 #
-museum_project(
+matrix_project(
     name = "lcm",
     source_archive = "@lcm_archive//file",
     strip_prefix = "lcm-1.5.2",

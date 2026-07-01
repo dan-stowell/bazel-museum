@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "build_spec", "museum_project", "test_spec")
+load("//kiss:defs.bzl", "build_spec", "matrix_project", "test_spec")
 load("//kiss:defs.bzl", "LOCAL", "RBE")
 
 # verible — CHIPS Alliance's SystemVerilog developer suite (parser, style linter,
@@ -9,7 +9,7 @@ load("//kiss:defs.bzl", "LOCAL", "RBE")
 # cc_* rules) declaring all of its deps in-module (abseil, skylib,
 # nlohmann_json, protobuf, re2, rules_*, platforms), so it runs on the default
 # Bazel 9 inner with no dep overlay.
-museum_project(
+matrix_project(
     name = "verible",
     source_archive = "@verible_archive//file",
     strip_prefix = "verible-a0a8d8eb8cfa9fd8969c9d646454d363b48aa449",

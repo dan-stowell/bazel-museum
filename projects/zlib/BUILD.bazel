@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "build_spec", "museum_project")
+load("//kiss:defs.bzl", "build_spec", "matrix_project")
 load("//kiss:defs.bzl", "LOCAL", "RBE")
 
 # zlib — the ubiquitous DEFLATE compression library (C).
@@ -9,7 +9,7 @@ load("//kiss:defs.bzl", "LOCAL", "RBE")
 # builds it as-authored.
 # Build-only: zlib's BUILD declares the library (//:zlib, an alias to //:z) but
 # no Bazel test targets.
-museum_project(
+matrix_project(
     name = "zlib",
     source_archive = "@zlib_archive//file",
     strip_prefix = "zlib-1.3.2",

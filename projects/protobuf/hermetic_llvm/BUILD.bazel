@@ -1,7 +1,7 @@
 load("//kiss:defs.bzl", "build_spec", "hermetic_llvm_project_modification", "test_spec")
 load("//kiss:defs.bzl", "LOCAL", "RBE")
 
-# Protocol Buffers — the museum's marquee first-party Bazel C++ project.
+# Protocol Buffers — the matrix's marquee first-party Bazel C++ project.
 # Source pinned in //kiss:extension.bzl (@protobuf_archive, the v35.1
 # Bazel source dist). Built with the fully-hermetic LLVM toolchain (no host
 # gcc); pulls abseil-cpp / rules_cc / zlib from the BCR via the inner Bazel.

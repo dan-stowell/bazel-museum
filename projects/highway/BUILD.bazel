@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "build_spec", "museum_project", "test_spec")
+load("//kiss:defs.bzl", "build_spec", "matrix_project", "test_spec")
 load("//kiss:defs.bzl", "LOCAL", "RBE")
 
 # highway — Google's portable SIMD/vector library (C++).
@@ -8,7 +8,7 @@ load("//kiss:defs.bzl", "LOCAL", "RBE")
 # rules_cc, but its test suite depends on googletest (cc_* unloaded), so it runs
 # on the Bazel 8.7 inner like the other googletest-consuming C++ projects.
 #
-museum_project(
+matrix_project(
     name = "highway",
     source_archive = "@highway_archive//file",
     strip_prefix = "highway-1.4.0",

@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "build_spec", "museum_project", "test_spec")
+load("//kiss:defs.bzl", "build_spec", "matrix_project", "test_spec")
 load("//kiss:defs.bzl", "ACTIOND", "LOCAL", "MINIMG", "RBE")
 load("//kiss:defs.bzl", "HERMETIC_LLVM")
 
@@ -21,7 +21,7 @@ load("//kiss:defs.bzl", "HERMETIC_LLVM")
 #
 #   bazel run //projects/grpc:build_local_linux_amd64
 #   bazel run //projects/grpc:test_local_linux_amd64
-museum_project(
+matrix_project(
     name = "grpc",
     source_archive = "@grpc_archive//file",
     strip_prefix = "grpc-1.81.1",

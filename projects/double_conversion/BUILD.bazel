@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "build_spec", "museum_project", "test_spec")
+load("//kiss:defs.bzl", "build_spec", "matrix_project", "test_spec")
 load("//kiss:defs.bzl", "LOCAL", "MINIMG", "RBE")
 load("//kiss:defs.bzl", "HERMETIC_LLVM", "PLATFORMS_DEP")
 
@@ -11,7 +11,7 @@ load("//kiss:defs.bzl", "HERMETIC_LLVM", "PLATFORMS_DEP")
 #
 #   bazel run //projects/double_conversion:build_local_linux_amd64
 #   bazel run //projects/double_conversion:test_local_linux_amd64
-museum_project(
+matrix_project(
     name = "double_conversion",
     source_archive = "@double_conversion_archive//file",
     strip_prefix = "double-conversion-3.4.0",

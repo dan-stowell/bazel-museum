@@ -1,11 +1,11 @@
-load("//kiss:defs.bzl", "build_spec", "museum_project", "test_spec")
+load("//kiss:defs.bzl", "build_spec", "matrix_project", "test_spec")
 load("//kiss:defs.bzl", "LOCAL", "RBE")
 
 # snappy — Google's fast compression/decompression library (C++).
 # Source pinned in //kiss:extension.bzl (@snappy_archive, release 1.2.2),
 # built from the upstream source/module as-is. The hermetic LLVM modification
 # lives in //projects/snappy/hermetic_llvm.
-museum_project(
+matrix_project(
     name = "snappy",
     source_archive = "@snappy_archive//file",
     strip_prefix = "snappy-1.2.2",

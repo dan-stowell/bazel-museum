@@ -8,7 +8,7 @@ _CCTZ_TIME_TESTS = [
     "//absl/time/internal/cctz:time_zone_lookup_test",
 ]
 
-# Abseil's C++ common libraries — the museum's first build.
+# Abseil's C++ common libraries — the matrix's first build.
 # Source pinned in //kiss:extension.bzl (@absl_archive, release
 # 20260526.0). Built with the fully-hermetic LLVM toolchain (no host gcc).
 #

@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "build_spec", "museum_project", "test_spec")
+load("//kiss:defs.bzl", "build_spec", "matrix_project", "test_spec")
 load("//kiss:defs.bzl", "LOCAL", "RBE")
 
 # cctz/time tests read the host tzdata, absent off-host (RBE); see below.
@@ -8,12 +8,12 @@ _CCTZ_TIME_TESTS = [
     "//absl/time/internal/cctz:time_zone_lookup_test",
 ]
 
-# Abseil's C++ common libraries — the museum's first build.
+# Abseil's C++ common libraries — the matrix's first build.
 # Source pinned in //kiss:extension.bzl (@absl_archive, release
 # 20260526.0), built from the upstream source/module as-is. The hermetic
 # LLVM modification lives in //projects/abseil_cpp/hermetic_llvm.
 #
-museum_project(
+matrix_project(
     name = "abseil_cpp",
     source_archive = "@absl_archive//file",
     strip_prefix = "abseil-cpp-20260526.0",

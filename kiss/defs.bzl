@@ -399,11 +399,8 @@ def _emit_kiss_targets_for_spec(source, toolchains, build, test, bazel_version, 
     if source.kind == "bcr_module" and build == None and test != None:
         build = build_spec(targets = test.targets, flags = test.flags)
     _emit_source("kiss_source", source, toolchains)
-    if build or test:
-        _emit_source("kiss_rbe_source", source, toolchains)
     _emit_kiss_targets_for_source(
         source = ":kiss_source",
-        rbe_source = ":kiss_rbe_source",
         source_subdir = source.source_subdir,
         toolchains = toolchains,
         build = build,
@@ -420,14 +417,6 @@ def _emit_kiss_targets(source_archive, strip_prefix, source_subdir, toolchains, 
         appends = _overlay_files(toolchains, "appends"),
         writes = _overlay_files(toolchains, "writes"),
     )
-    if build or test:
-        extract_source(
-            name = "kiss_rbe_source",
-            archive = source_archive,
-            strip_prefix = strip_prefix,
-            appends = _overlay_files(toolchains, "appends"),
-            writes = _overlay_files(toolchains, "writes"),
-        )
 
     bazel = inner_bazel(bazel_version)
     build_flags = _overlay_build_flags(toolchains) + _overlay_build_flags([BUILDBUDDY_BES])
@@ -444,7 +433,7 @@ def _emit_kiss_targets(source_archive, strip_prefix, source_subdir, toolchains, 
         )
         kiss_build(
             name = "kiss_rbe_build",
-            source = ":kiss_rbe_source",
+            source = ":kiss_source",
             bazel = bazel,
             targets = build.targets,
             flags = rbe_build_flags + build.flags,
@@ -465,7 +454,7 @@ def _emit_kiss_targets(source_archive, strip_prefix, source_subdir, toolchains, 
         )
         kiss_test(
             name = "kiss_rbe_test",
-            source = ":kiss_rbe_source",
+            source = ":kiss_source",
             targets = test.targets,
             bazel_data = inner_bazel_data(bazel_version),
             bazel_arg = inner_bazel_arg(bazel_version),
@@ -474,7 +463,7 @@ def _emit_kiss_targets(source_archive, strip_prefix, source_subdir, toolchains, 
             visibility = visibility,
         )
 
-def _emit_kiss_targets_for_source(source, rbe_source, source_subdir, toolchains, build, test, bazel_version, visibility):
+def _emit_kiss_targets_for_source(source, source_subdir, toolchains, build, test, bazel_version, visibility):
     bazel = inner_bazel(bazel_version)
     build_flags = _overlay_build_flags(toolchains) + _overlay_build_flags([BUILDBUDDY_BES])
     rbe_build_flags = build_flags + _overlay_build_flags([BUILDBUDDY_RBE])
@@ -490,7 +479,7 @@ def _emit_kiss_targets_for_source(source, rbe_source, source_subdir, toolchains,
         )
         kiss_build(
             name = "kiss_rbe_build",
-            source = rbe_source,
+            source = source,
             bazel = bazel,
             targets = build.targets,
             flags = rbe_build_flags + build.flags,
@@ -511,7 +500,7 @@ def _emit_kiss_targets_for_source(source, rbe_source, source_subdir, toolchains,
         )
         kiss_test(
             name = "kiss_rbe_test",
-            source = rbe_source,
+            source = source,
             targets = test.targets,
             bazel_data = inner_bazel_data(bazel_version),
             bazel_arg = inner_bazel_arg(bazel_version),
@@ -681,17 +670,8 @@ def _emit_bcr_project(
         appends = _overlay_files(toolchains or [], "appends"),
         writes = _overlay_files(toolchains or [], "writes"),
     )
-    if build or test:
-        bcr_source(
-            name = "kiss_rbe_source",
-            module = module,
-            version = version,
-            appends = _overlay_files(toolchains or [], "appends"),
-            writes = _overlay_files(toolchains or [], "writes"),
-        )
     _emit_kiss_targets_for_source(
         source = ":kiss_source",
-        rbe_source = ":kiss_rbe_source",
         source_subdir = "",
         toolchains = toolchains or [],
         build = build,

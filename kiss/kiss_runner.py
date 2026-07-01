@@ -100,6 +100,28 @@ def _load_bep_outputs(path):
     return sorted(outputs, key=lambda output: output["arcname"])
 
 
+def _load_bep_uuid(path):
+    with open(path, encoding="utf-8") as f:
+        for line in f:
+            event = json.loads(line)
+            uuid = event.get("started", {}).get("uuid")
+            if uuid:
+                return uuid
+    return ""
+
+
+def _bes_invocation_url(flags, uuid):
+    if not uuid:
+        return ""
+    for flag in flags:
+        if flag.startswith("--bes_results_url="):
+            base = flag.split("=", 1)[1]
+            if not base.endswith("/"):
+                base += "/"
+            return urllib.parse.urljoin(base, uuid)
+    return ""
+
+
 def _sha256(path):
     h = hashlib.sha256()
     with open(path, "rb") as f:
@@ -224,6 +246,13 @@ def main(argv=None):
 
     print("kiss: command =", _redacted_command(cmd), file=sys.stderr)
     proc = subprocess.run(cmd, cwd=source, env=env)
+    if os.path.exists(bep):
+        uuid = _load_bep_uuid(bep)
+        invocation_url = _bes_invocation_url(expanded_flags, uuid)
+        if invocation_url:
+            print("kiss: invocation =", invocation_url, file=sys.stderr)
+        elif uuid:
+            print("kiss: invocation uuid =", uuid, file=sys.stderr)
     if proc.returncode != 0:
         return proc.returncode
 

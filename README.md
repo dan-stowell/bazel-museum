@@ -5,13 +5,13 @@
 Install Bazel or Bazelisk, then run the RE2 build:
 
 ```sh
-bazel build //projects/re2/as_is:kiss_build
+bazel build //projects/re2/as_is:re2_build
 ```
 
 The output is:
 
 ```text
-bazel-bin/projects/re2/as_is/kiss_build.tar
+bazel-bin/projects/re2/as_is/re2_build.tar
 ```
 
 That tarball contains the inner Bazel build event stream, a manifest, and RE2's
@@ -20,13 +20,13 @@ top-level build outputs.
 Run RE2's upstream tests:
 
 ```sh
-bazel test //projects/re2/as_is:kiss_test
+bazel test //projects/re2/as_is:re2_test
 ```
 
 Run upstream tests through BuildBuddy RBE when a project has a test target:
 
 ```sh
-bazel test //projects/re2/as_is:kiss_rbe_test
+bazel test //projects/re2/as_is:re2_rbe_test
 ```
 
 Kick the tires without running a full sweep:
@@ -45,10 +45,10 @@ links by default.
 
 Legend:
 
-- `✅` = KISS target exists and the latest relevant sweep passed where applicable
+- `✅` = matrix target exists and the latest relevant sweep passed where applicable
 - `❌` = latest relevant sweep failed
 - `🔍` = inspected, but no real upstream Bazel test target exists
-- `💤` = no KISS target is expected for this project/command
+- `💤` = no matrix target is expected for this project/command
 - `📦` = as-is source/module
 - `🧰` = hermetic-llvm modification
 

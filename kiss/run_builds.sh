@@ -5,8 +5,8 @@ usage() {
   cat <<'EOF'
 Usage: kiss/run_builds.sh [--list] [--clean|--no-clean] [--] [TARGET...]
 
-Runs KISS build targets sequentially. With no TARGET arguments, discovers all
-//projects/.../as_is:kiss_build and other variant kiss_build targets.
+Runs matrix build targets sequentially. With no TARGET arguments, discovers all
+//projects/<name>/as_is:<name>_build and other variant build targets.
 
 By default, runs `bazel clean` before each target so projects do not accumulate
 outer build outputs. Set --no-clean or KISS_CLEAN_BETWEEN=0 to disable that.
@@ -62,7 +62,7 @@ main() {
   done
 
   if ((${#targets[@]} == 0)); then
-    mapfile -t targets < <("$bazel_bin" query 'attr(name, "kiss_build", //projects/...)' | sort)
+    mapfile -t targets < <("$bazel_bin" query 'attr(name, ".*_build", //projects/...) except attr(name, ".*_rbe_build", //projects/...)' | sort)
   fi
 
   if ((list_only)); then
@@ -100,7 +100,7 @@ main() {
       fi
     fi
 
-    printf '\n===== KISS BUILD %s =====\n' "$target" >&2
+    printf '\n===== BUILD %s =====\n' "$target" >&2
     "$bazel_bin" build "${bazel_flags[@]}" "$target"
     status=$?
     if ((status == 0)); then
@@ -112,7 +112,7 @@ main() {
     fi
   done
 
-  printf '\n===== KISS BUILD SUMMARY =====\n' >&2
+  printf '\n===== BUILD SUMMARY =====\n' >&2
   printf 'passed: %d\n' "${#passed[@]}" >&2
   printf 'failed: %d\n' "${#failed[@]}" >&2
   if ((${#failed[@]})); then

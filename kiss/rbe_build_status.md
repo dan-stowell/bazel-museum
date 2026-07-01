@@ -1,8 +1,8 @@
 # RBE Build Status
 
-Last sweep: 2026-06-30, as-is `//projects/.../as_is:kiss_rbe_build` targets using BuildBuddy remote execution.
+Last sweep: 2026-06-30, as-is `//projects/<name>/as_is:<name>_rbe_build` targets using BuildBuddy remote execution.
 
-The `as_is` variant intentionally uses the upstream source/module without adding a C/C++ toolchain overlay. Variant-specific results live under variant subpackages, for example `//projects/<name>/as_is:kiss_build` or `//projects/<name>/hermetic_llvm:kiss_build`.
+The `as_is` variant intentionally uses the upstream source/module without adding a C/C++ toolchain overlay. Variant-specific results live under variant subpackages, for example `//projects/<name>/as_is:<name>_build` or `//projects/<name>/hermetic_llvm:<name>_build`.
 
 ## Cause Buckets
 

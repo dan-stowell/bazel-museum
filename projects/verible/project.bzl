@@ -1,6 +1,6 @@
-load("//kiss:defs.bzl", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//bazel_runner:defs.bzl", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # verible — CHIPS Alliance's SystemVerilog developer suite (parser, style linter,
-# formatter, language server), C++. Source pinned in //kiss:extension.bzl
+# formatter, language server), C++. Source pinned in //bazel_runner:extension.bzl
 # (@verible_archive, the v0.0-4080-ga0a8d8eb commit), built from the upstream
 # source/module as-is. The hermetic LLVM modification lives in
 # //projects/verible/hermetic_llvm. First-party Bazel (MODULE.bazel + loaded

@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//bazel_runner:defs.bzl", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # cctz/time tests read the host tzdata, absent off-host (RBE); see below.
 _CCTZ_TIME_TESTS = [
     "//absl/time:time_test",
@@ -7,7 +7,7 @@ _CCTZ_TIME_TESTS = [
 ]
 
 # Abseil's C++ common libraries — the matrix's first build.
-# Source pinned in //kiss:extension.bzl (@absl_archive, release
+# Source pinned in //bazel_runner:extension.bzl (@absl_archive, release
 # 20260526.0), built from the upstream source/module as-is. The hermetic
 # LLVM modification lives in //projects/abseil_cpp/hermetic_llvm.
 #

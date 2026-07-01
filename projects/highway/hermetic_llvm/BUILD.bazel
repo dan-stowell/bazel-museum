@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "hermetic_llvm_project_modification")
+load("//bazel_runner:defs.bzl", "hermetic_llvm_project_modification")
 load("//projects/highway:project.bzl", "HIGHWAY_PROJECT")
 
 hermetic_llvm_project_modification(project = HIGHWAY_PROJECT)

@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "bcr_project_from_spec")
+load("//bazel_runner:defs.bzl", "bcr_project_from_spec")
 load("//projects/tinyformat:project.bzl", "TINYFORMAT_PROJECT")
 
 bcr_project_from_spec(project = TINYFORMAT_PROJECT)

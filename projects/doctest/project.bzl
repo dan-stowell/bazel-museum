@@ -1,6 +1,6 @@
-load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//bazel_runner:defs.bzl", "HERMETIC_LLVM", "LOCAL", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # doctest — the fast, header-only C++ unit-testing framework.
-# Source pinned in //kiss:extension.bzl (@doctest_archive, release
+# Source pinned in //bazel_runner:extension.bzl (@doctest_archive, release
 # v2.5.2), built with the fully-hermetic LLVM toolchain. Its BUILD files
 # explicitly load the cc_* rules from @rules_cc, so it runs on the default Bazel
 # 9.1.1 inner.

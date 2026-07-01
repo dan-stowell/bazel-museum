@@ -1,6 +1,6 @@
-load("//kiss:defs.bzl", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//bazel_runner:defs.bzl", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # cctz — Google's C++ library for civil-time and time-zone calculations (the
-# basis of absl::time). Source pinned in //kiss:extension.bzl
+# basis of absl::time). Source pinned in //bazel_runner:extension.bzl
 # (@cctz_archive, master commit f353c12), built from the upstream source/module
 # as-is. The hermetic LLVM modification lives in //projects/cctz/hermetic_llvm.
 # cctz declares the platforms dep directly (no PLATFORMS_DEP) and

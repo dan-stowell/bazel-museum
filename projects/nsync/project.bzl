@@ -1,7 +1,7 @@
-load("//kiss:defs.bzl", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//bazel_runner:defs.bzl", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # nsync — Google's small C library of synchronization primitives (mutexes,
 # condition variables, notes, once), with a C++ wrapper. Source pinned in
-# //kiss:extension.bzl (@nsync_archive, release 1.30.0), built with the
+# //bazel_runner:extension.bzl (@nsync_archive, release 1.30.0), built with the
 # upstream source/module as-is. The hermetic LLVM modification lives in
 # //projects/nsync/hermetic_llvm. Its BUILD uses the unloaded cc_* rules, so it
 # runs on the Bazel 8.7 inner. (nsync declares the platforms dep directly, so no

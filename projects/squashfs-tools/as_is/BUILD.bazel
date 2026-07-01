@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "bcr_project_from_spec")
+load("//bazel_runner:defs.bzl", "bcr_project_from_spec")
 load("//projects/squashfs-tools:project.bzl", "SQUASHFS_TOOLS_PROJECT")
 
 bcr_project_from_spec(project = SQUASHFS_TOOLS_PROJECT)

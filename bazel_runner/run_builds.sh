@@ -3,17 +3,17 @@ set -uo pipefail
 
 usage() {
   cat <<'EOF'
-Usage: kiss/run_builds.sh [--list] [--clean|--no-clean] [--] [TARGET...]
+Usage: bazel_runner/run_builds.sh [--list] [--clean|--no-clean] [--] [TARGET...]
 
 Runs matrix build targets sequentially. With no TARGET arguments, discovers all
 //projects/<name>/as_is:<name>_local_build and other variant local build targets.
 
 By default, runs `bazel clean` before each target so projects do not accumulate
-outer build outputs. Set --no-clean or KISS_CLEAN_BETWEEN=0 to disable that.
+outer build outputs. Set --no-clean or BAZEL_RUNNER_CLEAN_BETWEEN=0 to disable that.
 
 Extra Bazel flags can be supplied through BAZEL_BUILD_FLAGS, for example:
 
-  BAZEL_BUILD_FLAGS="--verbose_failures" kiss/run_builds.sh 2>&1 | tee kiss-builds.log
+  BAZEL_BUILD_FLAGS="--verbose_failures" bazel_runner/run_builds.sh 2>&1 | tee bazel-runner-builds.log
 
 Set BAZEL=/path/to/bazel to use a different Bazel client.
 Set BAZEL_CLEAN_FLAGS to pass flags to `bazel clean`.
@@ -23,7 +23,7 @@ EOF
 main() {
   local bazel_bin="${BAZEL:-bazel}"
   local list_only=0
-  local clean_between="${KISS_CLEAN_BETWEEN:-1}"
+  local clean_between="${BAZEL_RUNNER_CLEAN_BETWEEN:-1}"
   local -a targets=()
 
   while (($#)); do

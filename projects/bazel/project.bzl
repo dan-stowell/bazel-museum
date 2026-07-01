@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "HERMETIC_LLVM", "HERMETIC_ZIP", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//bazel_runner:defs.bzl", "HERMETIC_LLVM", "HERMETIC_ZIP", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # file_test exercises real POSIX filesystem semantics that invert when the test
 # runs as root: it asserts a permission-stripped file is *unreadable* and that a
 # protected path *can't* be removed — both false for root, which the RBE executor
@@ -8,10 +8,10 @@ load("//kiss:defs.bzl", "HERMETIC_LLVM", "HERMETIC_ZIP", "LOCAL", "RBE", "build_
 _ROOT_SENSITIVE_TESTS = ["//src/test/cpp/util:file_test"]
 
 # Bazel itself — the flagship "Bazel builds Bazel" build (Java + C++).
-# Source pinned in //kiss:extension.bzl (@bazel_archive, release 9.1.1).
+# Source pinned in //bazel_runner:extension.bzl (@bazel_archive, release 9.1.1).
 # The release's own .bazelversion pins 9.0.1; we run the 9.1.1 inner (a
 # patch-newer Bazel builds it). If that mismatch bites, pin a 9.0.1 inner in
-# //kiss and set bazel_version here.
+# //bazel_runner and set bazel_version here.
 #
 # Built with the fully-hermetic LLVM toolchain: Bazel's MODULE uses rules_cc's
 # autodetected Unix toolchain, so HERMETIC_LLVM's --extra_toolchains wins for

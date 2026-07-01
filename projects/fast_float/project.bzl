@@ -1,6 +1,6 @@
-load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//bazel_runner:defs.bzl", "HERMETIC_LLVM", "LOCAL", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # fast_float — fast, exact float/integer parsing for C++ (header-only).
-# Source pinned in //kiss:extension.bzl (@fast_float_archive, release
+# Source pinned in //bazel_runner:extension.bzl (@fast_float_archive, release
 # v8.2.10), built with the fully-hermetic LLVM toolchain. Header-only, so its
 # parity is the test suite, whose cc_test rules are unloaded and use doctest, so
 # it runs on the Bazel 8.7 inner. PLATFORMS_DEP supplies the @platforms

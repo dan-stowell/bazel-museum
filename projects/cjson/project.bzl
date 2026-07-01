@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "LOCAL", "RBE", "bcr_module_source", "build_spec", "project_spec", "test_spec")
+load("//bazel_runner:defs.bzl", "LOCAL", "RBE", "bcr_module_source", "build_spec", "project_spec", "test_spec")
 # cJSON — ultralightweight JSON parser in C (DaveGamble/cJSON). A "BCR module"
 # project: the runner bazel_dep()s cjson from the Bazel Central Registry and runs
 # its own @cjson//... targets. LOCAL uses the ambient host gcc; RBE uses hermetic

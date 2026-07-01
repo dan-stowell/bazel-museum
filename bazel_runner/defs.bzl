@@ -1,5 +1,5 @@
 load("@rules_python//python:defs.bzl", "py_test")
-load("//kiss:extension.bzl", "DEFAULT_INNER_BAZEL_VERSION")
+load("//bazel_runner:extension.bzl", "DEFAULT_INNER_BAZEL_VERSION")
 
 def build_spec(targets, flags = [], exclude_on = {}, emit_artifacts = True):
     return struct(
@@ -38,16 +38,16 @@ def overlay(name, appends = [], writes = [], patches = [], build_flags = [], rem
 HERMETIC_LLVM = overlay(name = "hermetic_llvm")
 _RBE_HERMETIC_LLVM = overlay(
     name = "rbe_hermetic_llvm",
-    appends = [("//kiss:hermetic_llvm.MODULE.bazel", "MODULE.bazel")],
+    appends = [("//bazel_runner:hermetic_llvm.MODULE.bazel", "MODULE.bazel")],
 )
 _HERMETIC_LLVM_MODIFICATION = overlay(
     name = "hermetic_llvm",
-    appends = [("//kiss:hermetic_llvm.MODULE.bazel", "MODULE.bazel")],
+    appends = [("//bazel_runner:hermetic_llvm.MODULE.bazel", "MODULE.bazel")],
 )
 CC_NODETECT = overlay(name = "cc_nodetect")
 HERMETIC_ZIP = overlay(
     name = "hermetic_zip",
-    writes = [("//kiss:zip.py", ".kiss-tools/zip")],
+    writes = [("//bazel_runner:zip.py", ".bazel-runner-tools/zip")],
     build_flags = ["--strategy=Genrule=local"],
 )
 RULES_RUST_SYSROOT_FIX = overlay(name = "rules_rust_sysroot_fix")
@@ -110,28 +110,28 @@ def project_spec(
 def inner_bazel(version):
     vtag = version.replace(".", "_")
     return select({
-        "//kiss:linux_amd64": "@inner_bazel_{}_linux_amd64//file".format(vtag),
-        "//kiss:linux_arm64": "@inner_bazel_{}_linux_arm64//file".format(vtag),
-        "//kiss:darwin_amd64": "@inner_bazel_{}_darwin_amd64//file".format(vtag),
-        "//kiss:darwin_arm64": "@inner_bazel_{}_darwin_arm64//file".format(vtag),
+        "//bazel_runner:linux_amd64": "@inner_bazel_{}_linux_amd64//file".format(vtag),
+        "//bazel_runner:linux_arm64": "@inner_bazel_{}_linux_arm64//file".format(vtag),
+        "//bazel_runner:darwin_amd64": "@inner_bazel_{}_darwin_amd64//file".format(vtag),
+        "//bazel_runner:darwin_arm64": "@inner_bazel_{}_darwin_arm64//file".format(vtag),
     })
 
 def inner_bazel_data(version):
     vtag = version.replace(".", "_")
     return select({
-        "//kiss:linux_amd64": ["@inner_bazel_{}_linux_amd64//file".format(vtag)],
-        "//kiss:linux_arm64": ["@inner_bazel_{}_linux_arm64//file".format(vtag)],
-        "//kiss:darwin_amd64": ["@inner_bazel_{}_darwin_amd64//file".format(vtag)],
-        "//kiss:darwin_arm64": ["@inner_bazel_{}_darwin_arm64//file".format(vtag)],
+        "//bazel_runner:linux_amd64": ["@inner_bazel_{}_linux_amd64//file".format(vtag)],
+        "//bazel_runner:linux_arm64": ["@inner_bazel_{}_linux_arm64//file".format(vtag)],
+        "//bazel_runner:darwin_amd64": ["@inner_bazel_{}_darwin_amd64//file".format(vtag)],
+        "//bazel_runner:darwin_arm64": ["@inner_bazel_{}_darwin_arm64//file".format(vtag)],
     })
 
 def inner_bazel_arg(version):
     vtag = version.replace(".", "_")
     return select({
-        "//kiss:linux_amd64": ["--bazel=$(rlocationpath @inner_bazel_{}_linux_amd64//file)".format(vtag)],
-        "//kiss:linux_arm64": ["--bazel=$(rlocationpath @inner_bazel_{}_linux_arm64//file)".format(vtag)],
-        "//kiss:darwin_amd64": ["--bazel=$(rlocationpath @inner_bazel_{}_darwin_amd64//file)".format(vtag)],
-        "//kiss:darwin_arm64": ["--bazel=$(rlocationpath @inner_bazel_{}_darwin_arm64//file)".format(vtag)],
+        "//bazel_runner:linux_amd64": ["--bazel=$(rlocationpath @inner_bazel_{}_linux_amd64//file)".format(vtag)],
+        "//bazel_runner:linux_arm64": ["--bazel=$(rlocationpath @inner_bazel_{}_linux_arm64//file)".format(vtag)],
+        "//bazel_runner:darwin_amd64": ["--bazel=$(rlocationpath @inner_bazel_{}_darwin_amd64//file)".format(vtag)],
+        "//bazel_runner:darwin_arm64": ["--bazel=$(rlocationpath @inner_bazel_{}_darwin_arm64//file)".format(vtag)],
     })
 
 def _extract_source_impl(ctx):
@@ -227,7 +227,7 @@ version="$3"
 shift 3
 mkdir -p "$out"
 cat > "$out/MODULE.bazel" <<EOF
-module(name = "kiss_bcr_${module}")
+module(name = "bazel_runner_bcr_${module}")
 bazel_dep(name = "${module}", version = "${version}")
 EOF
 touch "$out/BUILD.bazel"
@@ -297,7 +297,7 @@ def _local_test_name(project_name):
 def _rbe_test_name(project_name):
     return project_name + "_rbe_test"
 
-def _kiss_build_impl(ctx):
+def _bazel_runner_build_impl(ctx):
     source = _single_file(ctx.attr.source[DefaultInfo].files, "source")
     out = ctx.actions.declare_file(ctx.attr.name + ".tar")
 
@@ -317,14 +317,14 @@ def _kiss_build_impl(ctx):
         inputs = depset([source, ctx.file.bazel]),
         outputs = [out],
         arguments = [args],
-        mnemonic = "KissBuild",
+        mnemonic = "BazelRunnerBuild",
         progress_message = "building %{label}",
         use_default_shell_env = ctx.attr.use_default_shell_env,
     )
     return [DefaultInfo(files = depset([out]))]
 
-_kiss_build = rule(
-    implementation = _kiss_build_impl,
+_bazel_runner_build = rule(
+    implementation = _bazel_runner_build_impl,
     attrs = {
         "bazel": attr.label(allow_single_file = True, mandatory = True),
         "flags": attr.string_list(),
@@ -333,15 +333,15 @@ _kiss_build = rule(
         "targets": attr.string_list(mandatory = True),
         "use_default_shell_env": attr.bool(),
         "_runner": attr.label(
-            default = Label("//kiss:kiss_runner"),
+            default = Label("//bazel_runner:bazel_runner"),
             executable = True,
             cfg = "exec",
         ),
     },
 )
 
-def kiss_build(name, source, bazel, targets, flags = [], source_subdir = "", visibility = None, use_default_shell_env = False):
-    _kiss_build(
+def bazel_runner_build(name, source, bazel, targets, flags = [], source_subdir = "", visibility = None, use_default_shell_env = False):
+    _bazel_runner_build(
         name = name,
         source = source,
         source_subdir = source_subdir,
@@ -352,7 +352,7 @@ def kiss_build(name, source, bazel, targets, flags = [], source_subdir = "", vis
         use_default_shell_env = use_default_shell_env,
     )
 
-def kiss_test(name, source, targets, bazel = None, bazel_data = None, bazel_arg = None, flags = [], source_subdir = "", env_inherit = [], visibility = None):
+def bazel_runner_test(name, source, targets, bazel = None, bazel_data = None, bazel_arg = None, flags = [], source_subdir = "", env_inherit = [], visibility = None):
     if bazel_data == None:
         bazel_data = [bazel]
     if bazel_arg == None:
@@ -360,8 +360,8 @@ def kiss_test(name, source, targets, bazel = None, bazel_data = None, bazel_arg 
 
     py_test(
         name = name,
-        srcs = ["//kiss:kiss_runner.py"],
-        main = "kiss_runner.py",
+        srcs = ["//bazel_runner:bazel_runner.py"],
+        main = "bazel_runner.py",
         args = [
             "--mode=test",
             "--job=%s" % _job_label(native.package_name(), name),
@@ -418,12 +418,12 @@ def _emit_source(name, source, toolchains):
     else:
         fail("unknown source kind: {}".format(source.kind))
 
-def _emit_kiss_targets_for_spec(source, toolchains, build, test, bazel_version, target_prefix, visibility):
+def _emit_bazel_runner_targets_for_spec(source, toolchains, build, test, bazel_version, target_prefix, visibility):
     if source.kind == "bcr_module" and build == None and test != None:
         build = build_spec(targets = test.targets, flags = test.flags)
-    _emit_source("kiss_source", source, toolchains)
-    _emit_kiss_targets_for_source(
-        source = ":kiss_source",
+    _emit_source("bazel_runner_source", source, toolchains)
+    _emit_bazel_runner_targets_for_source(
+        source = ":bazel_runner_source",
         source_subdir = source.source_subdir,
         toolchains = toolchains,
         build = build,
@@ -433,9 +433,9 @@ def _emit_kiss_targets_for_spec(source, toolchains, build, test, bazel_version, 
         visibility = visibility,
     )
 
-def _emit_kiss_targets(source_archive, strip_prefix, source_subdir, toolchains, build, test, bazel_version, target_prefix, visibility):
+def _emit_bazel_runner_targets(source_archive, strip_prefix, source_subdir, toolchains, build, test, bazel_version, target_prefix, visibility):
     extract_source(
-        name = "kiss_source",
+        name = "bazel_runner_source",
         archive = source_archive,
         strip_prefix = strip_prefix,
         appends = _overlay_files(toolchains, "appends"),
@@ -446,18 +446,18 @@ def _emit_kiss_targets(source_archive, strip_prefix, source_subdir, toolchains, 
     build_flags = _overlay_build_flags(toolchains) + _overlay_build_flags([BUILDBUDDY_BES])
     rbe_build_flags = build_flags + _overlay_build_flags([BUILDBUDDY_RBE])
     if build:
-        kiss_build(
+        bazel_runner_build(
             name = _local_build_name(target_prefix),
-            source = ":kiss_source",
+            source = ":bazel_runner_source",
             bazel = bazel,
             targets = build.targets,
             flags = build_flags + build.flags,
             source_subdir = source_subdir,
             visibility = visibility,
         )
-        kiss_build(
+        bazel_runner_build(
             name = _rbe_build_name(target_prefix),
-            source = ":kiss_source",
+            source = ":bazel_runner_source",
             bazel = bazel,
             targets = build.targets,
             flags = rbe_build_flags + build.flags,
@@ -466,9 +466,9 @@ def _emit_kiss_targets(source_archive, strip_prefix, source_subdir, toolchains, 
             use_default_shell_env = True,
         )
     if test:
-        kiss_test(
+        bazel_runner_test(
             name = _local_test_name(target_prefix),
-            source = ":kiss_source",
+            source = ":bazel_runner_source",
             targets = test.targets,
             bazel_data = inner_bazel_data(bazel_version),
             bazel_arg = inner_bazel_arg(bazel_version),
@@ -476,9 +476,9 @@ def _emit_kiss_targets(source_archive, strip_prefix, source_subdir, toolchains, 
             source_subdir = source_subdir,
             visibility = visibility,
         )
-        kiss_test(
+        bazel_runner_test(
             name = _rbe_test_name(target_prefix),
-            source = ":kiss_source",
+            source = ":bazel_runner_source",
             targets = test.targets,
             bazel_data = inner_bazel_data(bazel_version),
             bazel_arg = inner_bazel_arg(bazel_version),
@@ -487,12 +487,12 @@ def _emit_kiss_targets(source_archive, strip_prefix, source_subdir, toolchains, 
             visibility = visibility,
         )
 
-def _emit_kiss_targets_for_source(source, source_subdir, toolchains, build, test, bazel_version, target_prefix, visibility):
+def _emit_bazel_runner_targets_for_source(source, source_subdir, toolchains, build, test, bazel_version, target_prefix, visibility):
     bazel = inner_bazel(bazel_version)
     build_flags = _overlay_build_flags(toolchains) + _overlay_build_flags([BUILDBUDDY_BES])
     rbe_build_flags = build_flags + _overlay_build_flags([BUILDBUDDY_RBE])
     if build:
-        kiss_build(
+        bazel_runner_build(
             name = _local_build_name(target_prefix),
             source = source,
             bazel = bazel,
@@ -501,7 +501,7 @@ def _emit_kiss_targets_for_source(source, source_subdir, toolchains, build, test
             source_subdir = source_subdir,
             visibility = visibility,
         )
-        kiss_build(
+        bazel_runner_build(
             name = _rbe_build_name(target_prefix),
             source = source,
             bazel = bazel,
@@ -512,7 +512,7 @@ def _emit_kiss_targets_for_source(source, source_subdir, toolchains, build, test
             use_default_shell_env = True,
         )
     if test:
-        kiss_test(
+        bazel_runner_test(
             name = _local_test_name(target_prefix),
             source = source,
             targets = test.targets,
@@ -522,7 +522,7 @@ def _emit_kiss_targets_for_source(source, source_subdir, toolchains, build, test
             source_subdir = source_subdir,
             visibility = visibility,
         )
-        kiss_test(
+        bazel_runner_test(
             name = _rbe_test_name(target_prefix),
             source = source,
             targets = test.targets,
@@ -558,8 +558,8 @@ def matrix_project(
     else:
         source = tarball_source(source_archive, strip_prefix, source_subdir)
     if clients:
-        fail("KISS-only matrix_project does not support clients=; use bazel_version=")
-    _emit_kiss_targets_for_spec(source, toolchains, build, test, bazel_version, name, visibility)
+        fail("matrix_project does not support clients=; use bazel_version=")
+    _emit_bazel_runner_targets_for_spec(source, toolchains, build, test, bazel_version, name, visibility)
 
 def project_modification(
         name = None,
@@ -586,8 +586,8 @@ def project_modification(
     else:
         source = tarball_source(source_archive, strip_prefix, source_subdir)
     if clients:
-        fail("KISS-only project_modification does not support clients=; use bazel_version=")
-    _emit_kiss_targets_for_spec(
+        fail("project_modification does not support clients=; use bazel_version=")
+    _emit_bazel_runner_targets_for_spec(
         source,
         toolchains,
         build,
@@ -635,7 +635,7 @@ def project_test(
         bazel_version = DEFAULT_INNER_BAZEL_VERSION,
         clients = None,
         visibility = ["//visibility:public"]):
-    _emit_kiss_targets(source_archive, strip_prefix, source_subdir, toolchains, None, test, bazel_version, name, visibility)
+    _emit_bazel_runner_targets(source_archive, strip_prefix, source_subdir, toolchains, None, test, bazel_version, name, visibility)
 
 def bcr_project(
         name,
@@ -649,7 +649,7 @@ def bcr_project(
         clients = None,
         visibility = ["//visibility:public"]):
     if clients:
-        fail("KISS-only bcr_project does not support clients=; use bazel_version=")
+        fail("bcr_project does not support clients=; use bazel_version=")
     _emit_bcr_project(
         name = name,
         module = module,
@@ -666,7 +666,7 @@ def bcr_project_from_spec(
         toolchains = None,
         visibility = ["//visibility:public"]):
     if project.clients:
-        fail("KISS-only bcr_project_from_spec does not support clients=; use bazel_version=")
+        fail("bcr_project_from_spec does not support clients=; use bazel_version=")
     if project.source.kind != "bcr_module":
         fail("bcr_project_from_spec requires a bcr_module source")
     _emit_bcr_project(
@@ -692,14 +692,14 @@ def _emit_bcr_project(
     if build == None and test != None:
         build = build_spec(targets = test.targets, flags = test.flags)
     bcr_source(
-        name = "kiss_source",
+        name = "bazel_runner_source",
         module = module,
         version = version,
         appends = _overlay_files(toolchains or [], "appends"),
         writes = _overlay_files(toolchains or [], "writes"),
     )
-    _emit_kiss_targets_for_source(
-        source = ":kiss_source",
+    _emit_bazel_runner_targets_for_source(
+        source = ":bazel_runner_source",
         source_subdir = "",
         toolchains = toolchains or [],
         build = build,

@@ -1,6 +1,6 @@
-load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//bazel_runner:defs.bzl", "HERMETIC_LLVM", "LOCAL", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # jsonnet — Google's data-templating language (the C++ implementation).
-# Source pinned in //kiss:extension.bzl (@jsonnet_archive, release
+# Source pinned in //bazel_runner:extension.bzl (@jsonnet_archive, release
 # v0.22.0), built with the fully-hermetic LLVM toolchain. jsonnet's own BUILD
 # files load rules_cc, but its core unit tests pull in googletest (cc_*
 # unloaded), so it runs on the Bazel 8.7 inner. PLATFORMS_DEP is applied because

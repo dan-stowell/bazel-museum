@@ -1,14 +1,14 @@
 load("@rules_python//python:defs.bzl", "py_binary")
 
-exports_files(["hermetic_llvm.MODULE.bazel", "kiss_runner.py", "zip.py"])
+exports_files(["hermetic_llvm.MODULE.bazel", "bazel_runner.py", "zip.py"])
 
 py_binary(
-    name = "kiss_runner",
-    srcs = ["kiss_runner.py"],
-    main = "kiss_runner.py",
+    name = "bazel_runner",
+    srcs = ["bazel_runner.py"],
+    main = "bazel_runner.py",
 )
 
-# OS+CPU config settings used by KISS rules to pick the matching pinned inner
+# OS+CPU config settings used by bazel_runner rules to pick the matching pinned inner
 # Bazel binary.
 [
     config_setting(

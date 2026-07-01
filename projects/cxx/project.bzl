@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "RBE", "RULES_RUST_SYSROOT_FIX", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//bazel_runner:defs.bzl", "HERMETIC_LLVM", "LOCAL", "RBE", "RULES_RUST_SYSROOT_FIX", "build_spec", "project_spec", "tarball_source", "test_spec")
 # cxx (cxx.rs) — safe FFI between Rust and C++. Build #3: exercises the Rust
 # toolchain (rules_rust + hermetic rustc) plus, via the C++ bridge, the
 # hermetic LLVM toolchain. Source pinned at tag 1.0.194.

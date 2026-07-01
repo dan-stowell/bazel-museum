@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "LOCAL", "bcr_module_source", "project_spec", "test_spec")
+load("//bazel_runner:defs.bzl", "LOCAL", "bcr_module_source", "project_spec", "test_spec")
 # cpp-httplib — a single-header C++ HTTP/HTTPS client/server library
 # (yhirose/cpp-httplib). A "BCR module" project: the runner bazel_dep()s it from
 # the Bazel Central Registry and runs its own @cpp-httplib//... tests (which the

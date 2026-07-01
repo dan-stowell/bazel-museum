@@ -1,6 +1,6 @@
-load("//kiss:defs.bzl", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//bazel_runner:defs.bzl", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # FTXUI — a functional C++ terminal-UI library (screen / dom / component).
-# Source pinned in //kiss:extension.bzl (@ftxui_archive, release v7.0.0),
+# Source pinned in //bazel_runner:extension.bzl (@ftxui_archive, release v7.0.0),
 # built from the upstream source/module as-is. The hermetic LLVM modification
 # lives in //projects/ftxui/hermetic_llvm. FTXUI ships first-party Bazel
 # files, but its test target pulls in googletest (cc_* unloaded), so it runs on

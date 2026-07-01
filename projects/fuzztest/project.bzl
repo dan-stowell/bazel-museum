@@ -1,7 +1,7 @@
-load("//kiss:defs.bzl", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//bazel_runner:defs.bzl", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # fuzztest — Google's C++ testing/fuzzing framework (the FUZZ_TEST macro,
 # property-based "domains", and the Centipede engine). Source pinned in
-# //kiss:extension.bzl (@fuzztest_archive, a commit archive), built from the
+# //bazel_runner:extension.bzl (@fuzztest_archive, a commit archive), built from the
 # upstream source/module as-is. The hermetic LLVM modification lives in
 # //projects/fuzztest/hermetic_llvm. First-party Bazel (MODULE.bazel + loaded cc_*
 # rules; it names its own repo @com_google_fuzztest, which resolves when fuzztest

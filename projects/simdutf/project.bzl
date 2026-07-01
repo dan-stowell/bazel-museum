@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "LOCAL", "RBE", "bcr_module_source", "build_spec", "project_spec", "test_spec")
+load("//bazel_runner:defs.bzl", "LOCAL", "RBE", "bcr_module_source", "build_spec", "project_spec", "test_spec")
 # simdutf — fast SIMD Unicode validation & transcoding (UTF-8/16/32, base64), C++.
 # This is a "BCR module" project: rather than pinning the upstream source and
 # running its in-repo BUILD, the runner synthesizes a root module that

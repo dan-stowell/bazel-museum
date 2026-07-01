@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//bazel_runner:defs.bzl", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 S2_TEST_TARGETS = [
     "//:s1angle_test",
     "//:s1chord_angle_test",
@@ -14,7 +14,7 @@ S2_TEST_TARGETS = [
 
 # s2geometry — Google's S2, a C++ library for spherical geometry (cells, regions,
 # indexing on the sphere; the math behind geographic systems). Source pinned in
-# //kiss:extension.bzl (@s2geometry_archive, a commit archive), built from the
+# //bazel_runner:extension.bzl (@s2geometry_archive, a commit archive), built from the
 # upstream source/module as-is. The hermetic LLVM modification lives in
 # //projects/s2geometry/hermetic_llvm. First-party Bazel, but the Bazel module
 # is rooted at the repo's src/ subdir (src/MODULE.bazel), so strip_prefix

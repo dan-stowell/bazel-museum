@@ -1,6 +1,6 @@
-load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//bazel_runner:defs.bzl", "HERMETIC_LLVM", "LOCAL", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # CLI11 — a command-line parser for C++11 (header-only, optionally compiled).
-# Source pinned in //kiss:extension.bzl (@cli11_archive, release v2.4.2),
+# Source pinned in //bazel_runner:extension.bzl (@cli11_archive, release v2.4.2),
 # built with the fully-hermetic LLVM toolchain. Its Catch2-based tests use the
 # unloaded cc_* rules, so it runs on the Bazel 8.7 inner. PLATFORMS_DEP supplies
 # the @platforms visibility the injected RBE platform package needs (CLI11's

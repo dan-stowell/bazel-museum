@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "LOCAL", "bcr_module_source", "project_spec", "test_spec")
+load("//bazel_runner:defs.bzl", "LOCAL", "bcr_module_source", "project_spec", "test_spec")
 # curl — the ubiquitous C HTTP/transfer library (curl/curl); a foreign_cc heavyweight that builds against the ambient sysroot.
 # A "BCR module" project: the runner bazel_dep()s the module from the Bazel
 # Central Registry and runs its own presubmit test target. Host tier: builds and

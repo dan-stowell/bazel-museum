@@ -1,6 +1,6 @@
-load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//bazel_runner:defs.bzl", "HERMETIC_LLVM", "LOCAL", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # Crow — a header-only C++ microframework for building web services and APIs.
-# Source pinned in //kiss:extension.bzl (@crow_archive, release v1.3.2).
+# Source pinned in //bazel_runner:extension.bzl (@crow_archive, release v1.3.2).
 # First-party Bazel: pulls asio, zlib and catch2 from the BCR. Its root BUILD
 # calls cc_library unloaded, so it runs on the Bazel 8.7 inner with the hermetic
 # LLVM toolchain. Crow's Bazel cc_test exercises the SSL path through Asio,

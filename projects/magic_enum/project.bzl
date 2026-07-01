@@ -1,6 +1,6 @@
-load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//bazel_runner:defs.bzl", "HERMETIC_LLVM", "LOCAL", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # magic_enum — static reflection (to-string, iteration, …) for C++ enums.
-# Source pinned in //kiss:extension.bzl (@magic_enum_archive, v0.9.8),
+# Source pinned in //bazel_runner:extension.bzl (@magic_enum_archive, v0.9.8),
 # built with the fully-hermetic LLVM toolchain.
 #
 # magic_enum is header-only, so its parity is the test suite. Those tests live in

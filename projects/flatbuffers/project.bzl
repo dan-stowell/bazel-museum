@@ -1,6 +1,6 @@
-load("//kiss:defs.bzl", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//bazel_runner:defs.bzl", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # FlatBuffers — serialization library + the flatc schema compiler.
-# Source pinned in //kiss:extension.bzl (@flatbuffers_archive, v25.12.19).
+# Source pinned in //bazel_runner:extension.bzl (@flatbuffers_archive, v25.12.19).
 # Built from the upstream source/module as-is. The hermetic LLVM modification
 # lives in //projects/flatbuffers/hermetic_llvm. flatbuffers
 # pulls old aspect_bazel_lib / rules_foreign_cc / rules_go transitively, whose

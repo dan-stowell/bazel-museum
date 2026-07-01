@@ -1,6 +1,6 @@
-load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//bazel_runner:defs.bzl", "HERMETIC_LLVM", "LOCAL", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # buildtools — Bazel's own BUILD/Starlark file tooling (buildifier, buildozer),
-# written in Go. Source pinned in //kiss:extension.bzl (@buildtools_archive,
+# written in Go. Source pinned in //bazel_runner:extension.bzl (@buildtools_archive,
 # release v7.3.1). Built with rules_go: the Go SDK is downloaded hermetically by
 # rules_go, and a C toolchain (HERMETIC_LLVM) is registered for the rules_go
 # stdlib even though buildifier itself is pure Go (no cgo). Its older

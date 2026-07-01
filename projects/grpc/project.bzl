@@ -1,6 +1,6 @@
-load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//bazel_runner:defs.bzl", "HERMETIC_LLVM", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # gRPC — first-party Bazel, the natural companion to protobuf.
-# Source pinned in //kiss:extension.bzl (@grpc_archive, v1.81.1).
+# Source pinned in //bazel_runner:extension.bzl (@grpc_archive, v1.81.1).
 #
 # grpc 1.81.1 ships .bazelversion = 8.0.1: its transitive dep graph predates
 # Bazel 9 (opentelemetry-cpp / aspect_* / rules_go use rules/kwargs Bazel 9

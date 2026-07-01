@@ -1,7 +1,7 @@
-load("//kiss:defs.bzl", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//bazel_runner:defs.bzl", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # PCRE2 — Perl Compatible Regular Expressions (version 2), the C regex engine used
 # by Git, PHP, Apache, nginx and many others. Source pinned in
-# //kiss:extension.bzl (@pcre2_archive, pcre2-10.47). First-party Bazel:
+# //bazel_runner:extension.bzl (@pcre2_archive, pcre2-10.47). First-party Bazel:
 # root BUILD loads cc_* from rules_cc, so the default 9.1.1 inner builds it
 # as-authored. The hermetic LLVM modification lives in //projects/pcre2/hermetic_llvm. Upstream's Bazel file wraps the pcre2test CLI test harness as
 # //:pcre2_test. pcre2's MODULE declares a direct platforms dep (no PLATFORMS_DEP).

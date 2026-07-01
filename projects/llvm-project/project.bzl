@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "LOCAL", "bcr_module_source", "project_spec", "test_spec")
+load("//bazel_runner:defs.bzl", "LOCAL", "bcr_module_source", "project_spec", "test_spec")
 # LLVM — the LLVM compiler infrastructure project, C++ (llvm/llvm-project). A "BCR
 # module" project: the runner bazel_dep()s llvm-project from the Bazel Central
 # Registry and runs a scoped set of its own unit tests. Host tier on LOCAL + the

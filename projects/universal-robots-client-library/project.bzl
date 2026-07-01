@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "LOCAL", "bcr_module_source", "project_spec", "test_spec")
+load("//bazel_runner:defs.bzl", "LOCAL", "bcr_module_source", "project_spec", "test_spec")
 # Universal Robots client library — UR robot C++ driver (UniversalRobots/Universal_Robots_Client_Library).
 # A "BCR module" project: the runner bazel_dep()s the module from the Bazel
 # Central Registry and runs its own presubmit test target. Host tier on LOCAL +

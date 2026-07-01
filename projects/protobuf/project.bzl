@@ -1,6 +1,6 @@
-load("//kiss:defs.bzl", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//bazel_runner:defs.bzl", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # Protocol Buffers — the matrix's marquee first-party Bazel C++ project.
-# Source pinned in //kiss:extension.bzl (@protobuf_archive, the v35.1
+# Source pinned in //bazel_runner:extension.bzl (@protobuf_archive, the v35.1
 # Bazel source dist), built from the upstream source/module as-is. The hermetic
 # LLVM modification lives in //projects/protobuf/hermetic_llvm. It pulls
 # abseil-cpp / rules_cc / zlib from the BCR via the inner Bazel.

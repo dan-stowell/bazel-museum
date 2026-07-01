@@ -1,6 +1,6 @@
-load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//bazel_runner:defs.bzl", "HERMETIC_LLVM", "LOCAL", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # Catch2 — C++ test framework.
-# Source pinned in //kiss:extension.bzl (@catch2_archive, v3.15.1), built
+# Source pinned in //bazel_runner:extension.bzl (@catch2_archive, v3.15.1), built
 # with the fully-hermetic LLVM toolchain. Iconic artifact: the catch2_main
 # library (and the full framework underneath it).
 #

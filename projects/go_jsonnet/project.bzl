@@ -1,7 +1,7 @@
-load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//bazel_runner:defs.bzl", "HERMETIC_LLVM", "LOCAL", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # go-jsonnet — the pure-Go implementation of the Jsonnet data-templating
 # language, the Go sibling of the C++ //projects/jsonnet. Source pinned in
-# //kiss:extension.bzl (@go_jsonnet_archive, release v0.22.0). First-party
+# //bazel_runner:extension.bzl (@go_jsonnet_archive, release v0.22.0). First-party
 # Bazel: built with rules_go (hermetic Go SDK) and a C toolchain (HERMETIC_LLVM)
 # for the rules_go stdlib; pulls the C++ jsonnet standard library via an
 # http_archive. .bazelversion is 8.5.1, so it runs on the 8.7 inner.

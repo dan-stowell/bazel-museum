@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "LOCAL", "bcr_module_source", "project_spec", "test_spec")
+load("//bazel_runner:defs.bzl", "LOCAL", "bcr_module_source", "project_spec", "test_spec")
 # rsyslog — high-performance system log processing in C (rsyslog/rsyslog).
 # A "BCR module" project running its own @rsyslog//... presubmit test target on
 # the Bazel 8.7 inner with the ambient host toolchain.

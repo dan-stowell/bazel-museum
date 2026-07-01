@@ -1,6 +1,6 @@
-load("//kiss:defs.bzl", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source")
+load("//bazel_runner:defs.bzl", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source")
 # quill — an asynchronous, low-latency C++ logging library. Source pinned in
-# //kiss:extension.bzl (@quill_archive, release v12.0.0). First-party
+# //bazel_runner:extension.bzl (@quill_archive, release v12.0.0). First-party
 # Bazel (bzlmod): its root BUILD calls cc_library unloaded, so it runs on the
 # Bazel 8.7 inner. The hermetic LLVM modification lives in
 # //projects/quill/hermetic_llvm. No upstream Bazel test

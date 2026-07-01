@@ -1,6 +1,6 @@
-load("//kiss:defs.bzl", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//bazel_runner:defs.bzl", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # OpenEXR — the Academy Software Foundation's high-dynamic-range image format and
-# library (C++). Source pinned in //kiss:extension.bzl (@openexr_archive,
+# library (C++). Source pinned in //bazel_runner:extension.bzl (@openexr_archive,
 # v3.4.13-rc3). First-party Bazel: its BUILD loads cc_* from rules_cc, so the
 # default 9.1.1 inner. The hermetic LLVM modification lives in
 # //projects/openexr/hermetic_llvm. OpenEXR's MODULE declares a

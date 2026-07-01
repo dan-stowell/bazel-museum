@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//bazel_runner:defs.bzl", "HERMETIC_LLVM", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # Copybara — Google's tool for transforming and moving code between repositories.
 # A genuinely Bazel-native Java project. Build #2: exercises the JVM toolchain
 # (rules_java + Bazel's hermetic remote JDK). Source pinned at tag v20260622.

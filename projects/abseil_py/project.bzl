@@ -1,7 +1,7 @@
-load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//bazel_runner:defs.bzl", "HERMETIC_LLVM", "LOCAL", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # abseil-py — Google's Python common libraries (application/flags/logging/testing),
 # the Python sibling of the C++ //projects/abseil_cpp. Source pinned in
-# //kiss:extension.bzl (@abseil_py_archive, release v2.4.0). First-party
+# //bazel_runner:extension.bzl (@abseil_py_archive, release v2.4.0). First-party
 # Bazel: built and tested with rules_python on a hermetic interpreter. It's pure
 # Python (no C code), so HERMETIC_LLVM is only a no-op registration; PLATFORMS_DEP
 # supplies @platforms visibility for the injected RBE platform (abseil-py's MODULE

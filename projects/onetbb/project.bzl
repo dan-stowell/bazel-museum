@@ -1,6 +1,6 @@
-load("//kiss:defs.bzl", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//bazel_runner:defs.bzl", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # oneTBB — Intel's oneAPI Threading Building Blocks, a C++ parallelism library.
-# Source pinned in //kiss:extension.bzl (@onetbb_archive, release
+# Source pinned in //bazel_runner:extension.bzl (@onetbb_archive, release
 # v2022.0.0), built from the upstream source/module as-is. The hermetic LLVM
 # modification lives in //projects/onetbb/hermetic_llvm. Its Bazel BUILD uses
 # the unloaded cc_* rules, so it runs on the Bazel 8.7 inner. (oneTBB declares

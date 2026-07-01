@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "LOCAL", "RBE", "bcr_module_source", "build_spec", "project_spec", "test_spec")
+load("//bazel_runner:defs.bzl", "LOCAL", "RBE", "bcr_module_source", "build_spec", "project_spec", "test_spec")
 # toml++ — header-only TOML parser/serializer for C++ (marzer/tomlplusplus). A
 # "BCR module" project running its own @tomlplusplus//... targets. LOCAL uses
 # the ambient host gcc; RBE uses hermetic LLVM. BCR 3.4.0.

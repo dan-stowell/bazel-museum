@@ -1,6 +1,6 @@
-load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//bazel_runner:defs.bzl", "HERMETIC_LLVM", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # iceoryx2 — the Rust rewrite of Eclipse iceoryx: zero-copy, lock-free shared-
-# memory inter-process communication. Source pinned in //kiss:extension.bzl
+# memory inter-process communication. Source pinned in //bazel_runner:extension.bzl
 # (@iceoryx2_archive, v0.9.2). First-party Bazel: rules_rust with crate_universe
 # (a checked-in Cargo.Bazel.lock pins the crate graph, fetched from crates.io).
 # Run on the 8.7 inner; rules_rust downloads its own Rust toolchain. First Rust-

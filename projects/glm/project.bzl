@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "LOCAL", "RBE", "bcr_module_source", "build_spec", "project_spec", "test_spec")
+load("//bazel_runner:defs.bzl", "LOCAL", "RBE", "bcr_module_source", "build_spec", "project_spec", "test_spec")
 # GLM — OpenGL Mathematics, header-only C++ math library for graphics (g-truc).
 # A "BCR module" project running its own @glm//... targets. LOCAL uses the
 # ambient host gcc; RBE uses hermetic LLVM. Pinned to BCR 1.0.3.

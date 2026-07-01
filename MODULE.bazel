@@ -1,4 +1,4 @@
-"""Bazel Matrix: KISS Bazel builds of public projects."""
+"""Bazel Matrix: Bazel builds of public projects."""
 
 module(
     name = "bazel_matrix",
@@ -10,7 +10,7 @@ module(
 bazel_dep(name = "rules_python", version = "2.0.3")
 bazel_dep(name = "platforms", version = "1.1.0")
 
-# Hermetic Python toolchain so the KISS tests run the same everywhere.
+# Hermetic Python toolchain so runner tests run the same everywhere.
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
 python.toolchain(
     is_default = True,
@@ -19,7 +19,7 @@ python.toolchain(
 
 # Hermetic Bazel binary used to run the *inner* project builds in isolation,
 # and pinned source archives of the matrix's projects.
-inner_bazel = use_extension("//kiss:extension.bzl", "inner_bazel")
+inner_bazel = use_extension("//bazel_runner:extension.bzl", "inner_bazel")
 use_repo(
     inner_bazel,
     # Bazel 9.1.1 (default inner).
@@ -35,7 +35,7 @@ use_repo(
     "inner_bazel_8_7_0_linux_arm64",
 )
 
-project_sources = use_extension("//kiss:extension.bzl", "project_sources")
+project_sources = use_extension("//bazel_runner:extension.bzl", "project_sources")
 use_repo(
     project_sources,
     "abseil_py_archive",

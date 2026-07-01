@@ -1,6 +1,6 @@
-load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "RBE", "build_spec", "overlay", "project_spec", "tarball_source", "test_spec")
+load("//bazel_runner:defs.bzl", "HERMETIC_LLVM", "LOCAL", "RBE", "build_spec", "overlay", "project_spec", "tarball_source", "test_spec")
 # jsoncpp — the classic C++ JSON parser/serializer.
-# Source pinned in //kiss:extension.bzl (@jsoncpp_archive, release
+# Source pinned in //bazel_runner:extension.bzl (@jsoncpp_archive, release
 # 1.9.8), built with the fully-hermetic LLVM toolchain. jsoncpp ships
 # first-party Bazel files that load rules_cc and its unit test uses its own
 # harness (not googletest), so the default 9.1.1 inner builds it as-authored.

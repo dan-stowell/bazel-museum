@@ -1,6 +1,6 @@
-load("//kiss:defs.bzl", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//bazel_runner:defs.bzl", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # prometheus-cpp — the Prometheus metrics client library for C++. Source pinned
-# in //kiss:extension.bzl (@prometheus_cpp_archive, v1.3.0). First-party
+# in //bazel_runner:extension.bzl (@prometheus_cpp_archive, v1.3.0). First-party
 # Bazel; its BUILD files call cc_* unloaded, so it runs on the 8.7 inner.
 # The hermetic LLVM modification lives in //projects/prometheus_cpp/hermetic_llvm.
 # We build the core library and run its unit tests; the //pull

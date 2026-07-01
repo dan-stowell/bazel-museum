@@ -54,7 +54,7 @@ Legend:
 
 RBE cells combine variant/result pairs, for example `📦 ❌ / 🧰 ✅`.
 
-Detailed RBE build failure buckets are tracked in [kiss/rbe_build_status.md](kiss/rbe_build_status.md).
+Detailed RBE build failure buckets are tracked in [bazel_runner/rbe_build_status.md](bazel_runner/rbe_build_status.md).
 
 | project_name | build | test | rbe_build |
 | --- | --- | --- | --- |

@@ -1,6 +1,6 @@
-load("//kiss:defs.bzl", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//bazel_runner:defs.bzl", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # google/benchmark — the C++ microbenchmark library.
-# Source pinned in //kiss:extension.bzl (@benchmark_archive, release
+# Source pinned in //bazel_runner:extension.bzl (@benchmark_archive, release
 # v1.9.5), built from the upstream source/module as-is. The hermetic LLVM
 # modification lives in //projects/benchmark/hermetic_llvm.
 BENCHMARK_PROJECT = project_spec(

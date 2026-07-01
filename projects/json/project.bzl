@@ -1,6 +1,6 @@
-load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source")
+load("//bazel_runner:defs.bzl", "HERMETIC_LLVM", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source")
 # nlohmann/json — JSON for Modern C++ (header-only).
-# Source pinned in //kiss:extension.bzl (@json_archive, v3.12.0), built
+# Source pinned in //bazel_runner:extension.bzl (@json_archive, v3.12.0), built
 # with the fully-hermetic LLVM toolchain.
 #
 # Build-only — and unlike grpc (Bazel-first) or brotli (Bazel go_test), there's

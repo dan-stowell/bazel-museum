@@ -1,6 +1,6 @@
-load("//kiss:defs.bzl", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//bazel_runner:defs.bzl", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # snappy — Google's fast compression/decompression library (C++).
-# Source pinned in //kiss:extension.bzl (@snappy_archive, release 1.2.2),
+# Source pinned in //bazel_runner:extension.bzl (@snappy_archive, release 1.2.2),
 # built from the upstream source/module as-is. The hermetic LLVM modification
 # lives in //projects/snappy/hermetic_llvm.
 SNAPPY_PROJECT = project_spec(

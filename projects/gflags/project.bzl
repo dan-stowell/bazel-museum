@@ -1,6 +1,6 @@
-load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source")
+load("//bazel_runner:defs.bzl", "HERMETIC_LLVM", "LOCAL", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source")
 # gflags — Google's C++ command-line flags library. Source pinned in
-# //kiss:extension.bzl (@gflags_archive, release v2.3.0). Its root BUILD
+# //bazel_runner:extension.bzl (@gflags_archive, release v2.3.0). Its root BUILD
 # builds the library through a gflags_library macro that loads cc_library from
 # rules_cc, so it runs on the Bazel 9 inner with the hermetic LLVM toolchain.
 # gflags' tests are CMake-only (test/ uses CMakeLists.txt), so there is no

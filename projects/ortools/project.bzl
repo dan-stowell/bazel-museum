@@ -1,6 +1,6 @@
-load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//bazel_runner:defs.bzl", "HERMETIC_LLVM", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # OR-Tools — Google's operations-research / optimization suite.
-# Source pinned in //kiss:extension.bzl (@ortools_archive, v9.15), built
+# Source pinned in //bazel_runner:extension.bzl (@ortools_archive, v9.15), built
 # with the fully-hermetic LLVM toolchain. We build CP-SAT (or-tools' flagship
 # constraint solver), which is self-contained — it doesn't pull the external LP
 # solvers (scip/highs/glpk).

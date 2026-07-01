@@ -1,6 +1,6 @@
-load("//kiss:defs.bzl", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//bazel_runner:defs.bzl", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # GoogleTest — the C++ test framework.
-# Source pinned in //kiss:extension.bzl (@googletest_archive, v1.17.0),
+# Source pinned in //bazel_runner:extension.bzl (@googletest_archive, v1.17.0),
 # built from the upstream source/module as-is. The hermetic LLVM modification
 # lives in //projects/googletest/hermetic_llvm. The iconic artifacts: the gtest
 # + gtest_main libraries (//:gtest bundles gmock).

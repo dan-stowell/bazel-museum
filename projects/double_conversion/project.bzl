@@ -1,7 +1,7 @@
-load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//bazel_runner:defs.bzl", "HERMETIC_LLVM", "LOCAL", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # double-conversion — Google's library for binary-decimal conversion of IEEE-754
 # doubles (the workhorse behind many printf/strtod implementations). Source
-# pinned in //kiss:extension.bzl (@double_conversion_archive, v3.4.0).
+# pinned in //bazel_runner:extension.bzl (@double_conversion_archive, v3.4.0).
 # First-party Bazel: its root BUILD calls cc_* unloaded, so the 8.7 inner with
 # the hermetic LLVM toolchain. PLATFORMS_DEP supplies @platforms for the injected
 # RBE platform (its MODULE declares no direct platforms dep).

@@ -1,6 +1,6 @@
-load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//bazel_runner:defs.bzl", "HERMETIC_LLVM", "LOCAL", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # glog — Google's C++ application-level logging library.
-# Source pinned in //kiss:extension.bzl (@glog_archive, release v0.7.1),
+# Source pinned in //bazel_runner:extension.bzl (@glog_archive, release v0.7.1),
 # built with the fully-hermetic LLVM toolchain. Its Bazel BUILD uses the
 # unloaded cc_* rules, so it runs on the Bazel 8.7 inner; PLATFORMS_DEP supplies
 # the @platforms visibility the injected RBE platform package needs (glog's

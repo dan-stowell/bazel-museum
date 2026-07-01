@@ -179,7 +179,7 @@ def main(argv=None):
 
     env = os.environ.copy()
     env["PATH"] = os.pathsep.join(_dedupe([
-        os.path.join(source, ".kiss-tools"),
+        os.path.join(source, ".bazel-runner-tools"),
         env.get("PATH", ""),
         "/usr/local/bin",
         "/usr/bin",
@@ -187,11 +187,11 @@ def main(argv=None):
     ]))
     startup_flags = []
     if args.mode == "build":
-        output_user_root = os.path.abspath(".kiss-output-user-root")
+        output_user_root = os.path.abspath(".bazel-runner-output-user-root")
         os.makedirs(output_user_root, exist_ok=True)
         startup_flags.append("--output_user_root=" + output_user_root)
 
-    bep = os.path.join(os.environ.get("TEST_TMPDIR", os.getcwd()), "kiss.bep.json")
+    bep = os.path.join(os.environ.get("TEST_TMPDIR", os.getcwd()), "bazel_runner.bep.json")
     try:
         expanded_flags = [_expand_env_refs(flag, env) for flag in args.flag]
     except RuntimeError as e:
@@ -205,7 +205,7 @@ def main(argv=None):
         "--show_progress_rate_limit=0.0",
         "--progress_report_interval=10",
     ] + expanded_flags
-    if os.path.isdir(os.path.join(source, ".kiss-tools")):
+    if os.path.isdir(os.path.join(source, ".bazel-runner-tools")):
         command_flags = [
             "--action_env=PATH=" + env["PATH"],
             "--host_action_env=PATH=" + env["PATH"],

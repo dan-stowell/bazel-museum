@@ -1,6 +1,6 @@
-load("//kiss:defs.bzl", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//bazel_runner:defs.bzl", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # cpu_features — Google's library for runtime CPU feature detection (C).
-# Source pinned in //kiss:extension.bzl (@cpu_features_archive, release
+# Source pinned in //bazel_runner:extension.bzl (@cpu_features_archive, release
 # v0.11.0), built from the upstream source/module as-is. The hermetic LLVM
 # modification lives in //projects/cpu_features/hermetic_llvm. First-party Bazel; its
 # tests use googletest (cc_* unloaded), so it runs on the Bazel 8.7 inner.

@@ -1,7 +1,7 @@
-load("//kiss:defs.bzl", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//bazel_runner:defs.bzl", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # LCM (Lightweight Communications and Marshalling) — a low-latency message-passing
 # and data-marshalling system widely used in robotics. Source pinned in
-# //kiss:extension.bzl (@lcm_archive, v1.5.2). First-party Bazel, run on
+# //bazel_runner:extension.bzl (@lcm_archive, v1.5.2). First-party Bazel, run on
 # the 8.7 inner. The hermetic LLVM modification lives in //projects/lcm/hermetic_llvm.
 # We build the static C++ library
 # and run a C++ unit test. LCM's MODULE declares a direct platforms dep (no

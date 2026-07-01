@@ -191,10 +191,10 @@
   },
   "selectedYankedVersions": {},
   "moduleExtensions": {
-    "//kiss:extension.bzl%inner_bazel": {
+    "//bazel_runner:extension.bzl%inner_bazel": {
       "general": {
         "bzlTransitiveDigest": "RzA//lqf6vNLNMnoinkgZsdPy12th0Zjclg29/bwodk=",
-        "usagesDigest": "utWE6e4B1Dy86blc4zOfsqXRCtNE8HTf4TBlGLkcWWE=",
+        "usagesDigest": "uTGCOANHvws1YL2G5qBJrU/g250lb2SNZzYy7cfYLyA=",
         "recordedInputs": [
           "REPO_MAPPING:,bazel_tools bazel_tools"
         ],
@@ -290,10 +290,10 @@
         }
       }
     },
-    "//kiss:extension.bzl%project_sources": {
+    "//bazel_runner:extension.bzl%project_sources": {
       "general": {
         "bzlTransitiveDigest": "RzA//lqf6vNLNMnoinkgZsdPy12th0Zjclg29/bwodk=",
-        "usagesDigest": "amZyrR+0NDa9odUtYkDa9P2++XoE4H1b6VxBYXjOFaE=",
+        "usagesDigest": "XfDWn5PgHAdTtmCw3MbYC019TGGAYTHfn1pdGQdkWqQ=",
         "recordedInputs": [
           "REPO_MAPPING:,bazel_tools bazel_tools"
         ],

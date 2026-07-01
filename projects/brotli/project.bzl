@@ -1,6 +1,6 @@
-load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "RBE", "build_spec", "overlay", "project_spec", "tarball_source")
+load("//bazel_runner:defs.bzl", "HERMETIC_LLVM", "LOCAL", "RBE", "build_spec", "overlay", "project_spec", "tarball_source")
 # Brotli — Google's compression library + CLI.
-# Source pinned in //kiss:extension.bzl (@brotli_archive, v1.2.0). The
+# Source pinned in //bazel_runner:extension.bzl (@brotli_archive, v1.2.0). The
 # release tarball ships BUILD files but no MODULE.bazel (its in-tree build is
 # WORKSPACE-based), so we inject the canonical module() declaration. Built on
 # the Bazel 8.7 inner: brotli's BUILD calls cc_library unloaded, which Bazel 8.7

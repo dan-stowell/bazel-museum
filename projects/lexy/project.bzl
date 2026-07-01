@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "LOCAL", "RBE", "bcr_module_source", "build_spec", "project_spec", "test_spec")
+load("//bazel_runner:defs.bzl", "LOCAL", "RBE", "bcr_module_source", "build_spec", "project_spec", "test_spec")
 # lexy — C++ parser combinator library (foonathan/lexy). A "BCR module" project
 # running its own @lexy//:lexy_test target. Pinned to the Bazel 8.7 inner (its
 # test target isn't visible to the Bazel 9 inner). LOCAL uses the ambient host

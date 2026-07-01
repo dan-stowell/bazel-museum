@@ -7,6 +7,11 @@ common --noenable_workspace
 # Make actions see a consistent environment for reproducibility.
 build --incompatible_strict_action_env
 
+# Matrix targets run one inner Bazel invocation per action. Keep the outer Bazel
+# scheduler serial so a sweep does not launch many projects at once; inner Bazel
+# invocations ignore this rc file and keep their own parallelism.
+build --jobs=1
+
 # Publish anonymous, public BuildBuddy invocation links for outer Bazel runs.
 build --bes_results_url=https://app.buildbuddy.io/invocation/
 build --bes_backend=grpcs://remote.buildbuddy.io

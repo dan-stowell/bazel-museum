@@ -34,12 +34,19 @@ Kick the tires without running a full sweep:
 ```sh
 bazel build //:smoke_as_is_local_builds
 bazel test //:smoke_as_is_local_tests
-bazel build //:smoke_as_is_rbe_builds
-bazel test //:smoke_as_is_rbe_tests
+bazel build //:smoke_hermetic_llvm_rbe_builds
+bazel test //:smoke_hermetic_llvm_rbe_tests
 ```
 
 Outer and inner Bazel invocations publish anonymous, public BuildBuddy invocation
 links by default.
+
+## Project Layout
+
+Project packages live under `//projects/<project_name>/<modification_name>`.
+The `as_is` package is the unmodified upstream source/module. Other packages,
+such as `hermetic_llvm`, are explicit matrix modifications layered on top of
+the shared `//projects/<project_name>:project.bzl` spec.
 
 ## Project Status
 

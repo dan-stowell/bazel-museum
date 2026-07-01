@@ -1,0 +1,4 @@
+load("//bazel_runner:defs.bzl", "hermetic_llvm_project_modification")
+load("//projects/tomlplusplus:project.bzl", "TOMLPLUSPLUS_PROJECT")
+
+hermetic_llvm_project_modification(project = TOMLPLUSPLUS_PROJECT)

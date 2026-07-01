@@ -13,6 +13,7 @@ BUILD_PACKAGES = [
     "abseil_cpp/as_is",
     "abseil_cpp/hermetic_llvm",
     "abseil_py/as_is",
+    "abseil_py/hermetic_llvm",
     "aravis/as_is",
     "avro-cpp/as_is",
     "basis_universal/as_is",
@@ -21,6 +22,7 @@ BUILD_PACKAGES = [
     "benchmark/as_is",
     "benchmark/hermetic_llvm",
     "boringssl/as_is",
+    "boringssl/hermetic_llvm",
     "briansmith_ring/as_is",
     "brotli/as_is",
     "brotli_go/as_is",
@@ -49,6 +51,7 @@ BUILD_PACKAGES = [
     "effcee/as_is",
     "exprtk/as_is",
     "fast_float/as_is",
+    "fast_float/hermetic_llvm",
     "fftw/as_is",
     "flatbuffers/as_is",
     "flatbuffers/hermetic_llvm",
@@ -69,6 +72,7 @@ BUILD_PACKAGES = [
     "grpc/as_is",
     "grpc_gateway/as_is",
     "gsl-lite/as_is",
+    "glm/hermetic_llvm",
     "hfsm2/as_is",
     "highs/as_is",
     "highway/as_is",
@@ -137,6 +141,7 @@ BUILD_PACKAGES = [
     "tinyformat/as_is",
     "tinyxml2/as_is",
     "tomlplusplus/as_is",
+    "tomlplusplus/hermetic_llvm",
     "trlc/as_is",
     "universal-robots-client-library/as_is",
     "verible/as_is",
@@ -154,6 +159,7 @@ TEST_PACKAGES = [
     "abseil_cpp/as_is",
     "abseil_cpp/hermetic_llvm",
     "abseil_py/as_is",
+    "abseil_py/hermetic_llvm",
     "aravis/as_is",
     "avro-cpp/as_is",
     "basis_universal/as_is",
@@ -162,6 +168,7 @@ TEST_PACKAGES = [
     "benchmark/as_is",
     "benchmark/hermetic_llvm",
     "boringssl/as_is",
+    "boringssl/hermetic_llvm",
     "briansmith_ring/as_is",
     "brotli_go/as_is",
     "buildtools/as_is",
@@ -189,6 +196,7 @@ TEST_PACKAGES = [
     "effcee/as_is",
     "exprtk/as_is",
     "fast_float/as_is",
+    "fast_float/hermetic_llvm",
     "fftw/as_is",
     "flatbuffers/as_is",
     "flatbuffers/hermetic_llvm",
@@ -199,6 +207,7 @@ TEST_PACKAGES = [
     "fuzztest/hermetic_llvm",
     "fzf/as_is",
     "glm/as_is",
+    "glm/hermetic_llvm",
     "glog/as_is",
     "go_jsonnet/as_is",
     "googletest/as_is",
@@ -273,6 +282,7 @@ TEST_PACKAGES = [
     "tinyformat/as_is",
     "tinyxml2/as_is",
     "tomlplusplus/as_is",
+    "tomlplusplus/hermetic_llvm",
     "trlc/as_is",
     "universal-robots-client-library/as_is",
     "verible/as_is",
@@ -294,6 +304,14 @@ SMOKE_AS_IS_PACKAGES = [
     "fast_float/as_is",
     "glm/as_is",
     "tomlplusplus/as_is",
+]
+
+SMOKE_HERMETIC_LLVM_PACKAGES = [
+    "abseil_py/hermetic_llvm",
+    "boringssl/hermetic_llvm",
+    "fast_float/hermetic_llvm",
+    "glm/hermetic_llvm",
+    "tomlplusplus/hermetic_llvm",
 ]
 
 REGULAR_AS_IS_BUILD_PACKAGES = [package for package in AS_IS_BUILD_PACKAGES if package.split("/")[0] not in LARGE_PROJECTS]
@@ -322,9 +340,9 @@ LARGE_AS_IS_RBE_TESTS = ["//projects/%s:%s_rbe_test" % (package, package.split("
 HERMETIC_LLVM_RBE_TESTS = ["//projects/%s:%s_rbe_test" % (package, package.split("/")[0]) for package in REGULAR_HERMETIC_LLVM_TEST_PACKAGES]
 LARGE_HERMETIC_LLVM_RBE_TESTS = ["//projects/%s:%s_rbe_test" % (package, package.split("/")[0]) for package in LARGE_HERMETIC_LLVM_TEST_PACKAGES]
 SMOKE_AS_IS_LOCAL_BUILDS = ["//projects/%s:%s_local_build" % (package, package.split("/")[0]) for package in SMOKE_AS_IS_PACKAGES]
-SMOKE_AS_IS_RBE_BUILDS = ["//projects/%s:%s_rbe_build" % (package, package.split("/")[0]) for package in SMOKE_AS_IS_PACKAGES]
 SMOKE_AS_IS_LOCAL_TESTS = ["//projects/%s:%s_local_test" % (package, package.split("/")[0]) for package in SMOKE_AS_IS_PACKAGES]
-SMOKE_AS_IS_RBE_TESTS = ["//projects/%s:%s_rbe_test" % (package, package.split("/")[0]) for package in SMOKE_AS_IS_PACKAGES]
+SMOKE_HERMETIC_LLVM_RBE_BUILDS = ["//projects/%s:%s_rbe_build" % (package, package.split("/")[0]) for package in SMOKE_HERMETIC_LLVM_PACKAGES]
+SMOKE_HERMETIC_LLVM_RBE_TESTS = ["//projects/%s:%s_rbe_test" % (package, package.split("/")[0]) for package in SMOKE_HERMETIC_LLVM_PACKAGES]
 
 filegroup(
     name = "smoke_as_is_local_builds",
@@ -332,8 +350,8 @@ filegroup(
 )
 
 filegroup(
-    name = "smoke_as_is_rbe_builds",
-    srcs = SMOKE_AS_IS_RBE_BUILDS,
+    name = "smoke_hermetic_llvm_rbe_builds",
+    srcs = SMOKE_HERMETIC_LLVM_RBE_BUILDS,
 )
 
 test_suite(
@@ -342,8 +360,8 @@ test_suite(
 )
 
 test_suite(
-    name = "smoke_as_is_rbe_tests",
-    tests = SMOKE_AS_IS_RBE_TESTS,
+    name = "smoke_hermetic_llvm_rbe_tests",
+    tests = SMOKE_HERMETIC_LLVM_RBE_TESTS,
 )
 
 filegroup(

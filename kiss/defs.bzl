@@ -305,7 +305,7 @@ def _kiss_build_impl(ctx):
         outputs = [out],
         arguments = [args],
         mnemonic = "KissBuild",
-        progress_message = "KISS building %{label}",
+        progress_message = "building %{label}",
         use_default_shell_env = ctx.attr.use_default_shell_env,
     )
     return [DefaultInfo(files = depset([out]))]

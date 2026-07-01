@@ -19,7 +19,7 @@ except ImportError:
 def resolve(rf, path):
     resolved = rf.Rlocation(path)
     if not resolved or not os.path.exists(resolved):
-        sys.exit("kiss: could not resolve runfile %r -> %r" % (path, resolved))
+        sys.exit("could not resolve runfile %r -> %r" % (path, resolved))
     return resolved
 
 

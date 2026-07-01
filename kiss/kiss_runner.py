@@ -100,28 +100,6 @@ def _load_bep_outputs(path):
     return sorted(outputs, key=lambda output: output["arcname"])
 
 
-def _load_bep_uuid(path):
-    with open(path, encoding="utf-8") as f:
-        for line in f:
-            event = json.loads(line)
-            uuid = event.get("started", {}).get("uuid")
-            if uuid:
-                return uuid
-    return ""
-
-
-def _bes_invocation_url(flags, uuid):
-    if not uuid:
-        return ""
-    for flag in flags:
-        if flag.startswith("--bes_results_url="):
-            base = flag.split("=", 1)[1]
-            if not base.endswith("/"):
-                base += "/"
-            return urllib.parse.urljoin(base, uuid)
-    return ""
-
-
 def _sha256(path):
     h = hashlib.sha256()
     with open(path, "rb") as f:
@@ -154,23 +132,30 @@ def _expand_env_refs(value, env):
     return _ENV_REF_RE.sub(replace, value)
 
 
-def _redact_arg(arg):
-    if arg.startswith("--remote_header="):
-        key, _, value = arg.partition("=")
-        header, sep, _ = value.partition("=")
-        if sep:
-            return "{}={}{}{}".format(key, header, sep, "<redacted>")
-        return "{}=<redacted>".format(key)
-    return arg
+def _log_prefix(job):
+    return "[{}] ".format(job) if job else ""
 
 
-def _redacted_command(cmd):
-    return " ".join(_redact_arg(arg) for arg in cmd)
+def _run_with_prefix(cmd, cwd, env, prefix):
+    proc = subprocess.Popen(
+        cmd,
+        cwd=cwd,
+        env=env,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        bufsize=1,
+    )
+    assert proc.stdout is not None
+    for line in proc.stdout:
+        sys.stderr.write(prefix + line)
+    return proc.wait()
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode", choices = ["build", "test"], required=True)
+    parser.add_argument("--job", default="")
     parser.add_argument("--source", required=True)
     parser.add_argument("--source_subdir", default="")
     parser.add_argument("--bazel", required=True)
@@ -190,8 +175,7 @@ def main(argv=None):
     if args.source_subdir:
         source = os.path.abspath(os.path.join(source, args.source_subdir))
 
-    print("kiss: source =", source, file=sys.stderr)
-    print("kiss: bazel  =", bazel, file=sys.stderr)
+    prefix = _log_prefix(args.job)
 
     env = os.environ.copy()
     env["PATH"] = os.pathsep.join(_dedupe([
@@ -211,7 +195,7 @@ def main(argv=None):
     try:
         expanded_flags = [_expand_env_refs(flag, env) for flag in args.flag]
     except RuntimeError as e:
-        print("kiss:", e, file=sys.stderr)
+        print(prefix + "error: " + str(e), file=sys.stderr)
         return 2
 
     command_flags = [
@@ -244,17 +228,9 @@ def main(argv=None):
         args.mode,
     ] + command_flags + ["--"] + args.target
 
-    print("kiss: command =", _redacted_command(cmd), file=sys.stderr)
-    proc = subprocess.run(cmd, cwd=source, env=env)
-    if os.path.exists(bep):
-        uuid = _load_bep_uuid(bep)
-        invocation_url = _bes_invocation_url(expanded_flags, uuid)
-        if invocation_url:
-            print("kiss: invocation =", invocation_url, file=sys.stderr)
-        elif uuid:
-            print("kiss: invocation uuid =", uuid, file=sys.stderr)
-    if proc.returncode != 0:
-        return proc.returncode
+    returncode = _run_with_prefix(cmd, cwd=source, env=env, prefix=prefix)
+    if returncode != 0:
+        return returncode
 
     if args.bundle:
         outputs = _load_bep_outputs(bep) if os.path.exists(bep) else []
@@ -263,6 +239,7 @@ def main(argv=None):
                 tar.add(output["path"], arcname=output["arcname"])
             manifest = {
                 "mode": args.mode,
+                "job": args.job,
                 "source": args.source,
                 "targets": args.target,
                 "flags": args.flag,

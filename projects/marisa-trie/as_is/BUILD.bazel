@@ -1,0 +1,4 @@
+load("//kiss:defs.bzl", "bcr_project_from_spec")
+load("//projects/marisa-trie:project.bzl", "MARISA_TRIE_PROJECT")
+
+bcr_project_from_spec(project = MARISA_TRIE_PROJECT)

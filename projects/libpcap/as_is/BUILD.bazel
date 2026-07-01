@@ -1,0 +1,4 @@
+load("//kiss:defs.bzl", "bcr_project_from_spec")
+load("//projects/libpcap:project.bzl", "LIBPCAP_PROJECT")
+
+bcr_project_from_spec(project = LIBPCAP_PROJECT)

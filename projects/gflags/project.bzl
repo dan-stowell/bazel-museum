@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "MINIMG", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source")
+load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source")
 # gflags — Google's C++ command-line flags library. Source pinned in
 # //kiss:extension.bzl (@gflags_archive, release v2.3.0). Its root BUILD
 # builds the library through a gflags_library macro that loads cc_library from
@@ -20,7 +20,7 @@ GFLAGS_PROJECT = project_spec(
     ),
     toolchains = [HERMETIC_LLVM, PLATFORMS_DEP],
     bazel_version = "8.7.0",
-    environments = [LOCAL, RBE, MINIMG],
+    environments = [LOCAL, RBE],
     # The canonical multithreaded gflags library (//:gflags); the sibling
     # //:gflags_nothreads is the same sources built single-threaded.
     build = build_spec(targets = ["//:gflags"], flags = ["-c", "opt"]),

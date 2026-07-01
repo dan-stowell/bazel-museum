@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "MINIMG", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # CLI11 — a command-line parser for C++11 (header-only, optionally compiled).
 # Source pinned in //kiss:extension.bzl (@cli11_archive, release v2.4.2),
 # built with the fully-hermetic LLVM toolchain. Its Catch2-based tests use the
@@ -17,7 +17,7 @@ CLI11_PROJECT = project_spec(
     ),
     toolchains = [HERMETIC_LLVM, PLATFORMS_DEP],
     bazel_version = "8.7.0",
-    environments = [LOCAL, RBE, MINIMG],
+    environments = [LOCAL, RBE],
     build = build_spec(targets = ["//:cli11"], flags = ["-c", "opt"]),
     # A core subset of the Catch2 suite covering parsing, options, subcommands,
     # help, formatting and the app integration tests (which exercise the

@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "ACTIOND", "HERMETIC_LLVM", "LOCAL", "MINIMG", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # OR-Tools — Google's operations-research / optimization suite.
 # Source pinned in //kiss:extension.bzl (@ortools_archive, v9.15), built
 # with the fully-hermetic LLVM toolchain. We build CP-SAT (or-tools' flagship
@@ -19,7 +19,7 @@ ORTOOLS_PROJECT = project_spec(
     ),
     toolchains = [HERMETIC_LLVM],
     bazel_version = "8.7.0",
-    environments = [LOCAL, RBE, ACTIOND, MINIMG],
+    environments = [LOCAL, RBE],
     build = build_spec(targets = ["//ortools/sat:cp_model_solver"], flags = ["-c", "opt"]),
     # CP-SAT's own test suite (the solver we build): the 87 cc_test in
     # //ortools/sat plus the 2 //ortools/sat/python tests — 89 tests of the

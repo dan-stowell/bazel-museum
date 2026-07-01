@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "MINIMG", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # jsonnet — Google's data-templating language (the C++ implementation).
 # Source pinned in //kiss:extension.bzl (@jsonnet_archive, release
 # v0.22.0), built with the fully-hermetic LLVM toolchain. jsonnet's own BUILD
@@ -17,7 +17,7 @@ JSONNET_PROJECT = project_spec(
     ),
     toolchains = [HERMETIC_LLVM, PLATFORMS_DEP],
     bazel_version = "8.7.0",
-    environments = [LOCAL, RBE, MINIMG],
+    environments = [LOCAL, RBE],
     # The jsonnet CLI (//cmd:jsonnet) — the headline artifact (interpreter built
     # on libjsonnet).
     build = build_spec(targets = ["//cmd:jsonnet"], flags = ["-c", "opt"]),

@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "HERMETIC_LLVM", "HERMETIC_ZIP", "LOCAL", "MINIMG", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//kiss:defs.bzl", "HERMETIC_LLVM", "HERMETIC_ZIP", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # file_test exercises real POSIX filesystem semantics that invert when the test
 # runs as root: it asserts a permission-stripped file is *unreadable* and that a
 # protected path *can't* be removed — both false for root, which the RBE executor
@@ -28,12 +28,8 @@ _ROOT_SENSITIVE_TESTS = ["//src/test/cpp/util:file_test"]
 # by the executor image's own `zip` (HERMETIC_ZIP's from-source `zip` is what
 # makes the *local* build need no host zip).
 #
-# Not actiond (yet). The C++ test execution path works there, but Bazel's
-# genrule-heavy Java-toolchain path doesn't: actiond's minimal guest chroot has
-# no `zip` for the install-base genrule (`//src:zip_builtins`, which calls system
-# zip), and the from-source HERMETIC_ZIP is staged on a *local* PATH that doesn't
-# reach the remote guest. Closing this needs `zip` materialized as a real action
-# input in the guest (vs. the local-only --tool PATH lever), so it's deferred.
+# RBE covers the remote execution path; LOCAL covers the ambient host toolchain
+# path.
 BAZEL_PROJECT = project_spec(
     name = "bazel",
     source = tarball_source(
@@ -41,7 +37,7 @@ BAZEL_PROJECT = project_spec(
         strip_prefix = "bazel-9.1.1",
     ),
     toolchains = [HERMETIC_LLVM, HERMETIC_ZIP],
-    environments = [LOCAL, RBE, MINIMG],
+    environments = [LOCAL, RBE],
     # HERMETIC_LLVM appends the `llvm` module, which resolves newer transitive
     # versions of platforms/bazel_features/rules_cc than Bazel's own MODULE pins
     # as direct deps. Bazel-the-tool builds with strict direct-dependency

@@ -1,0 +1,4 @@
+load("//kiss:defs.bzl", "matrix_project")
+load("//projects/opencc:project.bzl", "OPENCC_PROJECT")
+
+matrix_project(project = OPENCC_PROJECT)

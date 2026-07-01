@@ -1,0 +1,4 @@
+load("//kiss:defs.bzl", "bcr_project_from_spec")
+load("//projects/directxmath:project.bzl", "DIRECTXMATH_PROJECT")
+
+bcr_project_from_spec(project = DIRECTXMATH_PROJECT)

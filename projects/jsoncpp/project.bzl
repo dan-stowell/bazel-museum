@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "MINIMG", "RBE", "build_spec", "overlay", "project_spec", "tarball_source", "test_spec")
+load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "RBE", "build_spec", "overlay", "project_spec", "tarball_source", "test_spec")
 # jsoncpp — the classic C++ JSON parser/serializer.
 # Source pinned in //kiss:extension.bzl (@jsoncpp_archive, release
 # 1.9.8), built with the fully-hermetic LLVM toolchain. jsoncpp ships
@@ -23,7 +23,7 @@ JSONCPP_PROJECT = project_spec(
         strip_prefix = "jsoncpp-1.9.8",
     ),
     toolchains = [JSONCPP_PLATFORMS, HERMETIC_LLVM],
-    environments = [LOCAL, RBE, MINIMG],
+    environments = [LOCAL, RBE],
     build = build_spec(targets = ["//:jsoncpp"], flags = ["-c", "opt"]),
     # jsoncpp's own unit test (its self-contained test harness over //:jsoncpp).
     test = test_spec(targets = ["//src/test_lib_json:jsoncpp_test"], flags = ["-c", "opt"]),

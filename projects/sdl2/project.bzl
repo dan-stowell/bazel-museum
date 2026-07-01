@@ -1,8 +1,8 @@
-load("//kiss:defs.bzl", "CIIMG", "LOCAL", "bcr_module_source", "project_spec", "test_spec")
+load("//kiss:defs.bzl", "LOCAL", "bcr_module_source", "project_spec", "test_spec")
 # SDL2 — Simple DirectMedia Layer (libsdl-org/SDL).
 # A "BCR module" project: the runner bazel_dep()s the module from the Bazel
 # Central Registry and runs its own presubmit test target. Host tier: builds and
-# tests with the ambient toolchain on LOCAL and in the full CI image (CIIMG) — no
+# tests with the ambient toolchain on LOCAL — no
 # hermetic LLVM. (RBE/hermetic not wired: reach for it only when needed.)
 SDL2_PROJECT = project_spec(
     name = "sdl2",
@@ -10,6 +10,6 @@ SDL2_PROJECT = project_spec(
         module = "sdl2",
         version = "2.32.0.bcr.beta.6",
     ),
-    environments = [LOCAL, CIIMG],
+    environments = [LOCAL],
     test = test_spec(targets = ["@sdl2//:sdl2_headers_consumer_compile_test"], flags = ["-c", "opt"]),
 )

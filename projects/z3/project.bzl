@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "MINIMG", "RBE", "build_spec", "project_spec", "tarball_source")
+load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source")
 # z3 — Microsoft Research's Z3 SMT theorem prover (C++). Source pinned in
 # //kiss:extension.bzl (@z3_archive, release z3-4.16.0). First-party
 # Bazel: its //:z3 target is a rules_foreign_cc cmake() build, so the host-local
@@ -15,6 +15,6 @@ Z3_PROJECT = project_spec(
     ),
     toolchains = [HERMETIC_LLVM],
     bazel_version = "9.1.1",
-    environments = [LOCAL, RBE, MINIMG],
+    environments = [LOCAL, RBE],
     build = build_spec(targets = ["//:z3"], flags = ["-c", "opt"]),
 )

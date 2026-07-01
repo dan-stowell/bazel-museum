@@ -34,6 +34,6 @@ S2GEOMETRY_PROJECT = project_spec(
     # types, S2 cell-id addressing, lat/lng + projection coords, the planar
     # interval/rect helpers, and spherical caps. The full src/ suite (115 tests)
     # includes randomized/heavy index and builder tests; this subset keeps the
-    # goal fast and deterministic on local, the container, and RBE.
+    # goal fast and deterministic on local and RBE.
     test = test_spec(targets = S2_TEST_TARGETS, flags = ["-c", "opt"]),
 )

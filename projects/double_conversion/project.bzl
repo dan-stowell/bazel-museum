@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "MINIMG", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # double-conversion — Google's library for binary-decimal conversion of IEEE-754
 # doubles (the workhorse behind many printf/strtod implementations). Source
 # pinned in //kiss:extension.bzl (@double_conversion_archive, v3.4.0).
@@ -16,7 +16,7 @@ DOUBLE_CONVERSION_PROJECT = project_spec(
     ),
     toolchains = [HERMETIC_LLVM, PLATFORMS_DEP],
     bazel_version = "8.7.0",
-    environments = [LOCAL, RBE, MINIMG],
+    environments = [LOCAL, RBE],
     build = build_spec(targets = ["//:double-conversion"], flags = ["-c", "opt"]),
     test = test_spec(targets = ["//:cctest"], flags = ["-c", "opt"]),
 )

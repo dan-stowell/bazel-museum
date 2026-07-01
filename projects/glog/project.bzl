@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "MINIMG", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # glog — Google's C++ application-level logging library.
 # Source pinned in //kiss:extension.bzl (@glog_archive, release v0.7.1),
 # built with the fully-hermetic LLVM toolchain. Its Bazel BUILD uses the
@@ -22,7 +22,7 @@ GLOG_PROJECT = project_spec(
     ),
     toolchains = [HERMETIC_LLVM, PLATFORMS_DEP],
     bazel_version = "8.7.0",
-    environments = [LOCAL, RBE, MINIMG],
+    environments = [LOCAL, RBE],
     build = build_spec(targets = ["//:glog"], flags = ["-c", "opt"]),
     # glog's exhaustive unit tests are CMake-only, but upstream does provide a
     # Bazel smoke test that links glog with gflags and exercises LOG/CHECK.

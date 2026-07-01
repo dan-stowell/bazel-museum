@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "MINIMG", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # BoringSSL — Google's fork of OpenSSL (the crypto/TLS library behind Chrome,
 # Android and gRPC). Source pinned in //kiss:extension.bzl
 # (@boringssl_archive, release 0.20260616.0), built with the fully-hermetic LLVM
@@ -17,7 +17,7 @@ BORINGSSL_PROJECT = project_spec(
         strip_prefix = "boringssl-0.20260616.0",
     ),
     toolchains = [HERMETIC_LLVM],
-    environments = [LOCAL, RBE, MINIMG],
+    environments = [LOCAL, RBE],
     # The two libraries that are the point of BoringSSL: libcrypto and libssl.
     build = build_spec(targets = ["//:crypto", "//:ssl"], flags = ["-c", "opt"]),
     # ssl_test exercises the TLS stack against libcrypto; urandom_test covers the

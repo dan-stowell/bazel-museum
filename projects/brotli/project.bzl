@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "ACTIOND", "HERMETIC_LLVM", "LOCAL", "MINIMG", "RBE", "build_spec", "overlay", "project_spec", "tarball_source")
+load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "RBE", "build_spec", "overlay", "project_spec", "tarball_source")
 # Brotli — Google's compression library + CLI.
 # Source pinned in //kiss:extension.bzl (@brotli_archive, v1.2.0). The
 # release tarball ships BUILD files but no MODULE.bazel (its in-tree build is
@@ -27,6 +27,6 @@ BROTLI_PROJECT = project_spec(
     ),
     toolchains = [BROTLI_MODULE, HERMETIC_LLVM],
     bazel_version = "8.7.0",
-    environments = [LOCAL, RBE, ACTIOND, MINIMG],
+    environments = [LOCAL, RBE],
     build = build_spec(targets = ["//:brotli", "//:brotlienc", "//:brotlidec"], flags = ["-c", "opt"]),
 )

@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "MINIMG", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # OpenTelemetry C++ — the observability API and SDK (distributed tracing, metrics
 # and logs) for C++. Source pinned in //kiss:extension.bzl
 # (@opentelemetry_cpp_archive, v1.24.0). First-party Bazel; .bazelversion is
@@ -16,7 +16,7 @@ OPENTELEMETRY_CPP_PROJECT = project_spec(
     ),
     toolchains = [HERMETIC_LLVM],
     bazel_version = "8.7.0",
-    environments = [LOCAL, RBE, MINIMG],
+    environments = [LOCAL, RBE],
     build = build_spec(targets = ["//api:api"], flags = ["-c", "opt"]),
     test = test_spec(targets = ["//api/test/..."], flags = ["-c", "opt"]),
 )

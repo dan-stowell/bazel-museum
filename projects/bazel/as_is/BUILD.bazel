@@ -1,0 +1,4 @@
+load("//kiss:defs.bzl", "matrix_project")
+load("//projects/bazel:project.bzl", "BAZEL_PROJECT")
+
+matrix_project(project = BAZEL_PROJECT)

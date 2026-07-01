@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "MINIMG", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # HiGHS — a high-performance solver for large-scale linear programming, mixed-
 # integer programming and quadratic programming (C++). Source pinned in
 # //kiss:extension.bzl (@highs_archive, v1.14.0). First-party Bazel: its
@@ -15,7 +15,7 @@ HIGHS_PROJECT = project_spec(
     ),
     toolchains = [HERMETIC_LLVM, PLATFORMS_DEP],
     bazel_version = "9.1.1",
-    environments = [LOCAL, RBE, MINIMG],
+    environments = [LOCAL, RBE],
     build = build_spec(targets = ["//:highs"], flags = ["-c", "opt"]),
     # A couple of the generated check/*.cpp unit tests (the full set is large).
     test = test_spec(targets = ["//:TestThrow", "//:TestSpecialLps"], flags = ["-c", "opt"]),

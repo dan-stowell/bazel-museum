@@ -5,13 +5,13 @@
 Install Bazel or Bazelisk, then run the RE2 build:
 
 ```sh
-bazel build //projects/re2:kiss_build
+bazel build //projects/re2/as_is:kiss_build
 ```
 
 The output is:
 
 ```text
-bazel-bin/projects/re2/kiss_build.tar
+bazel-bin/projects/re2/as_is/kiss_build.tar
 ```
 
 That tarball contains the inner Bazel build event stream, a manifest, and RE2's
@@ -20,13 +20,13 @@ top-level build outputs.
 Run RE2's upstream tests:
 
 ```sh
-bazel test //projects/re2:kiss_test
+bazel test //projects/re2/as_is:kiss_test
 ```
 
 Run upstream tests through BuildBuddy RBE when a project has a test target:
 
 ```sh
-bazel test //projects/re2:kiss_rbe_test
+bazel test //projects/re2/as_is:kiss_rbe_test
 ```
 
 Outer and inner Bazel invocations publish anonymous, public BuildBuddy invocation
@@ -41,7 +41,6 @@ Legend:
 - `🔍` = inspected, but no real upstream Bazel test target exists
 - `💤` = no KISS target is expected for this project/command
 - `📦` = as-is source/module
-- `☁️` = BuildBuddy toolchain modification
 - `🧰` = hermetic-llvm modification
 
 RBE cells combine variant/result pairs, for example `📦 ❌ / 🧰 ✅`.

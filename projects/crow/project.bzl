@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "MINIMG", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # Crow — a header-only C++ microframework for building web services and APIs.
 # Source pinned in //kiss:extension.bzl (@crow_archive, release v1.3.2).
 # First-party Bazel: pulls asio, zlib and catch2 from the BCR. Its root BUILD
@@ -17,7 +17,7 @@ CROW_PROJECT = project_spec(
     ),
     toolchains = [HERMETIC_LLVM, PLATFORMS_DEP],
     bazel_version = "8.7.0",
-    environments = [LOCAL, RBE, MINIMG],
+    environments = [LOCAL, RBE],
     # The Crow header library (interface target over asio).
     build = build_spec(targets = ["//:crow"], flags = ["-c", "opt"]),
     test = test_spec(targets = ["//tests/ssl:ssltest"], flags = ["-c", "opt"]),

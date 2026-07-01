@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "MINIMG", "build_spec", "overlay", "project_spec", "tarball_source", "test_spec")
+load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "build_spec", "overlay", "project_spec", "tarball_source", "test_spec")
 # brotli's Bazel tests — its go bindings. The C library (built by //projects/brotli)
 # ships no cc_test rules; brotli's only Bazel test targets are the go_test rules
 # in the nested module at brotli-1.2.0/go (go/MODULE.bazel, module "brotli_go"):
@@ -35,7 +35,7 @@ BROTLI_GO_PROJECT = project_spec(
     ),
     toolchains = [HERMETIC_LLVM, BROTLI_GO_PARENT],
     bazel_version = "8.7.0",
-    environments = [LOCAL, MINIMG],
+    environments = [LOCAL],
     build = build_spec(
         targets = ["//..."],
         flags = ["-c", "opt", "--linkopt=-Wl,-z,notext"],

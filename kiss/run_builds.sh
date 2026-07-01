@@ -6,7 +6,7 @@ usage() {
 Usage: kiss/run_builds.sh [--list] [--clean|--no-clean] [--] [TARGET...]
 
 Runs KISS build targets sequentially. With no TARGET arguments, discovers all
-//projects/...:kiss_build targets.
+//projects/.../as_is:kiss_build and other variant kiss_build targets.
 
 By default, runs `bazel clean` before each target so projects do not accumulate
 outer build outputs. Set --no-clean or KISS_CLEAN_BETWEEN=0 to disable that.

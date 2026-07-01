@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "ACTIOND", "HERMETIC_LLVM", "LOCAL", "MINIMG", "RBE", "build_spec", "project_spec", "tarball_source")
+load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source")
 # nlohmann/json — JSON for Modern C++ (header-only).
 # Source pinned in //kiss:extension.bzl (@json_archive, v3.12.0), built
 # with the fully-hermetic LLVM toolchain.
@@ -22,6 +22,6 @@ JSON_PROJECT = project_spec(
         strip_prefix = "json-3.12.0",
     ),
     toolchains = [HERMETIC_LLVM],
-    environments = [LOCAL, RBE, ACTIOND, MINIMG],
+    environments = [LOCAL, RBE],
     build = build_spec(targets = ["//:json"], flags = ["-c", "opt"]),
 )

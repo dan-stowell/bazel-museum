@@ -1,0 +1,4 @@
+load("//kiss:defs.bzl", "matrix_project")
+load("//projects/grpc:project.bzl", "GRPC_PROJECT")
+
+matrix_project(project = GRPC_PROJECT)

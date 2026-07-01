@@ -18,7 +18,7 @@ VERIBLE_PROJECT = project_spec(
     # A deterministic core of verible/common/util unit tests — the generic
     # container/algorithm/interval utilities that underpin the whole suite. These
     # depend only on abseil + googletest (NOT the bison/flex SystemVerilog parser),
-    # so the goal stays fast and hermetic on local, the container, and RBE. The
+    # so the goal stays fast and hermetic on local and RBE. The
     # full tree has 217 cc_tests, many tied to the heavy parser/formatter.
     test = test_spec(
         targets = [

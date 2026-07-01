@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "ACTIOND", "HERMETIC_LLVM", "LOCAL", "MINIMG", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # Catch2 — C++ test framework.
 # Source pinned in //kiss:extension.bzl (@catch2_archive, v3.15.1), built
 # with the fully-hermetic LLVM toolchain. Iconic artifact: the catch2_main
@@ -32,9 +32,9 @@ CATCH2_PROJECT = project_spec(
         ),
     # PLATFORMS_DEP gives the injected RBE platform package @platforms visibility
     # (Catch2's MODULE declares no direct platforms dep), needed by the
-    # pin_platform envs (RBE/actiond).
+    # pin_platform envs such as RBE.
     toolchains = [HERMETIC_LLVM, PLATFORMS_DEP],
-    environments = [LOCAL, RBE, ACTIOND, MINIMG],
+    environments = [LOCAL, RBE],
     build = build_spec(targets = ["//:catch2_main"], flags = ["-c", "opt"]),
     test = test_spec(
         targets = ["//tests:catch2_self_test"],

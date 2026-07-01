@@ -1,8 +1,8 @@
-load("//kiss:defs.bzl", "CIIMG", "LOCAL", "bcr_module_source", "project_spec", "test_spec")
+load("//kiss:defs.bzl", "LOCAL", "bcr_module_source", "project_spec", "test_spec")
 # gsl-lite — C++ Guidelines Support Library (gsl-lite/gsl-lite).
 # A "BCR module" project: the runner bazel_dep()s the module from the Bazel
 # Central Registry and runs its own presubmit test target. Host tier: builds and
-# tests with the ambient toolchain on LOCAL and in the full CI image (CIIMG) — no
+# tests with the ambient toolchain on LOCAL — no
 # hermetic LLVM. (RBE/hermetic reached for only when needed.)
 GSL_LITE_PROJECT = project_spec(
     name = "gsl-lite",
@@ -10,6 +10,6 @@ GSL_LITE_PROJECT = project_spec(
         module = "gsl-lite",
         version = "1.1.0",
     ),
-    environments = [LOCAL, CIIMG],
+    environments = [LOCAL],
     test = test_spec(targets = ["@gsl-lite//..."], flags = ["-c", "opt"]),
 )

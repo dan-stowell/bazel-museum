@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "ACTIOND", "HERMETIC_LLVM", "LOCAL", "MINIMG", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # gRPC — first-party Bazel, the natural companion to protobuf.
 # Source pinned in //kiss:extension.bzl (@grpc_archive, v1.81.1).
 #
@@ -26,7 +26,7 @@ GRPC_PROJECT = project_spec(
     ),
     toolchains = [HERMETIC_LLVM],
     bazel_version = "8.7.0",
-    environments = [LOCAL, RBE, ACTIOND, MINIMG],
+    environments = [LOCAL, RBE],
     build = build_spec(targets = ["//:grpc++", "//:grpc"], flags = ["-c", "opt"]),
     test = test_spec(targets = ["//test/core/promise/..."], flags = ["-c", "opt"]),
 )

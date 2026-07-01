@@ -1,8 +1,8 @@
-load("//kiss:defs.bzl", "CIIMG", "LOCAL", "bcr_module_source", "project_spec", "test_spec")
+load("//kiss:defs.bzl", "LOCAL", "bcr_module_source", "project_spec", "test_spec")
 # LLVM — the LLVM compiler infrastructure project, C++ (llvm/llvm-project). A "BCR
 # module" project: the runner bazel_dep()s llvm-project from the Bazel Central
 # Registry and runs a scoped set of its own unit tests. Host tier on LOCAL + the
-# full CI image (CIIMG) with the ambient toolchain — no hermetic LLVM. Pinned to
+# LOCAL with the ambient toolchain — no hermetic LLVM. Pinned to
 # BCR 17.0.4.bcr.1.
 #
 # The full @llvm-project//llvm/unittests:all is enormous; this scopes to the
@@ -15,7 +15,7 @@ LLVM_PROJECT_PROJECT = project_spec(
         module = "llvm-project",
         version = "17.0.4.bcr.1",
     ),
-    environments = [LOCAL, CIIMG],
+    environments = [LOCAL],
     test = test_spec(
         targets = [
             "@llvm-project//llvm/unittests:adt_tests",

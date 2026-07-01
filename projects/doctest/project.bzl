@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "MINIMG", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # doctest — the fast, header-only C++ unit-testing framework.
 # Source pinned in //kiss:extension.bzl (@doctest_archive, release
 # v2.5.2), built with the fully-hermetic LLVM toolchain. Its BUILD files
@@ -23,7 +23,7 @@ DOCTEST_PROJECT = project_spec(
         source_subdir = "examples",
     ),
     toolchains = [HERMETIC_LLVM, PLATFORMS_DEP],
-    environments = [LOCAL, RBE, MINIMG],
+    environments = [LOCAL, RBE],
     # Build the doctest library itself (consumed as @doctest from the examples
     # module), then run the upstream Bazel-wired static-library example as a
     # smoke test for consuming doctest from multiple linked libraries.

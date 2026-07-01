@@ -1,9 +1,9 @@
-load("//kiss:defs.bzl", "CIIMG", "LOCAL", "bcr_module_source", "build_spec", "project_spec", "test_spec")
+load("//kiss:defs.bzl", "LOCAL", "bcr_module_source", "build_spec", "project_spec", "test_spec")
 # RocksDB — Facebook's embedded persistent key-value store / LSM-tree engine, C++
 # (facebook/rocksdb). A "BCR module" project: the runner bazel_dep()s rocksdb from
 # the Bazel Central Registry and builds its library + runs a scoped set of its own
-# unit tests. Host tier on LOCAL + the full CI image (CIIMG) with the ambient
-# toolchain — no hermetic LLVM. Pinned to BCR 9.11.2.
+# unit tests. LOCAL uses the ambient host toolchain; no hermetic LLVM. Pinned to
+# BCR 9.11.2.
 #
 # Runs on the Bazel 8.7 inner: rocksdb's test graph (via googletest 1.17) trips a
 # rule Bazel 9 removed, which 8.7 still provides. Compression backends lz4/zlib/
@@ -30,7 +30,7 @@ ROCKSDB_PROJECT = project_spec(
         version = "9.11.2",
     ),
     bazel_version = "8.7.0",
-    environments = [LOCAL, CIIMG],
+    environments = [LOCAL],
     build = build_spec(targets = ["@rocksdb//:rocksdb"], flags = ["-c", "opt"] + _BACKENDS),
     test = test_spec(
         targets = [

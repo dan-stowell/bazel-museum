@@ -23,9 +23,6 @@ def _compat_env(name):
 
 LOCAL = _compat_env("local")
 RBE = _compat_env("rbe")
-ACTIOND = _compat_env("actiond")
-MINIMG = _compat_env("minimg")
-CIIMG = _compat_env("ciimg")
 
 def overlay(name, appends = [], writes = [], patches = [], build_flags = [], remote_header_envs = [], tools = []):
     return struct(
@@ -72,7 +69,6 @@ BUILDBUDDY_RBE = overlay(
         "--remote_executor=grpcs://remote.buildbuddy.io",
     ],
 )
-ACTIOND_WORKER = overlay(name = "actiond_worker")
 
 def tarball_source(archive, strip_prefix = "", source_subdir = ""):
     return struct(
@@ -276,12 +272,25 @@ def _single_file(files, attr_name):
         fail("{} must provide exactly one file, got {}".format(attr_name, len(files)))
     return files[0]
 
+def _job_label(package, target_name):
+    parts = package.split("/")
+    if len(parts) >= 3 and parts[0] == "projects":
+        project = "/".join(parts[1:-1])
+        variant = parts[-1]
+    else:
+        project = package
+        variant = "unknown"
+    environment = "rbe" if target_name.startswith("kiss_rbe_") else "local"
+    command = "test" if target_name.endswith("_test") else "build"
+    return "{} {} {} {}".format(project, variant, environment, command)
+
 def _kiss_build_impl(ctx):
     source = _single_file(ctx.attr.source[DefaultInfo].files, "source")
     out = ctx.actions.declare_file(ctx.attr.name + ".tar")
 
     args = ctx.actions.args()
     args.add("--mode=build")
+    args.add("--job", _job_label(ctx.label.package, ctx.attr.name))
     args.add("--source", source.path)
     if ctx.attr.source_subdir:
         args.add("--source_subdir", ctx.attr.source_subdir)
@@ -342,6 +351,7 @@ def kiss_test(name, source, targets, bazel = None, bazel_data = None, bazel_arg 
         main = "kiss_runner.py",
         args = [
             "--mode=test",
+            "--job=%s" % _job_label(native.package_name(), name),
             "--source=$(rlocationpath %s)" % source,
         ] + ([
             "--source_subdir=%s" % source_subdir,

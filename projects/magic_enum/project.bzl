@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "MINIMG", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # magic_enum — static reflection (to-string, iteration, …) for C++ enums.
 # Source pinned in //kiss:extension.bzl (@magic_enum_archive, v0.9.8),
 # built with the fully-hermetic LLVM toolchain.
@@ -23,7 +23,7 @@ MAGIC_ENUM_PROJECT = project_spec(
         source_subdir = "test",
     ),
     toolchains = [HERMETIC_LLVM, PLATFORMS_DEP],
-    environments = [LOCAL, RBE, MINIMG],
+    environments = [LOCAL, RBE],
     # The two wired cc_tests (test, test_flags) — building them compiles real
     # magic_enum usage through the vendored Catch2 (the library itself is
     # header-only, so this is where the toolchain actually exercises it).

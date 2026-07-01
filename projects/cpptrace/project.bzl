@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "MINIMG", "PLATFORMS_DEP", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "PLATFORMS_DEP", "build_spec", "project_spec", "tarball_source", "test_spec")
 # cpptrace — a C++ stacktrace / backtrace library. Source pinned in
 # //kiss:extension.bzl (@cpptrace_archive, release v1.0.4). First-party
 # Bazel: the project self-registers toolchains_llvm (a hermetic clang) and pulls
@@ -15,7 +15,7 @@ CPPTRACE_PROJECT = project_spec(
     ),
     toolchains = [HERMETIC_LLVM, PLATFORMS_DEP],
     bazel_version = "8.7.0",
-    environments = [LOCAL, MINIMG],
+    environments = [LOCAL],
     build = build_spec(targets = ["//:cpptrace"], flags = ["-c", "opt"]),
     test = test_spec(targets = ["//test:unittest"], flags = ["-c", "opt"]),
 )

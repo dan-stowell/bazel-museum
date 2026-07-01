@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "MINIMG", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # go-jsonnet — the pure-Go implementation of the Jsonnet data-templating
 # language, the Go sibling of the C++ //projects/jsonnet. Source pinned in
 # //kiss:extension.bzl (@go_jsonnet_archive, release v0.22.0). First-party
@@ -18,7 +18,7 @@ GO_JSONNET_PROJECT = project_spec(
     ),
     toolchains = [HERMETIC_LLVM, PLATFORMS_DEP],
     bazel_version = "8.7.0",
-    environments = [LOCAL, RBE, MINIMG],
+    environments = [LOCAL, RBE],
     # The Jsonnet command-line tools go-jsonnet ships, all pure-Go binaries: the
     # evaluator, the linter and the formatter. (c-bindings/wasm targets need cgo /
     # a wasm platform, so they're left out.)

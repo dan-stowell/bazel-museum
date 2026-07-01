@@ -4,10 +4,8 @@ load("//kiss:defs.bzl", "LOCAL", "RBE", "bcr_module_source", "build_spec", "proj
 # its own @cjson//... targets. LOCAL uses the ambient host gcc; RBE uses hermetic
 # LLVM. Pinned to BCR 1.7.19 (bcr.4).
 #
-# CIIMG is deliberately omitted: one of cjson's 22 tests is sensitive to the
-# compiler/libc (22/22 on the host gcc-13 and on the hermetic RBE toolchain, but
-# 21/22 under the CI image's gcc) — a small, real reminder that the host tier is
-# not reproducible across toolchains.
+# One of cjson's 22 tests is sensitive to the compiler/libc. This is a small,
+# real reminder that the host tier is not reproducible across toolchains.
 CJSON_PROJECT = project_spec(
     name = "cjson",
     source = bcr_module_source(

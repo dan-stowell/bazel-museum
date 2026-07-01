@@ -1,0 +1,4 @@
+load("//kiss:defs.bzl", "matrix_project")
+load("//projects/snappy:project.bzl", "SNAPPY_PROJECT")
+
+matrix_project(project = SNAPPY_PROJECT)

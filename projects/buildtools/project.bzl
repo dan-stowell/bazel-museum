@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "MINIMG", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # buildtools — Bazel's own BUILD/Starlark file tooling (buildifier, buildozer),
 # written in Go. Source pinned in //kiss:extension.bzl (@buildtools_archive,
 # release v7.3.1). Built with rules_go: the Go SDK is downloaded hermetically by
@@ -18,7 +18,7 @@ BUILDTOOLS_PROJECT = project_spec(
     ),
     toolchains = [HERMETIC_LLVM, PLATFORMS_DEP],
     bazel_version = "8.7.0",
-    environments = [LOCAL, RBE, MINIMG],
+    environments = [LOCAL, RBE],
     # buildifier itself (the canonical Bazel file formatter), a pure-Go binary.
     build = build_spec(targets = ["//buildifier:buildifier"], flags = ["-c", "opt"]),
     # The pure-Go unit tests for the build-file parser/printer, the buildozer

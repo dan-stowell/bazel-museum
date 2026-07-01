@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "MINIMG", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # abseil-py — Google's Python common libraries (application/flags/logging/testing),
 # the Python sibling of the C++ //projects/abseil_cpp. Source pinned in
 # //kiss:extension.bzl (@abseil_py_archive, release v2.4.0). First-party
@@ -17,7 +17,7 @@ ABSEIL_PY_PROJECT = project_spec(
     ),
     toolchains = [HERMETIC_LLVM, PLATFORMS_DEP],
     bazel_version = "8.7.0",
-    environments = [LOCAL, RBE, MINIMG],
+    environments = [LOCAL, RBE],
     # The whole absl Python package tree (app, flags, logging, testing helpers).
     build = build_spec(targets = ["//absl/..."]),
     # abseil-py's py_test suite across flags, logging, testing and the top-level

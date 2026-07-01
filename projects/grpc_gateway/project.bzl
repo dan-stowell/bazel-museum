@@ -1,4 +1,4 @@
-load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "MINIMG", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
+load("//kiss:defs.bzl", "HERMETIC_LLVM", "LOCAL", "PLATFORMS_DEP", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
 # grpc-gateway — a gRPC-to-JSON reverse proxy and the protoc plugins that
 # generate it, written in Go. Source pinned in //kiss:extension.bzl
 # (@grpc_gateway_archive, release v2.29.0). First-party Bazel (modern bzlmod):
@@ -18,7 +18,7 @@ GRPC_GATEWAY_PROJECT = project_spec(
     ),
     toolchains = [HERMETIC_LLVM, PLATFORMS_DEP],
     bazel_version = "9.1.1",
-    environments = [LOCAL, RBE, MINIMG],
+    environments = [LOCAL, RBE],
     # The two protoc plugins grpc-gateway ships, both pure-Go binaries.
     # Force pure-Go linking: a transitive dep otherwise pulls cgo, whose external
     # link goes through clang++ → ld.lld and hits a text-relocation error

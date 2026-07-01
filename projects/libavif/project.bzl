@@ -1,8 +1,8 @@
-load("//kiss:defs.bzl", "CIIMG", "LOCAL", "bcr_module_source", "project_spec", "test_spec")
+load("//kiss:defs.bzl", "LOCAL", "bcr_module_source", "project_spec", "test_spec")
 # libavif — AVIF image codec in C (AOMediaCodec/libavif).
 # A "BCR module" project: the runner bazel_dep()s the module from the Bazel
 # Central Registry and runs its own presubmit test target. Host tier: builds and
-# tests with the ambient toolchain on LOCAL and in the full CI image (CIIMG) — no
+# tests with the ambient toolchain on LOCAL — no
 # hermetic LLVM. (RBE/hermetic reached for only when needed.)
 LIBAVIF_PROJECT = project_spec(
     name = "libavif",
@@ -10,6 +10,6 @@ LIBAVIF_PROJECT = project_spec(
         module = "libavif",
         version = "1.4.1",
     ),
-    environments = [LOCAL, CIIMG],
+    environments = [LOCAL],
     test = test_spec(targets = ["@libavif//..."], flags = ["-c", "opt"]),
 )

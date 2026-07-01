@@ -15,6 +15,7 @@ build --jobs=1
 # Publish anonymous, public BuildBuddy invocation links for outer Bazel runs.
 build --bes_results_url=https://app.buildbuddy.io/invocation/
 build --bes_backend=grpcs://remote.buildbuddy.io
+build --build_metadata=USER=bazel-matrix
 
 # Quieter, more useful test output.
 test --test_output=errors

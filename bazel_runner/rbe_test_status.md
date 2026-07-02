@@ -101,16 +101,54 @@ Anything python touches fails on RBE workers because the images ship no
 - `protobuf` `//src/google/protobuf/compiler:protoc_x86_64_test`: shells out
   to the `file` utility, absent on executor images.
 
+## Per-project accommodations added during the sweeps
+
+- `avro-cpp`: `--cxxopt=-include cstdlib` — its pinned fmt uses malloc/free
+  without including `<cstdlib>`; libc++ 22 removed the transitive include.
+- `opentelemetry_cpp`: `--copt=-Wno-c2y-extensions` — its pinned
+  google_benchmark builds with -Werror and trips clang 22's new warning.
+- `opencl-sdk`: `--linkopt=-Wl,-z,muldefs` — one test links two definitions
+  of clReleaseDeviceEXT; upstream's default dynamic linking hides it, this
+  variant's `--dynamic_mode=off` surfaces it.
+- `iperf`: `--platforms=@llvm//platforms:linux_x86_64_gnu.2.36` — reads
+  `tcpi_snd_wnd`, added to glibc's `struct tcp_info` in 2.32.
+- `crow`, `sdl2_mixer`: per-project executor image (rbe-ubuntu20-04) for the
+  OpenSSL CLI / genrule python3 respectively (see `_rbe_overlay_flags`).
+- `aravis`, `lcm`, `opencc`, `effcee`, `googletest`: HERMETIC_PYTHON /
+  HERMETIC_PYTHON_FLAGS (see the python finding above).
+
+## Known-failing (upstream/environment incompatibilities)
+
+- `behaviortree_cpp`: its BCR `sed` dep (gnulib) fails to parse under
+  clang 22 (`_GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD`).
+- `aravis`: after the python fix, rules_foreign_cc configure-builds GNU make,
+  which fails with the empty-sysroot hermetic clang on a bare image.
+  Candidate fix: preinstalled-make toolchain + tool-bearing image.
+- `rsyslog`: hermetic build fixed (include order, gnu.2.34, rbe-ubuntu22-04
+  image), but upstream's smoke_test drives rsyslogd with `nc -u -w 0`, which
+  only netcat-openbsd accepts; executor images ship other variants.
+
 ## Sweep results (2026-07-02)
 
-`bazel test //:hermetic_llvm_rbe_tests`: **47 of 47 pass**
-(https://app.buildbuddy.io/invocation/18f1e442-7034-4bcb-bb81-aec97b5e2d1d).
+`bazel test //:hermetic_llvm_rbe_tests`: **84 of 87 pass** after two
+expansion waves (59 new hermetic_llvm variant packages added tonight).
+Full-suite invocation:
+https://app.buildbuddy.io/invocation/0960a805-2d3f-4aa9-9e90-c7b650adbf6a
+(first-wave 47/47:
+https://app.buildbuddy.io/invocation/18f1e442-7034-4bcb-bb81-aec97b5e2d1d)
 
-Passing projects (hermetic_llvm variant, RBE test):
-abseil_cpp, abseil_py, benchmark, boringssl, ccronexpr, cctz, cityhash,
-cjson, cpp-httplib, cpu_features, cxxurl, directxmath, double_conversion,
-effcee, exprtk, fast_float, flatbuffers, ftxui, fuzztest, glm, googletest,
-gperftools, gsl-lite, hfsm2, highway, jsoncpp, lcm, lexbor, libfastjson,
-marisa-trie, nsync, ogg, onetbb, opencc, openexr, pcre2, prometheus_cpp,
-protobuf, re2, s2geometry, simdutf, snappy, tinyformat, tinyxml2,
-tomlplusplus, verible, zstd.
+Passing projects (hermetic_llvm variant, RBE test): abseil_cpp, abseil_py,
+avro-cpp, basis_universal, benchmark, boringssl, c-blosc2, catch2, ccronexpr,
+cctz, cityhash, cjson, cli11, cpp-httplib, cpu_features, crow, cucumber-cpp,
+cxxurl, directxmath, double_conversion, effcee, exprtk, fast_float, flatbuffers,
+flex, ftxui, fuzztest, glm, glog, googletest, gperftools, gsl-lite, hfsm2,
+highs, highway, icu, iperf, iverilog, jsoncpp, jsonnet, lcm, lexbor, lexy,
+libavif, libcreate, libde265, libdwarf, libevent, libfastjson, libgd, libgit2,
+libheif, libpcap, libwebsockets, magic_enum, marisa-trie, nsync, ogg, onetbb,
+opencc, opencl-sdk, openexr, openssl, opentelemetry_cpp, pcre2,
+prometheus_cpp, protobuf, re2, reflexxes-rmltype2, s2geometry, sdl2,
+sdl2_mixer, simdutf, snappy, squashfs-tools, systemc, tinyformat, tinyxml2,
+tomlplusplus, universal-robots-client-library, verible, xkbcommon, zstd,
+zziplib.
+
+Failing: aravis, behaviortree_cpp, rsyslog (see Known-failing above).

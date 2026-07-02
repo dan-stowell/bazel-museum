@@ -1,10 +1,4 @@
 load("//bazel_runner:defs.bzl", "LOCAL", "RBE", "build_spec", "project_spec", "tarball_source", "test_spec")
-# cctz/time tests read the host tzdata, absent off-host (RBE); see below.
-_CCTZ_TIME_TESTS = [
-    "//absl/time:time_test",
-    "//absl/time/internal/cctz:time_zone_format_test",
-    "//absl/time/internal/cctz:time_zone_lookup_test",
-]
 
 # Abseil's C++ common libraries — the matrix's first build.
 # Source pinned in //bazel_runner:extension.bzl (@absl_archive, release
@@ -21,12 +15,16 @@ ABSEIL_CPP_PROJECT = project_spec(
     build = build_spec(targets = ["//absl/..."], flags = ["-c", "opt"]),
     test = test_spec(
         targets = ["//absl/..."],
-        # The cctz/time tests read the system timezone database
-        # (/usr/share/zoneinfo), which the RBE executor image does not ship and
-        # which isn't a Bazel-tracked input — so they're excluded off-host. A hermetic tzdata
-        # input, or a tzdata-bearing executor, would re-include them.
+        # The cctz tests bundle testdata/zoneinfo as runfiles data; TZDIR makes
+        # them read that (resolved relative to the test cwd in runfiles)
+        # instead of the host /usr/share/zoneinfo, which RBE executor images
+        # do not ship.
+        flags = ["--test_env=TZDIR=absl/time/internal/cctz/testdata/zoneinfo"],
+        # time_test has no zoneinfo data dep of its own, so off-host it still
+        # has no timezone database to read. A hermetic tzdata input upstream
+        # would re-include it.
         exclude_on = {
-            "rbe": _CCTZ_TIME_TESTS,
+            "rbe": ["//absl/time:time_test"],
         },
     ),
 )

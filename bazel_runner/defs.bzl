@@ -400,6 +400,15 @@ def bazel_runner_test(name, source, targets, bazel = None, bazel_data = None, ba
         visibility = visibility,
     )
 
+def _spec_targets(spec, environment):
+    """Target patterns for a build/test spec in an environment.
+
+    exclude_on maps an environment name ("local"/"rbe") to target patterns to
+    exclude there, e.g. tests that read host state absent on RBE workers.
+    """
+    excluded = spec.exclude_on.get(environment, [])
+    return spec.targets + ["-" + target for target in excluded]
+
 def _overlay_files(toolchains, field):
     result = {}
     for toolchain in toolchains:
@@ -465,7 +474,7 @@ def _emit_bazel_runner_targets(source_archive, strip_prefix, source_subdir, tool
             name = _local_build_name(target_prefix),
             source = ":bazel_runner_source",
             bazel = bazel,
-            targets = build.targets,
+            targets = _spec_targets(build, "local"),
             flags = build_flags + build.flags,
             source_subdir = source_subdir,
             visibility = visibility,
@@ -474,7 +483,7 @@ def _emit_bazel_runner_targets(source_archive, strip_prefix, source_subdir, tool
             name = _rbe_build_name(target_prefix),
             source = ":bazel_runner_source",
             bazel = bazel,
-            targets = build.targets,
+            targets = _spec_targets(build, "rbe"),
             flags = rbe_build_flags + build.flags,
             source_subdir = source_subdir,
             visibility = visibility,
@@ -484,7 +493,7 @@ def _emit_bazel_runner_targets(source_archive, strip_prefix, source_subdir, tool
         bazel_runner_test(
             name = _local_test_name(target_prefix),
             source = ":bazel_runner_source",
-            targets = test.targets,
+            targets = _spec_targets(test, "local"),
             bazel_data = inner_bazel_data(bazel_version),
             bazel_arg = inner_bazel_arg(bazel_version),
             flags = build_flags + test.flags,
@@ -494,7 +503,7 @@ def _emit_bazel_runner_targets(source_archive, strip_prefix, source_subdir, tool
         bazel_runner_test(
             name = _rbe_test_name(target_prefix),
             source = ":bazel_runner_source",
-            targets = test.targets,
+            targets = _spec_targets(test, "rbe"),
             bazel_data = inner_bazel_data(bazel_version),
             bazel_arg = inner_bazel_arg(bazel_version),
             flags = rbe_build_flags + test.flags,
@@ -512,7 +521,7 @@ def _emit_bazel_runner_targets_for_source(source, source_subdir, toolchains, bui
             name = _local_build_name(target_prefix),
             source = source,
             bazel = bazel,
-            targets = build.targets,
+            targets = _spec_targets(build, "local"),
             flags = build_flags + build.flags,
             source_subdir = source_subdir,
             visibility = visibility,
@@ -521,7 +530,7 @@ def _emit_bazel_runner_targets_for_source(source, source_subdir, toolchains, bui
             name = _rbe_build_name(target_prefix),
             source = source,
             bazel = bazel,
-            targets = build.targets,
+            targets = _spec_targets(build, "rbe"),
             flags = rbe_build_flags + build.flags,
             source_subdir = source_subdir,
             visibility = visibility,
@@ -531,7 +540,7 @@ def _emit_bazel_runner_targets_for_source(source, source_subdir, toolchains, bui
         bazel_runner_test(
             name = _local_test_name(target_prefix),
             source = source,
-            targets = test.targets,
+            targets = _spec_targets(test, "local"),
             bazel_data = inner_bazel_data(bazel_version),
             bazel_arg = inner_bazel_arg(bazel_version),
             flags = build_flags + test.flags,
@@ -541,7 +550,7 @@ def _emit_bazel_runner_targets_for_source(source, source_subdir, toolchains, bui
         bazel_runner_test(
             name = _rbe_test_name(target_prefix),
             source = source,
-            targets = test.targets,
+            targets = _spec_targets(test, "rbe"),
             bazel_data = inner_bazel_data(bazel_version),
             bazel_arg = inner_bazel_arg(bazel_version),
             flags = rbe_build_flags + test.flags,

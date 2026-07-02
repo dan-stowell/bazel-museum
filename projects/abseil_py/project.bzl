@@ -22,5 +22,14 @@ ABSEIL_PY_PROJECT = project_spec(
     build = build_spec(targets = ["//absl/..."]),
     # abseil-py's py_test suite across flags, logging, testing and the top-level
     # app/command-name/version tests.
-    test = test_spec(targets = ["//absl/..."]),
+    test = test_spec(
+        targets = ["//absl/..."],
+        # flags_test's test_method_flagfiles_no_permissions chmods a flagfile
+        # unreadable and expects the open to fail; RBE executors run actions
+        # as root, which ignores file permissions, so the test only fails
+        # off-host.
+        exclude_on = {
+            "rbe": ["//absl/flags:tests/flags_test"],
+        },
+    ),
 )

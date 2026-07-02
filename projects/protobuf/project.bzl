@@ -17,5 +17,12 @@ PROTOBUF_PROJECT = project_spec(
     # The C++ runtime test tree. Other language bindings (Java/Python/Ruby/
     # Rust/Kotlin/upb) live elsewhere in the repo and need their own toolchains,
     # so we scope tests to the C++ core for now.
-    test = test_spec(targets = ["//src/google/protobuf/..."]),
+    test = test_spec(
+        targets = ["//src/google/protobuf/..."],
+        # protoc_x86_64_test shells out to the `file` utility, which RBE
+        # executor images do not ship (Exit 127 off-host only).
+        exclude_on = {
+            "rbe": ["//src/google/protobuf/compiler:protoc_x86_64_test"],
+        },
+    ),
 )

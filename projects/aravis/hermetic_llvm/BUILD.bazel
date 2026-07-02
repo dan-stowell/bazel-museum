@@ -1,4 +1,9 @@
-load("//bazel_runner:defs.bzl", "hermetic_llvm_project_modification")
+load("//bazel_runner:defs.bzl", "HERMETIC_PYTHON", "hermetic_llvm_project_modification")
 load("//projects/aravis:project.bzl", "ARAVIS_PROJECT")
 
-hermetic_llvm_project_modification(project = ARAVIS_PROJECT)
+# aravis's glib dependency runs py_binary codegen tools (gdbus-codegen);
+# HERMETIC_PYTHON keeps them off the system python3, absent on RBE workers.
+hermetic_llvm_project_modification(
+    project = ARAVIS_PROJECT,
+    toolchains = [HERMETIC_PYTHON],
+)

@@ -51,6 +51,17 @@ _HERMETIC_LLVM_MODIFICATION = overlay(
     # linking removes the runtime dependency on worker system libraries.
     build_flags = ["--dynamic_mode=off"],
 )
+# For projects with py_test targets: rules_python's default
+# bootstrap_impl=system_python stage-1 stub execs `/usr/bin/env python3` even
+# when a hermetic runtime is attached, and RBE images have no python3. The
+# script bootstrap needs no system interpreter. The append gives the root
+# module a rules_python dep so the flag's repo is addressable from the
+# command line (MVS keeps the project's own newer pin if it has one).
+HERMETIC_PYTHON = overlay(
+    name = "hermetic_python",
+    appends = [("//bazel_runner:hermetic_python.MODULE.bazel", "MODULE.bazel")],
+    build_flags = ["--@rules_python//python/config_settings:bootstrap_impl=script"],
+)
 CC_NODETECT = overlay(name = "cc_nodetect")
 HERMETIC_ZIP = overlay(
     name = "hermetic_zip",

@@ -1,4 +1,9 @@
-load("//bazel_runner:defs.bzl", "hermetic_llvm_project_modification")
+load("//bazel_runner:defs.bzl", "HERMETIC_PYTHON", "hermetic_llvm_project_modification")
 load("//projects/effcee:project.bzl", "EFFCEE_PROJECT")
 
-hermetic_llvm_project_modification(project = EFFCEE_PROJECT)
+# effcee_example_test is a py_test; HERMETIC_PYTHON keeps its bootstrap off
+# the (absent) system python3 on RBE workers.
+hermetic_llvm_project_modification(
+    project = EFFCEE_PROJECT,
+    toolchains = [HERMETIC_PYTHON],
+)

@@ -1,6 +1,6 @@
 load("@rules_python//python:defs.bzl", "py_binary")
 
-exports_files(["hermetic_llvm.MODULE.bazel", "bazel_runner.py", "zip.py"])
+exports_files(["hermetic_llvm.MODULE.bazel", "hermetic_python.MODULE.bazel", "bazel_runner.py", "zip.py"])
 
 py_binary(
     name = "bazel_runner",
